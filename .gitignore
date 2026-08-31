@@ -1,0 +1,89 @@
+# ==============================================================================
+# SE4040: Smart Solar Microgrid Trading Platform - Root .gitignore
+# Covers ASP.NET Core 8 Web API, React 18 / Vite Frontend, and Native Android
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. ASP.NET Core / .NET Build Artifacts & User State
+# ------------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+.vs/
+.vscode/
+_ReSharper*/
+*.DotSettings.user
+
+# ------------------------------------------------------------------------------
+# 2. React 18 / Vite / Node.js Dependencies & Builds
+# ------------------------------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+build/
+.cache/
+.vite/
+*.local
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# 3. Android Studio, Gradle & Mobile Build Artifacts
+# ------------------------------------------------------------------------------
+.gradle/
+**/build/
+!android/SmartSolarMobile/build.gradle
+!android/SmartSolarMobile/app/build.gradle
+*.iml
+.idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+local.properties
+.externalNativeBuild/
+.cxx/
+captures/
+output.json
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Keystore / Signing files
+*.jks
+*.keystore
+
+# ------------------------------------------------------------------------------
+# 4. Local Backup Folders & Temporary Tools
+# ------------------------------------------------------------------------------
+SmartSolarApi_Backup_*/
+IIS/
+.qodo/
+workflows/
+agents/
+*.log
+*.tmp
+*.bak
+
+# ------------------------------------------------------------------------------
+# 5. OS & Workspace Specific Temporary Files
+# ------------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
