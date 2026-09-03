@@ -1,0 +1,24 @@
+// ============================================================================
+// File: settings.gradle
+// Author: Smart Solar Microgrid Trading System Team
+// Course: SE4040 - Enterprise Application Development
+// Description: Gradle project settings for Pure Native Android Application.
+// ============================================================================
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = "SmartSolarMobile"
+include ':app'

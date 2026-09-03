@@ -1,0 +1,9 @@
+// ============================================================================
+// File: build.gradle (Project-level)
+// Author: Smart Solar Microgrid Trading System Team
+// Course: SE4040 - Enterprise Application Development
+// Description: Root Gradle build configuration for Pure Native Android App.
+// ============================================================================
+plugins {
+    id 'com.android.application' version '8.3.2' apply false
+}
