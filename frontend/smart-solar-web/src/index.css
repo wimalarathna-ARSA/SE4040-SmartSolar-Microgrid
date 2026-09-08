@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Smart Solar Microgrid Trading System - Global Styles
+   SE4040 Enterprise Application Development
+   Enhanced with Realistic 3D Glassmorphism & Cybernetic Depth
+   Strict Dark Aesthetic - No White Backgrounds on Homepage
+   ========================================================================== */
+
+:root {
+  --primary-solar: #00ffce;
+  --secondary-solar: #10b981;
+  --accent-solar: #f59e0b;
+  --dark-solar: #020202;
+  --panel-dark: #080c14;
+  --light-bg: #020202;
+  --bs-body-bg: #020202;
+  --bs-body-color: #e2e8f0;
+}
+
+html, body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #020202 !important;
+  color: #e2e8f0 !important;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #020202 !important;
+  color: #e2e8f0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* Force override of Bootstrap light utility classes */
+.bg-light {
+  background-color: #020202 !important;
+  color: #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   Realistic 3D Glassmorphism & Cyber Depth Classes
+   ========================================================================== */
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.82) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.18) !important;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #e2e8f0 !important;
+}
+
+.glass-panel-glow {
+  background: rgba(15, 23, 42, 0.9) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  border-radius: 16px;
+  box-shadow: 0 15px 35px -5px rgba(2, 132, 199, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #e2e8f0 !important;
+}
+
+/* 3D Perspective Card Wrapper */
+.card-3d-wrapper {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Glow Text Utilities */
+.glow-text-cyan {
+  text-shadow: 0 0 16px rgba(6, 182, 212, 0.65);
+}
+
+.glow-text-amber {
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.65);
+}
+
+.glow-text-green {
+  text-shadow: 0 0 16px rgba(34, 197, 94, 0.65);
+}
+
+/* Pointer Events Helpers for 3D Overlays */
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
+}
+
+/* 3D Holographic Radar Background Grid - strictly dark */
+.bg-grid-pattern {
+  background-color: #020202 !important;
+  background-image: 
+    linear-gradient(to right, rgba(0, 255, 206, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 255, 206, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Custom Card Styles - No white backgrounds */
+.solar-card,
+.card.solar-card,
+.card {
+  border-radius: 16px;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  background: rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  color: #f1f5f9 !important;
+}
+
+.solar-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 16px 36px -6px rgba(2, 132, 199, 0.3);
+}
+
+.kpi-card {
+  border-left: 5px solid;
+  border-radius: 12px;
+}
+
+.kpi-card.primary { border-left-color: #0284c7; }
+.kpi-card.success { border-left-color: #10b981; }
+.kpi-card.warning { border-left-color: #f59e0b; }
+.kpi-card.info { border-left-color: #06b6d4; }
+
+.badge-role-backoffice {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.badge-role-operator {
+  background-color: #0284c7;
+  color: white;
+}
+
+.badge-role-prosumer {
+  background-color: #10b981;
+  color: white;
+}
+
+.table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Custom Hero Section */
+.hero-gradient {
+  background: radial-gradient(circle at 50% -20%, #0c2340 0%, #070e1a 75%) !important;
+  color: #ffffff;
+}
+
+/* Form sliders styling on dark theme */
+.form-range::-webkit-slider-runnable-track {
+  background-color: #1e293b;
+  border-radius: 8px;
+}
+
+.form-range::-moz-range-track {
+  background-color: #1e293b;
+  border-radius: 8px;
+}
+
+.form-range::-webkit-slider-thumb {
+  background-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+}
+
+/* Radar Map Pulse Animation */
+@keyframes radarPulse {
+  0% {
+    r: 6px;
+    opacity: 0.8;
+  }
+  50% {
+    r: 16px;
+    opacity: 0.3;
+  }
+  100% {
+    r: 22px;
+    opacity: 0;
+  }
+}
+
+.radar-ring {
+  animation: radarPulse 2.4s infinite ease-out;
+  transform-origin: center;
+}
