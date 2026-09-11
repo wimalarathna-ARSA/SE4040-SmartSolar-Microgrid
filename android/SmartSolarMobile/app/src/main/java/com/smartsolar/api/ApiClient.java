@@ -35,4 +35,18 @@ public class ApiClient {
         }
         return httpClient;
     }
+
+        /** Builds an authenticated Request with Bearer token from SQLite session. */
+    // Reads JWT from DatabaseHelper and attaches as Authorization header
+    public static Request.Builder buildAuthRequest(Context context, String url) {
+        // Retrieve cached JWT token from local SQLite database and attach as Authorization Bearer header
+        DatabaseHelper db = new DatabaseHelper(context);
+        String token = db.getToken();
+        db.close();
+        Request.Builder builder = new Request.Builder().url(BASE_URL + url);
+        if (token != null && !token.isEmpty()) {
+            builder.header("Authorization", "Bearer " + token);
+        }
+        return builder;
+    }
 }
