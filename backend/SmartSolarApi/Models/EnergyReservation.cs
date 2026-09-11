@@ -36,5 +36,16 @@ public string ProsumerNic { get; set; } = string.Empty;
 
 [BsonElement("prosumerName")]
 public string ProsumerName { get; set; } = string.Empty;
+
+[BsonElement("slotId")]
+[BsonIgnoreIfNull]
+public string? SlotId { get; set; }
+
+[BsonElement("slotNumber")]
+[BsonIgnoreIfNull]
+public int? SlotNumber { get; set; }
+
+[BsonElement("status")]
+public string Status { get; set; } = "Pending";
     }
 }
