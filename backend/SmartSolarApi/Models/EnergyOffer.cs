@@ -14,6 +14,13 @@ namespace SmartSolarApi.Models
 
         public double EnergyKWh { get; set; }
 
+        public string Status { get; set; } = "Available";
+
+public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+// Optional expiration time for the offer.
+public DateTime? ValidUntil { get; set; }
+
 
     }
 }
