@@ -24,5 +24,11 @@ namespace SmartSolarApi.Models
 
         [BsonElement("stationName")]
         public string StationName { get; set; } = string.Empty;
+
+        [BsonElement("energyAmountKWh")]
+public double EnergyAmountKWh { get; set; }
+
+[BsonElement("durationHours")]
+public int DurationHours { get; set; } = 1;
     }
 }
