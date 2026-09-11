@@ -14,10 +14,6 @@ namespace SmartSolarApi.Models
 
         public double EnergyKWh { get; set; }
 
-        public decimal PricePerKWh { get; set; }
 
-        public string Status { get; set; } = "Available";
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
