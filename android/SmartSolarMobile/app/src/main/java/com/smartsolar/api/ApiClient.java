@@ -49,4 +49,12 @@ public class ApiClient {
         }
         return builder;
     }
+
+        /** Creates a JSON RequestBody from a JSONObject. */
+    // Wraps JSONObject as OkHttp MediaType JSON body
+    public static RequestBody jsonBody(JSONObject json) {
+        // Convert JSONObject payload into OkHttp RequestBody with application/json media type
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        return RequestBody.create(json.toString(), JSON);
+    }
 }
