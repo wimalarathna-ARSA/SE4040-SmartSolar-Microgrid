@@ -53,4 +53,58 @@ namespace SmartSolarApi.DTOs
         // Operational weekly schedule
         public string OperationalSchedule { get; set; } = "Mon-Sun 06:00-22:00";
     }
+
+    /// <summary>
+    /// Request payload for updating an existing solar microgrid hub.
+    /// </summary>
+    public class UpdateStationDto
+    {
+        // Station identifier code (e.g. "HUB-COLOMBO-01")
+        public string? StationCode { get; set; }
+
+        // Station name
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        // Location description
+        [Required]
+        public string Location { get; set; } = string.Empty;
+
+        // GPS Latitude
+        [Required]
+        public double Latitude { get; set; }
+
+        // GPS Longitude
+        [Required]
+        public double Longitude { get; set; }
+
+        // Capacity in kW/h
+        [Required]
+        public double CapacityKWh { get; set; }
+
+        // Total battery slots
+        [Required]
+        public int TotalBatterySlots { get; set; }
+
+        // Available battery slots
+        [Required]
+        public int AvailableBatterySlots { get; set; }
+
+        // Operational schedule
+        public string OperationalSchedule { get; set; } = string.Empty;
+
+        // Status: "Active" or "Inactive"
+        public string Status { get; set; } = "Active";
+    }
+
+    /// <summary>
+    /// Request payload for Grid Operators to update battery slot availability.
+    /// </summary>
+    public class UpdateBatterySlotsDto
+    {
+        // New count of available battery storage slots
+        [Required]
+        [Range(0, 500)]
+        public int AvailableBatterySlots { get; set; }
+    }
 }
