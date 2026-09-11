@@ -30,5 +30,11 @@ public double EnergyAmountKWh { get; set; }
 
 [BsonElement("durationHours")]
 public int DurationHours { get; set; } = 1;
+
+[BsonElement("prosumerNic")]
+public string ProsumerNic { get; set; } = string.Empty;
+
+[BsonElement("prosumerName")]
+public string ProsumerName { get; set; } = string.Empty;
     }
 }
