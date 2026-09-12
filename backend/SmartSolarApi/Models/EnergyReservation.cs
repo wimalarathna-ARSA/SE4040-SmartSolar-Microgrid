@@ -53,5 +53,20 @@ public string QrCodeData { get; set; } = string.Empty;
 
 [BsonElement("qrCodeExpiry")]
 public DateTime? QrCodeExpiry { get; set; }
+
+[BsonElement("completedAt")]
+public DateTime? CompletedAt { get; set; }
+
+[BsonElement("operatorNic")]
+public string? OperatorNic { get; set; }
+
+[BsonElement("operatorNotes")]
+public string? OperatorNotes { get; set; }
+
+[BsonElement("createdAt")]
+public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+[BsonElement("updatedAt")]
+public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }
