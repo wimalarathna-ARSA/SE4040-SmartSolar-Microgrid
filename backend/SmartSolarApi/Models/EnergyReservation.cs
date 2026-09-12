@@ -47,5 +47,11 @@ public int? SlotNumber { get; set; }
 
 [BsonElement("status")]
 public string Status { get; set; } = "Pending";
+
+[BsonElement("qrCodeData")]
+public string QrCodeData { get; set; } = string.Empty;
+
+[BsonElement("qrCodeExpiry")]
+public DateTime? QrCodeExpiry { get; set; }
     }
 }
