@@ -16,5 +16,9 @@ namespace SmartSolarApi.Models
         public string SellerId { get; set; } = string.Empty;
 
         public double EnergyKWh { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
