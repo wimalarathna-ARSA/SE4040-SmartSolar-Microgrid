@@ -159,4 +159,104 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_BOOKING_CACHED_AT + " TEXT" +
                 ")");
     }
+
+    
+    /**
+     * Handles database schema migration on version upgrades.
+     */
+    // Drops and recreates tables when schema version changes
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Rebuild database tables when database version number is incremented
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER_SESSION);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CACHED_STATIONS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CACHED_BOOKINGS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ENERGY_RESERVATION);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ENERGY_BOOKING_SLOTS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SOLAR_STATION_INFO);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER_DETAILS);
+        onCreate(db);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Delegate downgrade behavior to onUpgrade to recreate local tables
+        onUpgrade(db, oldVersion, newVersion);
+    }
+
+    /**
+     * Saves authenticated user session and JWT token to SQLite.
+     */
+    // Clears existing session and inserts new logged-in user data
+    public void saveSession(String nic, String fullName, String email, String role, String status, String token) {
+        // Persist user session details and JWT bearer token into local SQLite storage
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_USER_SESSION);
+        ContentValues values = new ContentValues();
+        values.put(COL_SESSION_NIC, nic);
+        values.put(COL_SESSION_NAME, fullName);
+        values.put(COL_SESSION_EMAIL, email);
+        values.put(COL_SESSION_ROLE, role);
+        values.put(COL_SESSION_STATUS, status);
+        values.put(COL_SESSION_TOKEN, token);
+        values.put(COL_SESSION_CREATED, getCurrentTimestamp());
+        db.insert(TABLE_USER_SESSION, null, values);
+        ContentValues user = new ContentValues();
+        user.put("nic", nic); user.put("full_name", fullName); user.put("email", email);
+        user.put("role", role); user.put("status", status); user.put("cached_at", getCurrentTimestamp());
+        db.insertWithOnConflict(TABLE_USER_DETAILS, null, user, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
+
+    public void cacheUser(String nic, String fullName, String email, String role, String phone, String address, String status, String createdAt) {
+        // Store user profile details into local UserDetails cache table
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("nic", nic); values.put("full_name", fullName); values.put("email", email);
+        values.put("role", role); values.put("phone_number", phone); values.put("address", address);
+        values.put("status", status); values.put("created_at", createdAt); values.put("cached_at", getCurrentTimestamp());
+        db.insertWithOnConflict(TABLE_USER_DETAILS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
+
+    public void cacheSolarStation(String id, String code, String name, String location, double latitude, double longitude,
+                                   double capacity, int availableSlots, int totalSlots, String schedule, String status) {
+        // Cache solar microgrid station telemetry, capacity, and GPS coordinates locally
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("id", id); values.put("station_code", code); values.put("name", name); values.put("location", location);
+        values.put("latitude", latitude); values.put("longitude", longitude); values.put("capacity_kwh", capacity);
+        values.put("available_battery_slots", availableSlots); values.put("total_battery_slots", totalSlots);
+        values.put("operational_schedule", schedule); values.put("status", status); values.put("cached_at", getCurrentTimestamp());
+        db.insertWithOnConflict(TABLE_SOLAR_STATION_INFO, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
+
+    public void cacheEnergyBookingSlot(String id, String stationId, String stationName, String start, String end,
+                                        double maxCapacity, double availableCapacity, double price, String status) {
+        // Persist battery booking slot information for offline access
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("id", id); values.put("station_id", stationId); values.put("station_name", stationName);
+        values.put("slot_start_time", start); values.put("slot_end_time", end); values.put("max_capacity_kwh", maxCapacity);
+        values.put("available_capacity_kwh", availableCapacity); values.put("price_per_kwh", price);
+        values.put("status", status); values.put("cached_at", getCurrentTimestamp());
+        db.insertWithOnConflict(TABLE_ENERGY_BOOKING_SLOTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
+
+    public void cacheEnergyReservation(String id, String code, String prosumerNic, String stationId, String stationName,
+                                       String scheduled, int duration, double energy, double cost, String type,
+                                       String status, String qrData) {
+        // Cache prosumer reservation details and QR payload for offline verification
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("id", id); values.put("reservation_code", code); values.put("prosumer_nic", prosumerNic);
+        values.put("station_id", stationId); values.put("station_name", stationName); values.put("scheduled_date_time", scheduled);
+        values.put("duration_hours", duration); values.put("energy_amount_kwh", energy); values.put("total_cost", cost);
+        values.put("reservation_type", type); values.put("status", status); values.put("qr_code_data", qrData);
+        values.put("cached_at", getCurrentTimestamp());
+        db.insertWithOnConflict(TABLE_ENERGY_RESERVATION, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
 }
