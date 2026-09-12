@@ -344,5 +344,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLE_CACHED_STATIONS + " ORDER BY " + COL_STATION_NAME + " ASC", null);
     }
+ /**
+     * Caches user energy reservations to local SQLite for offline history viewing.
+     */
+    // Inserts or replaces booking records from API response
+    public void cacheBooking(String id, String code, String prosumerNic, String stationName,
+                              String scheduled, double energyKWh, double totalCost,
+                              String type, String status, String qrData) {
+        // Store energy reservation record in local SQLite cache for offline availability
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_BOOKING_ID, id);
+        values.put(COL_BOOKING_CODE, code);
+        values.put(COL_BOOKING_PROSUMER_NIC, prosumerNic);
+        values.put(COL_BOOKING_STATION_NAME, stationName);
+        values.put(COL_BOOKING_SCHEDULED, scheduled);
+        values.put(COL_BOOKING_ENERGY, energyKWh);
+        values.put(COL_BOOKING_COST, totalCost);
+        values.put(COL_BOOKING_TYPE, type);
+        values.put(COL_BOOKING_STATUS, status);
+        values.put(COL_BOOKING_QR_DATA, qrData);
+        values.put(COL_BOOKING_CACHED_AT, getCurrentTimestamp());
+        db.insertWithOnConflict(TABLE_CACHED_BOOKINGS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
 
+    /**
+     * Returns all locally cached booking records for a prosumer.
+     */
+    // Filters cached_bookings by prosumer NIC
+    public Cursor getCachedBookings(String prosumerNic) {
+        // Query cached reservations belonging to the specified prosumer NIC in descending date order
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_CACHED_BOOKINGS +
+                " WHERE " + COL_BOOKING_PROSUMER_NIC + " = ?" +
+                " ORDER BY " + COL_BOOKING_SCHEDULED + " DESC", new String[]{prosumerNic});
+    }
+
+    /**
+     * Helper method to generate ISO-8601 UTC timestamp string compatible with API 24+.
+     */
+    private String getCurrentTimestamp() {
+        // Format current system time into standard ISO-8601 UTC string representation
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(new Date());
+    }
 }
