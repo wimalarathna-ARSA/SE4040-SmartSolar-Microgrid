@@ -259,4 +259,90 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insertWithOnConflict(TABLE_ENERGY_RESERVATION, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         db.close();
     }
+
+        /**
+     * Retrieves active user session from SQLite.
+     */
+    // Returns Cursor with most recent session row
+    public Cursor getSession() {
+        // Query active authenticated user session row from local database
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_USER_SESSION + " LIMIT 1", null);
+    }
+
+    /**
+     * Returns stored JWT Bearer token.
+     */
+    // Reads token from user_session for attaching to API requests
+    public String getToken() {
+        // Extract JWT authentication bearer token from active user session
+        Cursor c = getSession();
+        if (c != null && c.moveToFirst()) {
+            String token = c.getString(c.getColumnIndexOrThrow(COL_SESSION_TOKEN));
+            c.close();
+            return token;
+        }
+        return null;
+    }
+
+    /**
+     * Returns stored user NIC (National Identity Card).
+     */
+    // Reads NIC primary key from user_session
+    public String getSessionNic() {
+        // Extract National Identity Card identifier from active user session
+        Cursor c = getSession();
+        if (c != null && c.moveToFirst()) {
+            String nic = c.getString(c.getColumnIndexOrThrow(COL_SESSION_NIC));
+            c.close();
+            return nic;
+        }
+        return null;
+    }
+
+    /**
+     * Returns stored user role (Prosumer, GridOperator, Backoffice).
+     */
+    // Reads role from session for conditional UI rendering
+    public String getSessionRole() {
+        // Extract user role string from active user session for authorization checks
+        Cursor c = getSession();
+        if (c != null && c.moveToFirst()) {
+            String role = c.getString(c.getColumnIndexOrThrow(COL_SESSION_ROLE));
+            c.close();
+            return role;
+        }
+        return null;
+    }
+
+    /**
+     * Clears stored user session on logout.
+     */
+    // Removes all user_session rows to force re-authentication
+    public void clearSession() {
+        // Erase all user session records from SQLite database to finalize logout
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_USER_SESSION);
+        db.close();
+    }
+
+    /**
+     * Caches station data to local SQLite for offline map markers.
+     */
+    // Replaces all cached_stations with fresh API data
+    public void cacheStations(SQLiteDatabase db, ContentValues values) {
+        // Insert or replace station entity into local cache table with conflict resolution
+        db.insertWithOnConflict(TABLE_CACHED_STATIONS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    /**
+     * Returns all locally cached station records.
+     */
+    // Reads cached_stations for offline station list display
+    public Cursor getCachedStations() {
+        // Fetch all cached microgrid stations ordered alphabetically by name
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_CACHED_STATIONS + " ORDER BY " + COL_STATION_NAME + " ASC", null);
+    }
+
 }
