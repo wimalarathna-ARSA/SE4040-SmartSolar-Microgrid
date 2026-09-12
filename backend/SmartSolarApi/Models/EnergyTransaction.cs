@@ -10,6 +10,9 @@ namespace SmartSolarApi.Models
         public string? Id { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
+        public string OfferId { get; set; } = string.Empty;
+
+        [BsonRepresentation(BsonType.ObjectId)]
         public string BuyerId { get; set; } = string.Empty;
 
         [BsonRepresentation(BsonType.ObjectId)]
