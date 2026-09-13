@@ -2,7 +2,8 @@
 // File: UserDtos.cs
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Data Transfer Objects for user profiles and account management.
+// Description: Data Transfer Objects for user profiles, status updates,
+//              and prosumer account deactivation/reactivation.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -15,21 +16,16 @@ namespace SmartSolarApi.DTOs
     /// </summary>
     public class UpdateProfileDto
     {
-        // Updated full name
         [Required]
         public string FullName { get; set; } = string.Empty;
 
-        // Updated contact telephone number
         [Required]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        // Updated physical/solar location address
         public string Address { get; set; } = string.Empty;
 
-        // Optional updated GPS Latitude of solar installation site
         public double? InstallationLatitude { get; set; }
 
-        // Optional updated GPS Longitude of solar installation site
         public double? InstallationLongitude { get; set; }
     }
 
@@ -38,8 +34,20 @@ namespace SmartSolarApi.DTOs
     /// </summary>
     public class DeactivationRequestDto
     {
-        // Reason for requesting deactivation
         [Required]
         public string Reason { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Request payload for Backoffice to update account status (Activate / Deactivate).
+    /// </summary>
+    public class ChangeAccountStatusDto
+    {
+        // Target status: "Active" or "Deactivated"
+        [Required]
+        public string Status { get; set; } = "Active";
+
+        // Admin audit notes
+        public string? Note { get; set; }
     }
 }
