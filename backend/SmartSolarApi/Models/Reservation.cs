@@ -9,11 +9,17 @@ namespace SmartSolarApi.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
+        public string UserId { get; set; } = string.Empty;
+
         public string StationId { get; set; } = string.Empty;
 
         public DateTime StartTime { get; set; }
 
         public DateTime EndTime { get; set; }
+
+        public string Status { get; set; } = "Active";
+
+        public string QrCode { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
