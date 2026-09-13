@@ -36,4 +36,32 @@ public class SessionManager {
         // Retrieve National Identity Card number acting as primary user identifier
         return dbHelper.getSessionNic();
     }
+
+    /** Returns the logged-in user role from SQLite session. */
+    // Role determines UI routing: Prosumer vs GridOperator
+    public String getRole() {
+        // Fetch assigned security role string for role-based dashboard navigation
+        return dbHelper.getSessionRole();
+    }
+
+    /** Returns full name from session. */
+    // Used for greeting labels in dashboard UI
+    public String getFullName() {
+        // Query user full name string from the active session cursor
+        Cursor c = dbHelper.getSession();
+        if (c != null && c.moveToFirst()) {
+            String name = c.getString(c.getColumnIndexOrThrow(DatabaseHelper.COL_SESSION_NAME));
+            c.close();
+            return name;
+        }
+        return "";
+    }
+
+    /** Returns JWT Bearer token from SQLite. */
+    // Used by ApiClient to authenticate requests
+    public String getToken() {
+        // Query stored JWT authentication token for API request headers
+        return dbHelper.getToken();
+    }
+    
 }
