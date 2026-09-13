@@ -24,4 +24,24 @@ namespace SmartSolarApi.DTOs
         [Required]
         public string ReservationType { get; set; } = "DropOff";
     }
+
+    public class UpdateReservationDto
+    {
+        [Required]
+        public DateTime ScheduledDateTime { get; set; }
+
+        [Range(1, 12)]
+        public int DurationHours { get; set; } = 1;
+
+        [Required]
+        [Range(0.1, 1000.0)]
+        public double EnergyAmountKWh { get; set; }
+
+        [Required]
+        public string ReservationType { get; set; } = "DropOff";
+
+        public string? StationId { get; set; }
+
+        public string? Status { get; set; }
+    }
 }
