@@ -2,7 +2,7 @@
 // File: StationDtos.cs
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Data Transfer Objects for Microgrid Solar Hubs (Nodes) and
+// Description: Data Transfer Objects for Microgrid Solar Hubs (Nodes) and 
 //              energy booking slot availability.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
@@ -114,33 +114,19 @@ namespace SmartSolarApi.DTOs
     public class StationResponseDto
     {
         public string Id { get; set; } = string.Empty;
-
         public string StationCode { get; set; } = string.Empty;
-
         public string Name { get; set; } = string.Empty;
-
         public string Location { get; set; } = string.Empty;
-
         public double Latitude { get; set; }
-
         public double Longitude { get; set; }
-
         public double CapacityKWh { get; set; }
-
         public int AvailableBatterySlots { get; set; }
-
         public int TotalBatterySlots { get; set; }
-
         public List<int> OccupiedSlotNumbers { get; set; } = new();
-
         public string OperationalSchedule { get; set; } = string.Empty;
-
         public string Status { get; set; } = string.Empty;
-
         public int ActiveReservationsCount { get; set; }
-
         public double? DistanceKm { get; set; }
-
         public DateTime CreatedAt { get; set; }
     }
 
@@ -150,21 +136,13 @@ namespace SmartSolarApi.DTOs
     public class SlotResponseDto
     {
         public string Id { get; set; } = string.Empty;
-
         public string StationId { get; set; } = string.Empty;
-
         public string StationName { get; set; } = string.Empty;
-
         public DateTime SlotStartTime { get; set; }
-
         public DateTime SlotEndTime { get; set; }
-
         public double MaxCapacityKWh { get; set; }
-
         public double AvailableCapacityKWh { get; set; }
-
         public decimal PricePerKWh { get; set; }
-
         public string Status { get; set; } = string.Empty;
     }
 }
