@@ -44,4 +44,25 @@ namespace SmartSolarApi.DTOs
 
         public string? Status { get; set; }
     }
+
+    public class ReservationResponseDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string ReservationCode { get; set; } = string.Empty;
+        public string ProsumerNic { get; set; } = string.Empty;
+        public string ProsumerName { get; set; } = string.Empty;
+        public string StationId { get; set; } = string.Empty;
+        public string StationName { get; set; } = string.Empty;
+        public string? SlotId { get; set; }
+        public int? SlotNumber { get; set; }
+        public DateTime ScheduledDateTime { get; set; }
+        public int DurationHours { get; set; }
+        public double EnergyAmountKWh { get; set; }
+        public decimal TotalCost { get; set; }
+        public string ReservationType { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string QrCodeData { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
 }
