@@ -74,4 +74,33 @@ public class OperatorBookingDetailActivity extends AppCompatActivity {
         tvEnergyAmount             = findViewById(R.id.tv_energy_amount);
         tvQrReference              = findViewById(R.id.tv_qr_reference);
     }
+
+    /** Polls the C# Web API for the latest authoritative state of the booking object */
+    private void fetchBookingData() {
+        // GET /api/reservations/{id} to retrieve authoritative booking and transaction telemetry
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                Request req = ApiClient.buildAuthRequest(this, "reservations/" + bookingId).get().build();
+                try (Response res = ApiClient.getClient().newCall(req).execute()) {
+                    if (res.body() != null) {
+                        String payload = res.body().string();
+                        JSONObject json = new JSONObject(payload);
+
+                        runOnUiThread(() -> {
+                            if (progressBar != null) progressBar.setVisibility(View.GONE);
+                            updateUI(json);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "Telemetry Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
 }
