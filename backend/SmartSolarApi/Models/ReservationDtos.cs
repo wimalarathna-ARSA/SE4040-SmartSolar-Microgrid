@@ -102,4 +102,19 @@ namespace SmartSolarApi.DTOs
 
         public string? OperatorNotes { get; set; }
     }
+
+    public class DashboardStatsDto
+    {
+        public int ActiveReservationsCount { get; set; }
+
+        public int PendingReservationsCount { get; set; }
+
+        public int CountOfApprovedFutureReservations { get; set; }
+
+        public int CompletedReservationsCount { get; set; }
+
+        public int TotalStationsCount { get; set; }
+
+        public int TotalProsumersCount { get; set; }
+    }
 }
