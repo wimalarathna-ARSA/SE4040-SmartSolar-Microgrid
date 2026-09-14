@@ -2,8 +2,8 @@
 // File: DbSeeder.cs
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Automated database seeder that initializes the SmartSolar
-//              application with default system users.
+// Description: Automated database seeder that populates initial Backoffice admin,
+//              Grid Operator, sample Solar Prosumers, and Microgrid Stations.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -18,12 +18,15 @@ namespace SmartSolarApi.Data
     public static class DbSeeder
     {
         /// <summary>
-        /// Asynchronously seeds initial system users when the user collection is empty.
+        /// Asynchronously seeds initial users and microgrid station information.
         /// </summary>
-        // Checks whether the database has been initialized before inserting default records
+        // Evaluates collection counts before creating initial application records
         public static async Task SeedAsync(MongoDbContext db)
         {
-            // Seed Users (Backoffice, Grid Operator, and Prosumers)
+            // =================================================================
+            // Seed Users
+            // =================================================================
+
             var userCount = await db.UserDetails.CountDocumentsAsync(_ => true);
 
             if (userCount == 0)
@@ -92,6 +95,76 @@ namespace SmartSolarApi.Data
                         prosumerActive,
                         prosumerPending
                     });
+            }
+
+            // =================================================================
+            // Seed Microgrid Solar Hubs
+            // =================================================================
+
+            var stationCount = await db.SolarStationInfo.CountDocumentsAsync(_ => true);
+
+            if (stationCount == 0)
+            {
+                var stations = new List<SolarStationInfo>
+                {
+                    new SolarStationInfo
+                    {
+                        StationCode = "HUB-COLOMBO-01",
+                        Name = "Colombo Central Solar Hub",
+                        Location = "Union Place, Colombo 02",
+                        Latitude = 6.9175,
+                        Longitude = 79.8654,
+                        CapacityKWh = 250.0,
+                        TotalBatterySlots = 20,
+                        AvailableBatterySlots = 14,
+                        OperationalSchedule = "Mon-Sun 06:00-22:00",
+                        Status = "Active"
+                    },
+
+                    new SolarStationInfo
+                    {
+                        StationCode = "HUB-KANDY-02",
+                        Name = "Kandy Hill Microgrid Hub",
+                        Location = "Peradeniya Road, Kandy",
+                        Latitude = 7.2906,
+                        Longitude = 80.6337,
+                        CapacityKWh = 180.0,
+                        TotalBatterySlots = 15,
+                        AvailableBatterySlots = 11,
+                        OperationalSchedule = "Mon-Sat 06:00-20:00",
+                        Status = "Active"
+                    },
+
+                    new SolarStationInfo
+                    {
+                        StationCode = "HUB-GALLE-03",
+                        Name = "Galle Coastal Solar Station",
+                        Location = "Matara Road, Galle",
+                        Latitude = 6.0535,
+                        Longitude = 80.2210,
+                        CapacityKWh = 300.0,
+                        TotalBatterySlots = 25,
+                        AvailableBatterySlots = 20,
+                        OperationalSchedule = "Mon-Sun 07:00-21:00",
+                        Status = "Active"
+                    },
+
+                    new SolarStationInfo
+                    {
+                        StationCode = "HUB-JAFFNA-04",
+                        Name = "Jaffna Peninsula Solar Array",
+                        Location = "Hospital Road, Jaffna",
+                        Latitude = 9.6615,
+                        Longitude = 80.0255,
+                        CapacityKWh = 350.0,
+                        TotalBatterySlots = 30,
+                        AvailableBatterySlots = 27,
+                        OperationalSchedule = "Mon-Sun 06:00-22:00",
+                        Status = "Active"
+                    }
+                };
+
+                await db.SolarStationInfo.InsertManyAsync(stations);
             }
         }
     }
