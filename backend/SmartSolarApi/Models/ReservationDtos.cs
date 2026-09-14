@@ -88,7 +88,18 @@ namespace SmartSolarApi.DTOs
         public string ReservationType { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string QrCodeData { get; set; } = string.Empty;
+        public DateTime? CompletedAt { get; set; }
+        public string? OperatorNic { get; set; }
+        public string? OperatorNotes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+    }
+
+    public class VerifyQrDto
+    {
+        [Required]
+        public string QrCodeData { get; set; } = string.Empty;
+
+        public string? OperatorNotes { get; set; }
     }
 }
