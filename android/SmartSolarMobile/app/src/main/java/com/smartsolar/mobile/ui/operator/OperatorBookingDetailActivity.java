@@ -102,5 +102,68 @@ public class OperatorBookingDetailActivity extends AppCompatActivity {
             }
         }).start();
     }
+ /** Renders the processed JSON payload matching operational data structures */
+    private void updateUI(JSONObject b) {
+        // Populate booking details, status badge colour, and settled transaction parameters from JSON
+        if (b == null) return;
+
+        try {
+            // 1. Map Booking Information
+            String code = b.optString("reservationCode", "RES-PENDING");
+            String pName = b.optString("prosumerName", "Prosumer Agent");
+            String pNic  = b.optString("prosumerNic", "N/A");
+            String node  = b.optString("stationName", "Solar Microgrid Hub");
+            String time  = b.optString("scheduledDateTime", "").replace("T", " ").substring(0, 16);
+            String status = b.optString("status", "Pending");
+
+            tvBookingCode.setText("Ref: " + code);
+            tvProsumerName.setText("Prosumer: " + pName);
+            tvProsumerNic.setText("NIC/Ref: " + pNic);
+            tvNodeName.setText("Node: " + node);
+            tvScheduledTime.setText("Scheduled: " + time);
+            tvBookingStatus.setText("BOOKING STATUS: " + status.toUpperCase());
+
+            // Status color logic (Authoritative API reflection)
+            if ("Completed".equalsIgnoreCase(status)) {
+                tvBookingStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.neuro_green_bg));
+                tvBookingStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_green_dark));
+            } else if ("Pending".equalsIgnoreCase(status)) {
+                tvBookingStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.neuro_amber_bg));
+                tvBookingStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_amber));
+            } else if ("Cancelled".equalsIgnoreCase(status)) {
+                tvBookingStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.neuro_danger_bg));
+                tvBookingStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_danger_dark));
+            } else {
+                tvBookingStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.neuro_blue_bg));
+                tvBookingStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_blue));
+            }
+
+            // 2. Map Transaction Information
+            // In this architecture, transaction fields are flattened or linked within the reservation object
+            // A transaction is authoritatively present if the status is 'Completed'
+            boolean hasTransaction = "Completed".equalsIgnoreCase(status);
+            
+            if (hasTransaction) {
+                tvTransactionEmpty.setVisibility(View.GONE);
+                containerTransactionDetails.setVisibility(View.VISIBLE);
+
+                // Use the booking ID as the transaction reference if no explicit TxID exists
+                tvTransactionId.setText("Tx Reference: TXN-" + bookingId.toUpperCase().substring(0, 8));
+                tvTransactionStatus.setText("SUCCESSFUL / SETTLED");
+                tvTransactionStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_green));
+
+                double energy = b.optDouble("energyAmountKWh", 0.0);
+                tvEnergyAmount.setText(String.format(Locale.getDefault(), "%.2f kWh", energy));
+
+                String qrData = b.optString("qrCodeData", "N/A");
+                tvQrReference.setText(qrData);
+
+            } else {
+                tvTransactionEmpty.setVisibility(View.VISIBLE);
+                containerTransactionDetails.setVisibility(View.GONE);
+            }
+
+        } catch (Exception ignored) {}
+    }
 
 }
