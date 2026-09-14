@@ -67,6 +67,7 @@ namespace SmartSolarApi.DTOs
         public string ReservationType { get; set; } = "DropOff";
 
         public string? StationId { get; set; }
+        
 
         public string? Status { get; set; }
     }
