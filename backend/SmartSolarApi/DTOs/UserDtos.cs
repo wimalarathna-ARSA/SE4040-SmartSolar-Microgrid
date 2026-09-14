@@ -39,15 +39,78 @@ namespace SmartSolarApi.DTOs
     }
 
     /// <summary>
-    /// Request payload for Backoffice to update account status (Activate / Deactivate).
+    /// Request payload for Backoffice to update account status.
     /// </summary>
     public class ChangeAccountStatusDto
     {
-        // Target status: "Active" or "Deactivated"
         [Required]
         public string Status { get; set; } = "Active";
 
-        // Admin audit notes
         public string? Note { get; set; }
+    }
+
+    /// <summary>
+    /// Request payload for prosumer to request email update access from Backoffice.
+    /// </summary>
+    public class RequestEmailUpdateDto
+    {
+        // Optional proposed new email address
+        [EmailAddress]
+        public string? RequestedNewEmail { get; set; }
+
+        // Optional reason/justification for email modification
+        public string? Reason { get; set; }
+    }
+
+    /// <summary>
+    /// Request payload for Backoffice officer to accept or deny an email update request.
+    /// </summary>
+    public class ReviewEmailUpdateDto
+    {
+        // Action: "Accept" (grant access) or "Deny"
+        [Required]
+        public string Action { get; set; } = "Accept";
+
+        // Optional audit/review note from the officer
+        public string? Note { get; set; }
+    }
+
+    /// <summary>
+    /// Request payload for prosumer to execute email update once access is granted.
+    /// </summary>
+    public class ExecuteEmailUpdateDto
+    {
+        // The new email address
+        [Required]
+        [EmailAddress]
+        public string NewEmail { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Representation of a pending or past email update request for Backoffice dashboard.
+    /// </summary>
+    public class EmailUpdateRequestSummaryDto
+    {
+        public string Nic { get; set; } = string.Empty;
+
+        public string FullName { get; set; } = string.Empty;
+
+        public string CurrentEmail { get; set; } = string.Empty;
+
+        public string? RequestedNewEmail { get; set; }
+
+        public string? Reason { get; set; }
+
+        public DateTime? RequestDate { get; set; }
+
+        public string Status { get; set; } = string.Empty;
+
+        public bool AccessGranted { get; set; }
+
+        public string? ReviewNotes { get; set; }
+
+        public int UpdatesLast24Hours { get; set; }
+
+        public int UpdatesRemaining24Hours { get; set; }
     }
 }
