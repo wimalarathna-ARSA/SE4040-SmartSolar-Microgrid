@@ -2,53 +2,83 @@
 // File: MongoDbContext.cs
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: MongoDB database context responsible for establishing the
-//              application database connection.
+// Description: MongoDB database context configuring the four collections
+//              required by the SmartSolar Microgrid Trading System.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
 using MongoDB.Driver;
+using SmartSolarApi.Models;
 
 namespace SmartSolarApi.Data
 {
     /// <summary>
-    /// Encapsulates the MongoDB database connection.
+    /// Encapsulates connection and collection access for MongoDB.
     /// </summary>
     public class MongoDbContext
     {
         private readonly IMongoDatabase _database;
 
         /// <summary>
-        /// Initializes the MongoDB connection using application configuration
-        /// and environment variables.
+        /// Initializes MongoDB connection with configuration parameters and fallbacks.
         /// </summary>
-        // Resolves MongoDB connection settings with environment and local fallbacks
+        // Reads connection string and database name from configuration or environment
         public MongoDbContext(IConfiguration configuration)
         {
-            // First attempt to read the MongoDB connection from the environment.
-            var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
+            // Resolve connection string from environment first.
+            var connectionString =
+                Environment.GetEnvironmentVariable("MONGODB_URI");
 
-            // Fall back to application configuration when the environment variable
-            // is not available.
+            // Fall back to appsettings configuration.
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                connectionString = configuration["MongoDB:ConnectionString"];
+                connectionString =
+                    configuration["MongoDB:ConnectionString"];
             }
 
-            // Use local MongoDB installation as the development fallback.
+            // Use localhost MongoDB for local development when no configuration exists.
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                connectionString = "mongodb://localhost:27017";
+                connectionString =
+                    "mongodb://localhost:27017";
             }
 
-            // Read configured database name or use the SmartSolar default.
+            // Resolve the SmartSolar database name.
             var databaseName =
                 configuration["MongoDB:DatabaseName"]
                 ?? "SmartSolarMicrogrid";
 
-            // Create MongoDB client and select the application database.
+            // Create MongoDB client and select the configured database.
             var client = new MongoClient(connectionString);
             _database = client.GetDatabase(databaseName);
         }
+
+        /// <summary>
+        /// Collection 1: UserDetails.
+        /// Stores Backoffice, Grid Operator, and Prosumer records.
+        /// </summary>
+        public IMongoCollection<UserDetails> UserDetails =>
+            _database.GetCollection<UserDetails>("UserDetails");
+
+        /// <summary>
+        /// Collection 2: SolarStationInfo.
+        /// Stores microgrid stations with GPS coordinates and battery information.
+        /// </summary>
+        public IMongoCollection<SolarStationInfo> SolarStationInfo =>
+            _database.GetCollection<SolarStationInfo>("SolarStationInfo");
+
+        /// <summary>
+        /// Collection 3: EnergyBookingSlots.
+        /// Stores scheduled energy trading slots for microgrid stations.
+        /// </summary>
+        public IMongoCollection<EnergyBookingSlots> EnergyBookingSlots =>
+            _database.GetCollection<EnergyBookingSlots>("EnergyBookingSlots");
+
+        /// <summary>
+        /// Collection 4: EnergyReservation.
+        /// Stores energy trading reservations and transaction information.
+        /// </summary>
+        public IMongoCollection<EnergyReservation> EnergyReservation =>
+            _database.GetCollection<EnergyReservation>("EnergyReservation");
     }
 }
