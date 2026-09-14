@@ -37,14 +37,8 @@ namespace SmartSolarApi.DTOs
         [Required]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        // Installation address (text description)
+        // Installation address
         public string Address { get; set; } = string.Empty;
-
-        // Optional GPS Latitude of solar installation site (for nearby nodes feature)
-        public double? InstallationLatitude { get; set; }
-
-        // Optional GPS Longitude of solar installation site (for nearby nodes feature)
-        public double? InstallationLongitude { get; set; }
     }
 
     /// <summary>
@@ -86,81 +80,5 @@ namespace SmartSolarApi.DTOs
 
         // Informational message
         public string Message { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Request payload for Backoffice creation of Backoffice and Grid Operator staff.
-    /// </summary>
-    public class CreateStaffUserDto
-    {
-        // Staff NIC
-        [Required]
-        public string Nic { get; set; } = string.Empty;
-
-        // Staff full name
-        [Required]
-        public string FullName { get; set; } = string.Empty;
-
-        // Staff official email
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        // Password
-        [Required]
-        [MinLength(6)]
-        public string Password { get; set; } = string.Empty;
-
-        // Role: must be "Backoffice" or "GridOperator"
-        [Required]
-        public string Role { get; set; } = "GridOperator";
-
-        // Phone number
-        public string PhoneNumber { get; set; } = string.Empty;
-
-        // Address
-        public string Address { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Request payload to trigger a 6-digit OTP dispatch to user's registered Gmail address.
-    /// </summary>
-    public class RequestPasswordResetOtpDto
-    {
-        [Required]
-        public string EmailOrNic { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Request payload to verify the 6-digit OTP within the 5-minute window.
-    /// </summary>
-    public class VerifyPasswordResetOtpDto
-    {
-        [Required]
-        public string EmailOrNic { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(6, MinimumLength = 6, ErrorMessage = "OTP must be exactly 6 digits.")]
-        public string Otp { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Request payload to confirm new password after OTP verification.
-    /// </summary>
-    public class ConfirmPasswordResetDto
-    {
-        [Required]
-        public string EmailOrNic { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(6, MinimumLength = 6)]
-        public string Otp { get; set; } = string.Empty;
-
-        [Required]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
-        public string NewPassword { get; set; } = string.Empty;
-
-        [Required]
-        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
