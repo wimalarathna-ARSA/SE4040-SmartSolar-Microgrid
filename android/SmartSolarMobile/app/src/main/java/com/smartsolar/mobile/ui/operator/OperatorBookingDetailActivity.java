@@ -32,3 +32,46 @@ public class OperatorBookingDetailActivity extends AppCompatActivity {
     // ── Transaction Telemetry Views ─────────────────────────────────────────
     private View containerTransactionDetails;
     private TextView tvTransactionEmpty, tvTransactionId, tvTransactionStatus, tvEnergyAmount, tvQrReference;
+
+        @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // Extract booking ID from intent, bind views, wire back button, and start data fetch
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_operator_booking_detail);
+
+        bookingId = getIntent().getStringExtra("booking_id");
+        if (bookingId == null || bookingId.isEmpty()) {
+            Toast.makeText(this, "Operation Error: Missing booking identifier.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        bindViews();
+
+        findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
+        findViewById(R.id.btn_refresh).setOnClickListener(v -> fetchBookingData());
+
+        fetchBookingData();
+    }
+
+    private void bindViews() {
+        // Map all booking entity and transaction telemetry TextView references from layout XML
+        progressBar          = findViewById(R.id.progress_bar);
+
+        // Booking fields
+        tvBookingCode        = findViewById(R.id.tv_booking_code);
+        tvProsumerName       = findViewById(R.id.tv_prosumer_name);
+        tvProsumerNic        = findViewById(R.id.tv_prosumer_nic);
+        tvNodeName           = findViewById(R.id.tv_node_name);
+        tvScheduledTime      = findViewById(R.id.tv_scheduled_time);
+        tvBookingStatus      = findViewById(R.id.tv_booking_status);
+
+        // Transaction fields
+        tvTransactionEmpty         = findViewById(R.id.tv_transaction_empty);
+        containerTransactionDetails = findViewById(R.id.container_transaction_details);
+        tvTransactionId            = findViewById(R.id.tv_transaction_id);
+        tvTransactionStatus        = findViewById(R.id.tv_transaction_status);
+        tvEnergyAmount             = findViewById(R.id.tv_energy_amount);
+        tvQrReference              = findViewById(R.id.tv_qr_reference);
+    }
+}
