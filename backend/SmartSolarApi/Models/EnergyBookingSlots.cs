@@ -22,5 +22,22 @@ namespace SmartSolarApi.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
+
+        // Associated SolarStationInfo unique identifier
+        [BsonRepresentation(BsonType.ObjectId)]
+        [BsonElement("stationId")]
+        public string StationId { get; set; } = string.Empty;
+
+        // Human-readable station name for denormalized query speed
+        [BsonElement("stationName")]
+        public string StationName { get; set; } = string.Empty;
+
+        // Slot start timestamp (UTC)
+        [BsonElement("slotStartTime")]
+        public DateTime SlotStartTime { get; set; }
+
+        // Slot end timestamp (UTC)
+        [BsonElement("slotEndTime")]
+        public DateTime SlotEndTime { get; set; }
     }
 }
