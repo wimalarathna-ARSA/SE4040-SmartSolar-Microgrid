@@ -116,4 +116,80 @@ public class OperatorMainActivity extends AppCompatActivity {
             btnSettings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         }
     }
+
+    
+    // ── Bind Bottom Navigation & Section Containers ──────────────────────────
+    private void bindBottomNavigation() {
+        // Resolve section containers, nav layout items, icons and labels from layout XML
+        // Section containers
+        viewHome     = findViewById(R.id.view_operator_home);
+        viewNodes    = findViewById(R.id.view_operator_nodes);
+        viewBookings = findViewById(R.id.view_operator_bookings);
+        viewHistory  = findViewById(R.id.view_operator_history);
+        viewProfile  = findViewById(R.id.view_operator_profile);
+
+        // Nav Item Layouts
+        navHome     = findViewById(R.id.nav_operator_home);
+        navNodes    = findViewById(R.id.nav_operator_nodes);
+        navBookings = findViewById(R.id.nav_operator_bookings);
+        navHistory  = findViewById(R.id.nav_operator_history);
+        navProfile  = findViewById(R.id.nav_operator_profile);
+
+        // Nav Icons
+        ivNavHome     = findViewById(R.id.iv_nav_home);
+        ivNavNodes    = findViewById(R.id.iv_nav_nodes);
+        ivNavBookings = findViewById(R.id.iv_nav_bookings);
+        ivNavHistory  = findViewById(R.id.iv_nav_history);
+        ivNavProfile  = findViewById(R.id.iv_nav_profile);
+
+        // Nav Labels
+        tvNavHome     = findViewById(R.id.tv_nav_home);
+        tvNavNodes    = findViewById(R.id.tv_nav_nodes);
+        tvNavBookings = findViewById(R.id.tv_nav_bookings);
+        tvNavHistory  = findViewById(R.id.tv_nav_history);
+        tvNavProfile  = findViewById(R.id.tv_nav_profile);
+    }
+
+    // ── Setup Bottom Navigation Click Handlers ──────────────────────────────
+    private void setupBottomNavigation() {
+        // Attach click listeners on all 5 bottom nav items and default-select Home tab
+        if (navHome != null)     navHome.setOnClickListener(v -> selectSection(0));
+        if (navNodes != null)    navNodes.setOnClickListener(v -> selectSection(1));
+        if (navBookings != null) navBookings.setOnClickListener(v -> selectSection(2));
+        if (navHistory != null)  navHistory.setOnClickListener(v -> selectSection(3));
+        if (navProfile != null)  navProfile.setOnClickListener(v -> selectSection(4));
+
+        // Default section is Home (index 0)
+        selectSection(0);
+    }
+
+    // ── Switch Section View & Active Navigation State ───────────────────────
+    private void selectSection(int index) {
+        // Show the selected section container, hide all others, update active nav visual state
+        // Toggle visibility of section containers
+        if (viewHome != null)     viewHome.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
+        if (viewNodes != null)    viewNodes.setVisibility(index == 1 ? View.VISIBLE : View.GONE);
+        if (viewBookings != null) viewBookings.setVisibility(index == 2 ? View.VISIBLE : View.GONE);
+        if (viewHistory != null)  viewHistory.setVisibility(index == 3 ? View.VISIBLE : View.GONE);
+        if (viewProfile != null)  viewProfile.setVisibility(index == 4 ? View.VISIBLE : View.GONE);
+
+        // Update active/inactive visual states for all bottom nav items
+        updateNavItemState(navHome,     ivNavHome,     tvNavHome,     index == 0);
+        updateNavItemState(navNodes,    ivNavNodes,    tvNavNodes,    index == 1);
+        updateNavItemState(navBookings, ivNavBookings, tvNavBookings, index == 2);
+        updateNavItemState(navHistory,  ivNavHistory,  tvNavHistory,  index == 3);
+        updateNavItemState(navProfile,  ivNavProfile,  tvNavProfile,  index == 4);
+
+        if (index == 1) {
+            loadAllNodesMapOverlay();
+        } else if (index == 2) {
+            setupBookingsSection();
+        } else if (index == 3) {
+            setupHistorySection();
+        } else if (index == 4) {
+            setupProfileSection();
+        }
+    }
+
+
 }
