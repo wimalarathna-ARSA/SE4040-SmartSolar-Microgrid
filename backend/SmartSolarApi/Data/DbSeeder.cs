@@ -3,7 +3,8 @@
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
 // Description: Automated database seeder that populates initial Backoffice admin,
-//              Grid Operator, sample Solar Prosumers, and Microgrid Stations.
+//              Grid Operator, sample Solar Prosumers, Microgrid Stations, and
+//              Energy Booking Slots.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -18,9 +19,9 @@ namespace SmartSolarApi.Data
     public static class DbSeeder
     {
         /// <summary>
-        /// Asynchronously seeds initial users and microgrid station information.
+        /// Asynchronously seeds all required collections with sample data if empty.
         /// </summary>
-        // Evaluates collection counts before creating initial application records
+        // Evaluates collection counts and creates initial application records
         public static async Task SeedAsync(MongoDbContext db)
         {
             // =================================================================
@@ -165,6 +166,40 @@ namespace SmartSolarApi.Data
                 };
 
                 await db.SolarStationInfo.InsertManyAsync(stations);
+
+                // =================================================================
+                // Seed Discrete Energy Booking Slots
+                // =================================================================
+
+                var slots = new List<EnergyBookingSlots>();
+
+                foreach (var station in stations)
+                {
+                    for (int day = 0; day < 7; day++)
+                    {
+                        var baseDate = DateTime.UtcNow.Date.AddDays(day);
+
+                        int[] startHours = { 8, 10, 12, 14, 16, 18 };
+
+                        foreach (var hour in startHours)
+                        {
+                            slots.Add(new EnergyBookingSlots
+                            {
+                                StationId = station.Id!,
+                                StationName = station.Name,
+                                SlotStartTime = baseDate.AddHours(hour),
+                                SlotEndTime = baseDate.AddHours(hour + 2),
+                                MaxCapacityKWh = 50.0,
+                                AvailableCapacityKWh = 50.0,
+                                PricePerKWh = 45.50m,
+                                Status = "Available",
+                                CreatedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
+
+                await db.EnergyBookingSlots.InsertManyAsync(slots);
             }
         }
     }
