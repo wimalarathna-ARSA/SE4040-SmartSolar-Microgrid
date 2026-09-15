@@ -456,6 +456,117 @@ public class OperatorMainActivity extends AppCompatActivity {
             }
         }
     }
+    private final List<JSONObject> allBookingsList = new ArrayList<>();
+    private final List<JSONObject> filteredBookingsList = new ArrayList<>();
+    private BookingsAdapter operatorBookingsAdapter;
+    private boolean isBookingsInitialized = false;
+
+    /** Wire and fetch full database collection logs matching operational bookings */
+    private void setupBookingsSection() {
+        // Initialise RecyclerView, status spinner, search watcher, and load all reservations
+        final RecyclerView rv = findViewById(R.id.recycler_operator_bookings);
+        final EditText etSearch = findViewById(R.id.et_booking_search);
+        final Spinner spinnerStatus = findViewById(R.id.spinner_status_filter);
+
+        if (rv == null) return;
+
+        if (!isBookingsInitialized) {
+            rv.setLayoutManager(new LinearLayoutManager(this));
+            operatorBookingsAdapter = new BookingsAdapter(filteredBookingsList);
+            rv.setAdapter(operatorBookingsAdapter);
+
+            // Populate status filters mapping project criteria (All, Pending, Approved, Cancelled, Completed)
+            List<String> options = Arrays.asList("All Statuses", "Pending", "Approved", "Cancelled", "Completed");
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, options);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            if (spinnerStatus != null) {
+                spinnerStatus.setAdapter(spinnerAdapter);
+                spinnerStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { performBookingsFilter(); }
+                    @Override public void onNothingSelected(AdapterView<?> p) {}
+                });
+            }
+
+            if (etSearch != null) {
+                etSearch.addTextChangedListener(new TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override public void onTextChanged(CharSequence s, int start, int before, int count) { performBookingsFilter(); }
+                    @Override public void afterTextChanged(Editable s) {}
+                });
+            }
+            isBookingsInitialized = true;
+        }
+
+        fetchBookingsFromApi();
+    }
+
+    private void fetchBookingsFromApi() {
+        // GET /api/reservations and store full collection in allBookingsList for filtering
+        final View pb = findViewById(R.id.bookings_progress_bar);
+        final TextView tvEmpty = findViewById(R.id.tv_bookings_empty);
+        if (pb != null) pb.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this, "reservations").get().build();
+                try (Response response = ApiClient.getClient().newCall(request).execute()) {
+                    if (response.body() != null) {
+                        String body = response.body().string();
+                        JSONArray array = new JSONArray(body);
+                        synchronized (allBookingsList) {
+                            allBookingsList.clear();
+                            for (int i = 0; i < array.length(); i++) {
+                                allBookingsList.add(array.getJSONObject(i));
+                            }
+                        }
+                        runOnUiThread(() -> {
+                            if (pb != null) pb.setVisibility(View.GONE);
+                            performBookingsFilter();
+                        });
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "Failed to load bookings: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+            runOnUiThread(() -> { if (pb != null) pb.setVisibility(View.GONE); });
+        }).start();
+    }
+
+    private void performBookingsFilter() {
+        // Apply combined text search and status spinner filter over all bookings records
+        final EditText etSearch = findViewById(R.id.et_booking_search);
+        final Spinner spinnerStatus = findViewById(R.id.spinner_status_filter);
+        final TextView tvEmpty = findViewById(R.id.tv_bookings_empty);
+
+        String query = etSearch != null ? etSearch.getText().toString().trim().toLowerCase() : "";
+        String statusFilter = spinnerStatus != null ? spinnerStatus.getSelectedItem().toString() : "All Statuses";
+
+        synchronized (allBookingsList) {
+            filteredBookingsList.clear();
+            for (JSONObject b : allBookingsList) {
+                String prosumerName = b.optString("prosumerName", "").toLowerCase();
+                String prosumerNic = b.optString("prosumerNic", "").toLowerCase();
+                String bId = b.optString("id", "").toLowerCase();
+                String bCode = b.optString("reservationCode", "").toLowerCase();
+                String bStatus = b.optString("status", "");
+
+                boolean matchesQuery = query.isEmpty() || prosumerName.contains(query) || prosumerNic.contains(query) || bId.contains(query) || bCode.contains(query);
+                boolean matchesStatus = statusFilter.equals("All Statuses") || bStatus.equalsIgnoreCase(statusFilter);
+
+                if (matchesQuery && matchesStatus) {
+                    filteredBookingsList.add(b);
+                }
+            }
+        }
+
+        if (operatorBookingsAdapter != null) {
+            operatorBookingsAdapter.notifyDataSetChanged();
+        }
+        if (tvEmpty != null) {
+            tvEmpty.setVisibility(filteredBookingsList.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    }
 
 
 }
