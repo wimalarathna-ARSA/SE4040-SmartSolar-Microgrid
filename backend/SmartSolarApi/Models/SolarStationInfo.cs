@@ -22,5 +22,25 @@ namespace SmartSolarApi.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
+
+        // Human-readable station identifier code (e.g., "HUB-COLOMBO-01")
+        [BsonElement("stationCode")]
+        public string StationCode { get; set; } = string.Empty;
+
+        // Name of the microgrid hub station
+        [BsonElement("name")]
+        public string Name { get; set; } = string.Empty;
+
+        // Street address or location description
+        [BsonElement("location")]
+        public string Location { get; set; } = string.Empty;
+
+        // GPS Latitude coordinate for Google Maps integration
+        [BsonElement("latitude")]
+        public double Latitude { get; set; }
+
+        // GPS Longitude coordinate for Google Maps integration
+        [BsonElement("longitude")]
+        public double Longitude { get; set; }
     }
 }
