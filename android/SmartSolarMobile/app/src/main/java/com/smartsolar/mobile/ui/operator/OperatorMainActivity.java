@@ -191,5 +191,66 @@ public class OperatorMainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean isProfileInitialized = false;
+
+    /** Wire and fetch authoritative operator identity package from Web API */
+    private void setupProfileSection() {
+        // Wire logout dialog and call API to fetch and render live operator profile data
+        if (!isProfileInitialized) {
+            // Logout execution
+            View btnLogout = findViewById(R.id.btn_operator_logout);
+            if (btnLogout != null) {
+                btnLogout.setOnClickListener(v -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Sign Out")
+                            .setMessage("Are you sure you want to sign out of the operator console?")
+                            .setPositiveButton("Sign Out", (dialog, which) -> {
+                                sessionManager.logout();
+                                OnboardingPrefs.setCompleted(OperatorMainActivity.this, false);
+                                Intent intent = new Intent(OperatorMainActivity.this, OnboardingActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                });
+            }
+            isProfileInitialized = true;
+        }
+
+        fetchOperatorProfile();
+    }
+
+    private void fetchOperatorProfile() {
+        // GET /api/users/{nic} and populate profile card fields with authoritative server data
+        final View pb = findViewById(R.id.profile_progress_bar);
+        if (pb != null) pb.setVisibility(View.VISIBLE);
+
+        String nic = sessionManager.getNic();
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this, "users/" + nic).get().build();
+                try (Response response = ApiClient.getClient().newCall(request).execute()) {
+                    if (response.body() != null) {
+                        String body = response.body().string();
+                        JSONObject json = new JSONObject(body);
+
+                        runOnUiThread(() -> {
+                            if (pb != null) pb.setVisibility(View.GONE);
+                            renderProfileData(json);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (pb != null) pb.setVisibility(View.GONE);
+                    Toast.makeText(this, "Profile Load Error", Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
+
 
 }
