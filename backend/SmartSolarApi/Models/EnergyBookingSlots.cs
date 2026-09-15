@@ -39,5 +39,17 @@ namespace SmartSolarApi.Models
         // Slot end timestamp (UTC)
         [BsonElement("slotEndTime")]
         public DateTime SlotEndTime { get; set; }
+
+        // Maximum power tradeable during this slot in kWh
+        [BsonElement("maxCapacityKWh")]
+        public double MaxCapacityKWh { get; set; }
+
+        // Remaining unreserved capacity in kWh for this slot
+        [BsonElement("availableCapacityKWh")]
+        public double AvailableCapacityKWh { get; set; }
+
+        // Trading price per kWh in local currency
+        [BsonElement("pricePerKWh")]
+        public decimal PricePerKWh { get; set; }
     }
 }
