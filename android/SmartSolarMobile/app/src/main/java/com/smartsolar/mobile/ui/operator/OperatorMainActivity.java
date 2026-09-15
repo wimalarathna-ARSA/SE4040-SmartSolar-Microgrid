@@ -251,6 +251,143 @@ public class OperatorMainActivity extends AppCompatActivity {
         }).start();
     }
 
+       private void renderProfileData(JSONObject user) {
+        // Populate name, avatar initials, role, NIC, email, phone and address TextViews from JSON
+        TextView tvName     = findViewById(R.id.tv_operator_name);
+        TextView tvAvatar   = findViewById(R.id.tv_operator_avatar);
+        TextView tvRole     = findViewById(R.id.tv_operator_role);
+        TextView tvNic      = findViewById(R.id.tv_operator_nic);
+        TextView tvUsername = findViewById(R.id.tv_operator_username);
+        TextView tvPhone    = findViewById(R.id.tv_operator_phone);
+        TextView tvAddress  = findViewById(R.id.tv_operator_address);
+
+        if (user == null) return;
+
+        String fullName = user.optString("fullName", "Grid Operator");
+        if (tvName != null) tvName.setText(fullName);
+
+        // Avatar Initials
+        if (tvAvatar != null && !fullName.isEmpty()) {
+            String[] parts = fullName.split(" ");
+            String initials = "";
+            if (parts.length > 0) initials += parts[0].charAt(0);
+            if (parts.length > 1) initials += parts[parts.length - 1].charAt(0);
+            tvAvatar.setText(initials.toUpperCase());
+        }
+
+        if (tvRole != null)     tvRole.setText(user.optString("role", "Grid Operator"));
+        if (tvNic != null)      tvNic.setText("NIC Identifier: " + user.optString("nic", "—"));
+        if (tvUsername != null) tvUsername.setText(user.optString("email", "—"));
+        if (tvPhone != null)    tvPhone.setText(user.optString("phoneNumber", "N/A"));
+        if (tvAddress != null)  tvAddress.setText(user.optString("address", "Not Specified"));
+    }
+
+    private final List<JSONObject> allHistoryList = new ArrayList<>();
+    private final List<JSONObject> filteredHistoryList = new ArrayList<>();
+    private HistoryAdapter operatorHistoryAdapter;
+    private boolean isHistoryInitialized = false;
+
+    /** Wire and fetch transaction history logs matching completion criteria */
+    private void setupHistorySection() {
+        // Initialise RecyclerView, search TextWatcher, and fetch transaction history from API
+        final RecyclerView rv = findViewById(R.id.recycler_operator_history);
+        final EditText etSearch = findViewById(R.id.et_history_search);
+
+        if (rv == null) return;
+
+        if (!isHistoryInitialized) {
+            rv.setLayoutManager(new LinearLayoutManager(this));
+            operatorHistoryAdapter = new HistoryAdapter(filteredHistoryList);
+            rv.setAdapter(operatorHistoryAdapter);
+
+            if (etSearch != null) {
+                etSearch.addTextChangedListener(new TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override public void onTextChanged(CharSequence s, int start, int before, int count) { performHistoryFilter(); }
+                    @Override public void afterTextChanged(Editable s) {}
+                });
+            }
+            isHistoryInitialized = true;
+        }
+
+        fetchHistoryFromApi();
+    }
+
+    private void fetchHistoryFromApi() {
+        // GET /api/reservations, filter Completed/Approved entries, and populate history list
+        final View pb = findViewById(R.id.history_progress_bar);
+        if (pb != null) pb.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                // Fetching all reservations and filtering for 'Completed' and 'Approved' status locally
+                Request request = ApiClient.buildAuthRequest(this, "reservations").get().build();
+                try (Response response = ApiClient.getClient().newCall(request).execute()) {
+                    if (response.body() != null) {
+                        String body = response.body().string();
+                        JSONArray array = new JSONArray(body);
+                        synchronized (allHistoryList) {
+                            allHistoryList.clear();
+                            for (int i = 0; i < array.length(); i++) {
+                                JSONObject obj = array.getJSONObject(i);
+                                String status = obj.optString("status");
+                                if ("Completed".equalsIgnoreCase(status) || "Approved".equalsIgnoreCase(status)) {
+                                    allHistoryList.add(obj);
+                                }
+                            }
+                        }
+                        runOnUiThread(() -> {
+                            if (pb != null) pb.setVisibility(View.GONE);
+                            performHistoryFilter();
+                        });
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "History Load Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+            runOnUiThread(() -> { if (pb != null) pb.setVisibility(View.GONE); });
+        }).start();
+    }
+
+    private void performHistoryFilter() {
+        // Filter history list by search query across NIC, name, code, node and date fields
+        final EditText etSearch = findViewById(R.id.et_history_search);
+        final TextView tvEmpty = findViewById(R.id.tv_history_empty);
+
+        String query = etSearch != null ? etSearch.getText().toString().trim().toLowerCase() : "";
+
+        synchronized (allHistoryList) {
+            filteredHistoryList.clear();
+            for (JSONObject h : allHistoryList) {
+                String pNic = h.optString("prosumerNic", "").toLowerCase();
+                String pName = h.optString("prosumerName", "").toLowerCase();
+                String bId = h.optString("id", "").toLowerCase();
+                String bCode = h.optString("reservationCode", "").toLowerCase();
+                String node = h.optString("stationName", "").toLowerCase();
+                String date = h.optString("scheduledDateTime", "").toLowerCase();
+                
+                // Authoritative transaction ID usually derived from Booking ID in this architecture if not explicit
+                String txId = "TXN-" + bId.toUpperCase().substring(0, Math.min(bId.length(), 8));
+
+                boolean matches = query.isEmpty() || pNic.contains(query) || txId.toLowerCase().contains(query) 
+                                || bId.contains(query) || bCode.contains(query) || node.contains(query) || date.contains(query) || pName.contains(query);
+
+                if (matches) {
+                    filteredHistoryList.add(h);
+                }
+            }
+        }
+
+        if (operatorHistoryAdapter != null) {
+            operatorHistoryAdapter.notifyDataSetChanged();
+        }
+        if (tvEmpty != null) {
+            tvEmpty.setVisibility(filteredHistoryList.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+
 
 
 }
