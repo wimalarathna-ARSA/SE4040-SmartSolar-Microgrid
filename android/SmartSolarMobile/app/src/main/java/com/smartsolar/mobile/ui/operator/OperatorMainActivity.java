@@ -568,5 +568,75 @@ public class OperatorMainActivity extends AppCompatActivity {
         }
     }
 
+        /** View Holder / Adapter architecture for dynamic operator reservations listing */
+    private class BookingsAdapter extends RecyclerView.Adapter<BookingsAdapter.VH> {
+        private final List<JSONObject> items;
+        BookingsAdapter(List<JSONObject> items) { this.items = items; }
+
+        @Override public VH onCreateViewHolder(ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_booking, parent, false);
+            return new VH(v);
+        }
+
+        @Override public void onBindViewHolder(VH holder, int position) {
+            try {
+                JSONObject b = items.get(position);
+                final String bId = b.optString("id");
+                
+                String resCode = b.optString("reservationCode", "RES-" + bId.substring(0, Math.min(bId.length(), 6)));
+                holder.tvCode.setText(resCode);
+                
+                String prosumer = b.optString("prosumerName", "Prosumer Agent");
+                String nic = b.optString("prosumerNic", "N/A");
+                holder.tvStation.setText(prosumer + " (" + nic + ")\nNode: " + b.optString("stationName"));
+
+                String scheduled = b.optString("scheduledDateTime", "");
+                String time = scheduled.length() >= 16 ? scheduled.substring(11, 16) : "N/A";
+                String date = scheduled.length() >= 10 ? scheduled.substring(0, 10) : scheduled;
+                holder.tvDate.setText(date + " " + time);
+
+                holder.tvEnergy.setText(b.optDouble("energyAmountKWh", 0.0) + " kWh");
+                if (holder.tvCost != null) {
+                    holder.tvCost.setVisibility(View.GONE);
+                }
+
+                String status = b.optString("status", "Pending");
+                holder.tvStatus.setText(status);
+
+                if ("Completed".equalsIgnoreCase(status)) {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_text_green));
+                } else if ("Pending".equalsIgnoreCase(status)) {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_amber));
+                } else if ("Cancelled".equalsIgnoreCase(status)) {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_danger));
+                } else {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_blue));
+                }
+
+                // Redirect operator to Booking Detail insight screen when specific cell is tapped
+                holder.itemView.setOnClickListener(v -> {
+                    Intent intent = new Intent(OperatorMainActivity.this, OperatorBookingDetailActivity.class);
+                    intent.putExtra("booking_id", bId);
+                    startActivity(intent);
+                });
+
+            } catch (Exception ignored) {}
+        }
+
+        @Override public int getItemCount() { return items.size(); }
+
+        class VH extends RecyclerView.ViewHolder {
+            TextView tvCode, tvStation, tvEnergy, tvStatus, tvDate, tvCost;
+            VH(View v) { super(v);
+                tvCode = v.findViewById(R.id.tv_booking_code);
+                tvStation = v.findViewById(R.id.tv_booking_station);
+                tvEnergy = v.findViewById(R.id.tv_booking_energy);
+                tvStatus = v.findViewById(R.id.tv_booking_status);
+                tvDate = v.findViewById(R.id.tv_booking_date);
+                tvCost = v.findViewById(R.id.tv_booking_cost);
+            }
+        }
+    }
+
 
 }
