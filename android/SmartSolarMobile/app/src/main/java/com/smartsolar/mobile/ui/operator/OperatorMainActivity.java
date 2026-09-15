@@ -387,7 +387,75 @@ public class OperatorMainActivity extends AppCompatActivity {
         }
     }
 
+        /** Historical logs Adapter architecture mapping authoritative transaction records */
+    private class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.VH> {
+        private final List<JSONObject> items;
+        HistoryAdapter(List<JSONObject> items) { this.items = items; }
 
+        @Override public VH onCreateViewHolder(ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_history, parent, false);
+            return new VH(v);
+        }
+
+        @Override public void onBindViewHolder(VH holder, int position) {
+            try {
+                JSONObject h = items.get(position);
+                final String bId = h.optString("id");
+                
+                String txId = "TXN-" + bId.toUpperCase().substring(0, Math.min(bId.length(), 8));
+                holder.tvTxnId.setText(txId);
+                
+                String bCode = h.optString("reservationCode", "RES-" + bId.substring(0, 6));
+                holder.tvBookingId.setText("Booking: " + bCode);
+                
+                holder.tvProsumer.setText(h.optString("prosumerName", "Prosumer Agent"));
+                holder.tvNic.setText("NIC: " + h.optString("prosumerNic", "N/A"));
+                
+                holder.tvNode.setText("Node: " + h.optString("stationName", "Solar Hub"));
+                
+                String scheduled = h.optString("scheduledDateTime", "").replace("T", " ").substring(0, 16);
+                holder.tvTimestamp.setText("Completed: " + scheduled);
+                
+                holder.tvEnergy.setText(h.optDouble("energyAmountKWh", 0.0) + " kWh");
+
+                String status = h.optString("status", "Pending");
+                if ("Completed".equalsIgnoreCase(status)) {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_text_green));
+                    holder.tvStatus.setText(status.toUpperCase());
+                } else if ("Approved".equalsIgnoreCase(status)) {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_blue));
+                    holder.tvStatus.setText(status.toUpperCase());
+                } else {
+                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_text_muted));
+                    holder.tvStatus.setText(status.toUpperCase());
+                }
+
+                // Navigate to historical transaction audit details on tap
+                holder.itemView.setOnClickListener(v -> {
+                    Intent intent = new Intent(OperatorMainActivity.this, OperatorTransactionDetailActivity.class);
+                    intent.putExtra("booking_id", bId);
+                    startActivity(intent);
+                });
+
+            } catch (Exception ignored) {}
+        }
+
+        @Override public int getItemCount() { return items.size(); }
+
+        class VH extends RecyclerView.ViewHolder {
+            TextView tvTxnId, tvBookingId, tvProsumer, tvNic, tvNode, tvTimestamp, tvEnergy, tvStatus;
+            VH(View v) { super(v);
+                tvTxnId = v.findViewById(R.id.tv_history_txn_id);
+                tvBookingId = v.findViewById(R.id.tv_history_booking_id);
+                tvProsumer = v.findViewById(R.id.tv_history_prosumer);
+                tvNic = v.findViewById(R.id.tv_history_nic);
+                tvNode = v.findViewById(R.id.tv_history_node);
+                tvTimestamp = v.findViewById(R.id.tv_history_timestamp);
+                tvEnergy = v.findViewById(R.id.tv_history_energy);
+                tvStatus = v.findViewById(R.id.tv_history_status);
+            }
+        }
+    }
 
 
 }
