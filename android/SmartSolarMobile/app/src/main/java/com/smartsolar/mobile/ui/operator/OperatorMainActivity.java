@@ -831,6 +831,79 @@ public class OperatorMainActivity extends AppCompatActivity {
         }).start();
     }
 
+    /** Fetches all reservations and filters for today's scheduled bookings. */
+    private void loadTodayBookings() {
+        // GET /api/reservations, filter for today by date prefix, and render upcoming booking cards
+        new Thread(() -> {
+            try {
+                Request req = ApiClient.buildAuthRequest(this, "reservations").get().build();
+                try (Response res = ApiClient.getClient().newCall(req).execute()) {
+                    if (res.body() != null) {
+                        String responseBody = res.body().string();
+                        JSONArray array = new JSONArray(responseBody);
 
+                        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
+                        runOnUiThread(() -> {
+                            if (layoutTodayBookings == null) return;
+                            layoutTodayBookings.removeAllViews();
+                            int foundCount = 0;
+                            for (int i = 0; i < array.length(); i++) {
+                                try {
+                                    JSONObject b = array.getJSONObject(i);
+                                    String scheduled = b.optString("scheduledDateTime", "");
+
+                                    if (scheduled.startsWith(today)) {
+                                        foundCount++;
+                                        View card = LayoutInflater.from(this).inflate(R.layout.item_energy_transfer, layoutTodayBookings, false);
+
+                                        TextView tvDate = card.findViewById(R.id.tv_transfer_date);
+                                        TextView tvHub = card.findViewById(R.id.tv_transfer_hub);
+                                        TextView tvTime = card.findViewById(R.id.tv_transfer_time);
+                                        TextView tvStatus = card.findViewById(R.id.tv_transfer_status);
+                                        TextView tvEnergy = card.findViewById(R.id.tv_transfer_energy);
+
+                                        String prosumer = b.optString("prosumerName", "Unknown Prosumer");
+                                        if (tvDate != null) tvDate.setText(prosumer);
+                                        if (tvHub != null)  tvHub.setText("Node: " + b.optString("stationName"));
+
+                                        String time = scheduled.length() >= 16 ? scheduled.substring(11, 16) : "N/A";
+                                        if (tvTime != null) tvTime.setText(time);
+
+                                        String status = b.optString("status");
+                                        if (tvStatus != null) {
+                                            tvStatus.setText(status);
+                                            if ("Completed".equals(status)) tvStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_green));
+                                            else if ("Pending".equals(status)) tvStatus.setTextColor(ContextCompat.getColor(this, R.color.neuro_amber));
+                                        }
+
+                                        if (tvEnergy != null) tvEnergy.setText(b.optDouble("energyAmountKWh", 0) + " kWh");
+
+                                        layoutTodayBookings.addView(card);
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+
+                            if (foundCount == 0) {
+                                TextView tvNone = new TextView(this);
+                                tvNone.setText("No bookings scheduled for today.");
+                                tvNone.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
+                                tvNone.setPadding(16, 16, 16, 16);
+                                layoutTodayBookings.addView(tvNone);
+                            }
+                        });
+                    }
+                }
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
+    @Override
+    protected void onResume() {
+        // Refresh all live dashboard data whenever operator returns to this screen
+        super.onResume();
+        loadDashboardStats();
+        loadStations();
+        loadTodayBookings();
+    }
 }
