@@ -637,6 +637,92 @@ public class OperatorMainActivity extends AppCompatActivity {
             }
         }
     }
+  /** Orchestrates and triggers lazy rendering allocation pipelines for OpenStreetMap fleet markers layout */
+    private void loadAllNodesMapOverlay() {
+        // Fetch all stations and plot OSMDroid map markers with slot count and tap-to-detail
+        final MapView mapView = findViewById(R.id.operator_all_nodes_map);
+        final View mapProgress = findViewById(R.id.map_progress_bar);
+        if (mapView == null) return;
+
+        // Configure maps rendering profiles state variables
+        Configuration.getInstance().setUserAgentValue(getPackageName());
+        mapView.setTileSource(TileSourceFactory.MAPNIK);
+        mapView.setMultiTouchControls(true);
+        mapView.getController().setZoom(7.5);
+        mapView.getController().setCenter(new GeoPoint(7.8731, 80.7718));
+
+        if (mapProgress != null) mapProgress.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                Request req = ApiClient.buildAuthRequest(this, "stations").get().build();
+                try (Response res = ApiClient.getClient().newCall(req).execute()) {
+                    if (res.body() != null) {
+                        String body = res.body().string();
+                        final JSONArray array = new JSONArray(body);
+
+                        runOnUiThread(() -> {
+                            if (mapProgress != null) mapProgress.setVisibility(View.GONE);
+                            mapView.getOverlays().clear();
+
+                            for (int i = 0; i < array.length(); i++) {
+                                try {
+                                    JSONObject station = array.getJSONObject(i);
+                                    final String sId = station.optString("id");
+                                    double lat = station.getDouble("latitude");
+                                    double lng = station.getDouble("longitude");
+                                    String name = station.getString("name");
+                                    String code = station.optString("stationCode");
+                                    int freeSlots = station.optInt("availableBatterySlots");
+                                    String status = station.optString("status");
+
+                                    Marker marker = new Marker(mapView);
+                                    marker.setPosition(new GeoPoint(lat, lng));
+                                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                                    marker.setTitle(name + " [" + code + "]");
+                                    marker.setSnippet("Status: " + status + " | " + freeSlots + " slots available");
+
+                                    // Clicking marker redirects operator straight to that exact node's insight metrics
+                                    marker.setOnMarkerClickListener((m, mv) -> {
+                                        Intent intent = new Intent(OperatorMainActivity.this, OperatorNodeDetailActivity.class);
+                                        intent.putExtra("station_id", sId);
+                                        startActivity(intent);
+                                        return true;
+                                    });
+
+                                    mapView.getOverlays().add(marker);
+                                } catch (Exception ignored) {}
+                            }
+                            mapView.invalidate();
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (mapProgress != null) mapProgress.setVisibility(View.GONE);
+                    Toast.makeText(OperatorMainActivity.this, "Map load failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
+    private void updateNavItemState(LinearLayout container, ImageView icon, TextView label, boolean isSelected) {
+        // Toggle background, tint colour and font weight of a bottom navigation tab item
+        if (container == null || icon == null || label == null) return;
+
+        if (isSelected) {
+            container.setBackgroundResource(R.drawable.bg_neuro_nav_item_selected);
+            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.neuro_green));
+            label.setTextColor(ContextCompat.getColor(this, R.color.neuro_green));
+            label.setTypeface(null, Typeface.BOLD);
+        } else {
+            container.setBackground(null);
+            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.neuro_nav_unselected));
+            label.setTextColor(ContextCompat.getColor(this, R.color.neuro_nav_unselected));
+            label.setTypeface(null, Typeface.NORMAL);
+        }
+    }
+
 
 
 }
