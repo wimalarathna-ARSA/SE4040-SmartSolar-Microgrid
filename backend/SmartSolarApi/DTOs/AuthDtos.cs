@@ -15,29 +15,23 @@ namespace SmartSolarApi.DTOs
     /// </summary>
     public class RegisterProsumerDto
     {
-        // National Identity Card (NIC) - required primary unique identifier
         [Required]
         public string Nic { get; set; } = string.Empty;
 
-        // Prosumer full name
         [Required]
         public string FullName { get; set; } = string.Empty;
 
-        // Contact email
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        // Password with minimum security length
         [Required]
         [MinLength(6)]
         public string Password { get; set; } = string.Empty;
 
-        // Phone number
         [Required]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        // Installation address
         public string Address { get; set; } = string.Empty;
     }
 
@@ -46,11 +40,9 @@ namespace SmartSolarApi.DTOs
     /// </summary>
     public class LoginDto
     {
-        // Email or NIC identifier
         [Required]
         public string EmailOrNic { get; set; } = string.Empty;
 
-        // Password
         [Required]
         public string Password { get; set; } = string.Empty;
     }
@@ -60,25 +52,55 @@ namespace SmartSolarApi.DTOs
     /// </summary>
     public class AuthResponseDto
     {
-        // Signed JWT access token
         public string Token { get; set; } = string.Empty;
+        public string Nic { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+    }
 
-        // Prosumer NIC or staff identifier
+    /// <summary>
+    /// Request payload for Backoffice creation of Backoffice and Grid Operator staff.
+    /// </summary>
+    public class CreateStaffUserDto
+    {
+        // Staff NIC
+        [Required]
         public string Nic { get; set; } = string.Empty;
 
-        // User full name
+        // Staff full name
+        [Required]
         public string FullName { get; set; } = string.Empty;
 
-        // User email
+        // Staff official email
+        [Required]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        // Role: Backoffice, GridOperator, or Prosumer
-        public string Role { get; set; } = string.Empty;
+        // Password
+        [Required]
+        [MinLength(6)]
+        public string Password { get; set; } = string.Empty;
 
-        // Account status
-        public string Status { get; set; } = string.Empty;
+        // Role: must be "Backoffice" or "GridOperator"
+        [Required]
+        public string Role { get; set; } = "GridOperator";
 
-        // Informational message
-        public string Message { get; set; } = string.Empty;
+        // Phone number
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        // Address
+        public string Address { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Request payload to trigger a 6-digit OTP dispatch to user's registered Gmail address.
+    /// </summary>
+    public class RequestPasswordResetOtpDto
+    {
+        [Required]
+        public string EmailOrNic { get; set; } = string.Empty;
     }
 }
