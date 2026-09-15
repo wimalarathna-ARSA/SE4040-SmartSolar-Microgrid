@@ -23,6 +23,12 @@ namespace SmartSolarApi.Services
             return reservations.Select(MapToDto).ToList();
         }
 
+        public async Task<ReservationResponseDto?> GetReservationByIdAsync(string id)
+        {
+            var reservation = await _db.EnergyReservation.Find(r => r.Id == id).FirstOrDefaultAsync();
+            return reservation == null ? null : MapToDto(reservation);
+        }
+
         private static ReservationResponseDto MapToDto(EnergyReservation r)
         {
             return new ReservationResponseDto
