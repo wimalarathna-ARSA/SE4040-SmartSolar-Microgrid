@@ -723,6 +723,114 @@ public class OperatorMainActivity extends AppCompatActivity {
         }
     }
 
+ /** Fetches global dashboard stats from C# Web API. */
+    private void loadDashboardStats() {
+        // GET /api/reservations/dashboard-stats and update KPI counter TextViews on main thread
+        new Thread(() -> {
+            try {
+                Request req = ApiClient.buildAuthRequest(this, "reservations/dashboard-stats").get().build();
+                try (Response res = ApiClient.getClient().newCall(req).execute()) {
+                    if (res.body() != null) {
+                        String responseBody = res.body().string();
+                        JSONObject json = new JSONObject(responseBody);
+                        int totalStations = json.optInt("totalStationsCount", 0);
+                        int activeBookings = json.optInt("activeReservationsCount", 0);
+                        int approvedFuture = json.optInt("countOfApprovedFutureReservations", 0);
+                        int completedJobs = json.optInt("completedReservationsCount", 0);
+
+                        runOnUiThread(() -> {
+                            if (tvStationCount != null)   tvStationCount.setText(getString(R.string.kpi_active_nodes, totalStations));
+                            if (tvActiveBookings != null) tvActiveBookings.setText(getString(R.string.kpi_active_bookings, activeBookings));
+                            if (tvApprovedFuture != null) tvApprovedFuture.setText(getString(R.string.kpi_approved_future, approvedFuture));
+                            if (tvCompletedJobs != null)  tvCompletedJobs.setText(getString(R.string.kpi_completed_jobs, completedJobs));
+                        });
+                    }
+                }
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
+    /** Fetches station list and displays battery slot info for each hub. */
+    private void loadStations() {
+        // GET /api/stations and inflate station card rows with battery slot metrics and click handlers
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        new Thread(() -> {
+            try {
+                Request req = ApiClient.buildAuthRequest(this, "stations").get().build();
+                try (Response res = ApiClient.getClient().newCall(req).execute()) {
+                    if (res.body() != null) {
+                        String responseBody = res.body().string();
+                        JSONArray array = new JSONArray(responseBody);
+                        runOnUiThread(() -> {
+                            if (progressBar != null) progressBar.setVisibility(View.GONE);
+                            if (layoutStations != null) {
+                                layoutStations.removeAllViews();
+                                LayoutInflater inflater = LayoutInflater.from(this);
+                                int[] art = {
+                                        R.drawable.house_solar_1, R.drawable.house_solar_2,
+                                        R.drawable.house_solar_3, R.drawable.house_solar_4,
+                                        R.drawable.house_solar_5 };
+                                int show = Math.min(array.length(), 4);
+                                for (int i = 0; i < show; i++) {
+                                    try {
+                                        JSONObject s = array.getJSONObject(i);
+                                        View row = inflater.inflate(R.layout.item_station, layoutStations, false);
+
+                                        TextView tvName = row.findViewById(R.id.tv_station_name);
+                                        TextView tvLoc = row.findViewById(R.id.tv_station_location);
+                                        TextView tvSlots = row.findViewById(R.id.tv_station_slots);
+                                        TextView tvStatus = row.findViewById(R.id.tv_station_status);
+                                        TextView tvMeta = row.findViewById(R.id.tv_station_meta);
+                                        android.widget.ImageView ivPhoto = row.findViewById(R.id.iv_station_photo);
+                                        View btnAdjust = row.findViewById(R.id.btn_update_slots);
+
+                                        if (tvName != null) tvName.setText(
+                                                s.optString("name") + " [" + s.optString("stationCode") + "]");
+                                        if (tvLoc != null) tvLoc.setText(s.optString("location", ""));
+                                        if (tvSlots != null) tvSlots.setText("Battery: "
+                                                + s.optInt("availableBatterySlots") + "/"
+                                                + s.optInt("totalBatterySlots") + " free");
+                                        if (tvStatus != null) tvStatus.setText(
+                                                s.optString("status", "Active").toUpperCase(Locale.getDefault()));
+                                        if (tvMeta != null) tvMeta.setText(
+                                                s.optInt("activeReservationsCount", 0) + " bookings");
+                                        if (ivPhoto != null) {
+                                            try { ivPhoto.setImageResource(art[i % art.length]); }
+                                            catch (Exception ignored) {}
+                                        }
+                                        // Home preview rows are view-only; hide adjust to keep console clean
+                                        if (btnAdjust != null) btnAdjust.setVisibility(View.GONE);
+
+                                        // Tap card row -> navigate to Node Details view
+                                        final String currentId = s.optString("id");
+                                        row.setClickable(true);
+                                        row.setFocusable(true);
+                                        row.setOnClickListener(v -> {
+                                            Intent intent = new Intent(OperatorMainActivity.this, OperatorNodeDetailActivity.class);
+                                            intent.putExtra("station_id", currentId);
+                                            startActivity(intent);
+                                        });
+
+                                        layoutStations.addView(row);
+                                    } catch (Exception ignored) {}
+                                }
+                                if (array.length() == 0) {
+                                    TextView tvNone = new TextView(this);
+                                    tvNone.setText("No stations reporting right now.");
+                                    tvNone.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
+                                    tvNone.setPadding(16, 16, 16, 16);
+                                    layoutStations.addView(tvNone);
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (progressBar != null) progressBar.setVisibility(View.GONE); });
+            }
+        }).start();
+    }
+
 
 
 }
