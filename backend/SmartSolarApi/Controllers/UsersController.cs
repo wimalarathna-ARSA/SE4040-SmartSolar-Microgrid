@@ -2,10 +2,12 @@
 // File: UsersController.cs
 // Author: IT22207418, IT22082510
 // Course: SE4040 - Enterprise Application Development
-// Description: User management controller for staff and prosumer management.
+// Description: User management controller. Handles staff and prosumer
+//              management, profile updates, and account lifecycle operations.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarApi.DTOs;
 using SmartSolarApi.Services;
@@ -60,7 +62,7 @@ namespace SmartSolarApi.Controllers
         }
 
         /// <summary>
-        /// Retrieves all registered users with optional role and status filters.
+        /// Retrieves all registered users with optional filters.
         /// GET: api/users?role=Prosumer&status=Active
         /// </summary>
         [HttpGet]
@@ -103,6 +105,149 @@ namespace SmartSolarApi.Controllers
             }
 
             return Ok(user);
+        }
+
+        /// <summary>
+        /// Updates a prosumer profile.
+        /// PUT: api/users/{nic}/profile
+        /// </summary>
+        [HttpPut("{nic}/profile")]
+        public async Task<IActionResult> UpdateProfile(
+            string nic,
+            [FromBody] UpdateProfileDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _userService.UpdateProfileAsync(nic, dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                user = result.User
+            });
+        }
+
+        /// <summary>
+        /// Prosumer requests self-service account deactivation.
+        /// PUT: api/users/{nic}/request-deactivation
+        /// </summary>
+        [HttpPut("{nic}/request-deactivation")]
+        public async Task<IActionResult> RequestDeactivation(
+            string nic,
+            [FromBody] DeactivationRequestDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result =
+                await _userService.RequestDeactivationAsync(nic, dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message
+            });
+        }
+
+        /// <summary>
+        /// Activates a pending or newly approved prosumer account.
+        /// PUT: api/users/{nic}/activate
+        /// </summary>
+        [HttpPut("{nic}/activate")]
+        public async Task<IActionResult> ActivateProsumer(string nic)
+        {
+            var result =
+                await _userService.ActivateProsumerAsync(nic);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                user = result.User
+            });
+        }
+
+        /// <summary>
+        /// Deactivates a prosumer account.
+        /// PUT: api/users/{nic}/deactivate
+        /// </summary>
+        [HttpPut("{nic}/deactivate")]
+        public async Task<IActionResult> DeactivateProsumer(
+            string nic,
+            [FromBody] ChangeAccountStatusDto? dto)
+        {
+            var result =
+                await _userService.DeactivateProsumerAsync(
+                    nic,
+                    dto?.Note);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                user = result.User
+            });
+        }
+
+        /// <summary>
+        /// Reactivates a deactivated prosumer profile.
+        /// Only Backoffice officers can perform this operation.
+        /// PUT: api/users/{nic}/reactivate
+        /// </summary>
+        [HttpPut("{nic}/reactivate")]
+        [Authorize(Roles = "Backoffice")]
+        public async Task<IActionResult> ReactivateProsumer(string nic)
+        {
+            var result =
+                await _userService.ReactivateProsumerAsync(nic);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                user = result.User
+            });
         }
     }
 }
