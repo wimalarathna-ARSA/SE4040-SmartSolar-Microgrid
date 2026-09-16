@@ -42,5 +42,17 @@ namespace SmartSolarApi.Models
         // GPS Longitude coordinate for Google Maps integration
         [BsonElement("longitude")]
         public double Longitude { get; set; }
+
+        // Energy capacity specification in kilowatt-hours (kW/h)
+        [BsonElement("capacityKWh")]
+        public double CapacityKWh { get; set; }
+
+        // Number of available battery storage slots currently open for trading
+        [BsonElement("availableBatterySlots")]
+        public int AvailableBatterySlots { get; set; }
+
+        // Total physical battery storage slots configured at this hub
+        [BsonElement("totalBatterySlots")]
+        public int TotalBatterySlots { get; set; }
     }
 }
