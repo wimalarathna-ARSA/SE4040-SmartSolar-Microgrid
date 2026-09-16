@@ -14,11 +14,22 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
-        public async Task<List<ReservationResponseDto>> GetReservationsAsync(string? prosumerNic = null)
+        public async Task<List<ReservationResponseDto>> GetReservationsAsync(
+            string? prosumerNic = null,
+            string? status = null,
+            string? stationId = null)
         {
-            var filter = string.IsNullOrWhiteSpace(prosumerNic)
-                ? Builders<EnergyReservation>.Filter.Empty
-                : Builders<EnergyReservation>.Filter.Eq(r => r.ProsumerNic, prosumerNic);
+            var filterBuilder = Builders<EnergyReservation>.Filter;
+            var filter = filterBuilder.Empty;
+
+            if (!string.IsNullOrWhiteSpace(prosumerNic))
+                filter &= filterBuilder.Eq(r => r.ProsumerNic, prosumerNic);
+
+            if (!string.IsNullOrWhiteSpace(status))
+                filter &= filterBuilder.Eq(r => r.Status, status);
+
+            if (!string.IsNullOrWhiteSpace(stationId))
+                filter &= filterBuilder.Eq(r => r.StationId, stationId);
 
             var reservations = await _db.EnergyReservation.Find(filter)
                 .SortByDescending(r => r.ScheduledDateTime)
