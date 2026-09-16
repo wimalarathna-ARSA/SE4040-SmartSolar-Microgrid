@@ -26,5 +26,14 @@ namespace SmartSolarApi.Models
 
         // Unique email address used for authentication
         public string Email { get; set; } = string.Empty;
+
+        // BCrypt-hashed password for secure credential storage
+        public string PasswordHash { get; set; } = string.Empty;
+
+        // Role assigned to the user: "Customer", "Admin", etc.
+        public string Role { get; set; } = "Customer";
+
+        // UTC timestamp when this user record was created
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
