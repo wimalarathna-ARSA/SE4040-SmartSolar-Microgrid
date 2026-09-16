@@ -35,5 +35,20 @@ namespace SmartSolarApi.Models
 
         // GPS Longitude coordinate of the station
         public double Longitude { get; set; }
+
+        // Station status: "Available", "Busy", "Offline"
+        public string Status { get; set; } = "Available";
+
+        // Total number of physical charging slots at this station
+        public int ChargingSlots { get; set; }
+
+        // Count of charging slots currently available for booking
+        public int AvailableSlots { get; set; }
+
+        // Indicates whether the station is currently operational
+        public bool IsActive { get; set; } = true;
+
+        // UTC timestamp when this station record was created
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
