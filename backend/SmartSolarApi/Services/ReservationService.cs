@@ -14,6 +14,24 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
+        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> CreateReservationAsync(string prosumerNic, CreateReservationDto dto)
+        {
+            var now = DateTime.UtcNow;
+
+            if (dto.ScheduledDateTime <= now)
+            {
+                return (false, "Reservation date and time must be in the future.", null);
+            }
+
+            var maxAllowedDate = now.AddDays(7);
+            if (dto.ScheduledDateTime > maxAllowedDate)
+            {
+                return (false, $"Power trading reservations must be scheduled within 7 days. Maximum permitted date is {maxAllowedDate:yyyy-MM-dd HH:mm UTC}.", null);
+            }
+
+            return (false, "Not implemented yet", null);
+        }
+
         public async Task<List<ReservationResponseDto>> GetReservationsAsync(
             string? prosumerNic = null,
             string? status = null,
