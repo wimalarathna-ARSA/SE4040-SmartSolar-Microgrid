@@ -55,7 +55,38 @@ namespace SmartSolarApi.Services
                 return (false, "Selected solar station currently has no available battery storage slots.", null);
             }
 
-            return (false, "In progress", null);
+            int chosenSlotNumber = 1;
+            while (chosenSlotNumber <= station.TotalBatterySlots && occupiedSlotNumbers.Contains(chosenSlotNumber))
+            {
+                chosenSlotNumber++;
+            }
+
+            decimal unitRate = 45.0m;
+            decimal totalCost = (decimal)dto.EnergyAmountKWh * unitRate;
+            var reservationCode = "RES-" + Random.Shared.Next(100000, 999999);
+
+            var reservation = new EnergyReservation
+            {
+                ReservationCode = reservationCode,
+                ProsumerNic = prosumer.Nic,
+                ProsumerName = prosumer.FullName,
+                StationId = station.Id!,
+                StationName = station.Name,
+                SlotId = dto.SlotId ?? string.Empty,
+                SlotNumber = chosenSlotNumber,
+                ScheduledDateTime = dto.ScheduledDateTime,
+                DurationHours = dto.DurationHours,
+                EnergyAmountKWh = dto.EnergyAmountKWh,
+                TotalCost = totalCost,
+                ReservationType = dto.ReservationType,
+                Status = "Approved",
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+
+            await _db.EnergyReservation.InsertOneAsync(reservation);
+
+            return (true, "Reservation created successfully.", MapToDto(reservation));
         }
 
         public async Task<List<ReservationResponseDto>> GetReservationsAsync(
