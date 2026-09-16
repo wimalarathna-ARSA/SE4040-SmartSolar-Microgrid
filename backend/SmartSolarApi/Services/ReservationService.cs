@@ -29,10 +29,16 @@ namespace SmartSolarApi.Services
                 return (false, $"Power trading reservations must be scheduled within 7 days. Maximum permitted date is {maxAllowedDate:yyyy-MM-dd HH:mm UTC}.", null);
             }
 
-            var station = await _db.SolarStationInfo.Find(s => s.Id == dto.StationId).FirstOrDefaultAsync();
-            if (station == null)
+            var prosumer = await _db.UserDetails.Find(u => u.Nic.ToLower() == prosumerNic.Trim().ToLower()).FirstOrDefaultAsync();
+            if (prosumer == null || prosumer.Status != "Active")
             {
-                return (false, "Target solar station hub does not exist.", null);
+                return (false, "Prosumer record not found or inactive.", null);
+            }
+
+            var station = await _db.SolarStationInfo.Find(s => s.Id == dto.StationId).FirstOrDefaultAsync();
+            if (station == null || station.Status != "Active")
+            {
+                return (false, "Selected station hub is unavailable.", null);
             }
 
             var activeReservations = await _db.EnergyReservation.Find(r =>
@@ -44,9 +50,9 @@ namespace SmartSolarApi.Services
                 .Select(r => r.SlotNumber!.Value)
                 .ToHashSet();
 
-            if (dto.SlotNumber.HasValue && occupiedSlotNumbers.Contains(dto.SlotNumber.Value))
+            if (occupiedSlotNumbers.Count >= station.TotalBatterySlots || station.AvailableBatterySlots <= 0)
             {
-                return (false, $"Slot #{dto.SlotNumber.Value} is already reserved by another prosumer. Please select another slot.", null);
+                return (false, "Selected solar station currently has no available battery storage slots.", null);
             }
 
             return (false, "In progress", null);
