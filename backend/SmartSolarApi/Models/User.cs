@@ -3,6 +3,8 @@
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
 // Description: Legacy domain entity model for a generic system user.
+//              Superseded by the full UserDetails model which supports NIC-based
+//              primary keys, role-based access, and prosumer lifecycle management.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -12,7 +14,8 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace SmartSolarApi.Models
 {
     /// <summary>
-    /// Basic user entity mapped to the MongoDB Users collection.
+    /// Legacy user entity for basic user authentication data.
+    /// Maps to the 'Users' MongoDB collection (superseded by UserDetails).
     /// </summary>
     public class User
     {
