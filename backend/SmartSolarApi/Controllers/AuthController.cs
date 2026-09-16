@@ -3,7 +3,7 @@
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
 // Description: API controller managing Prosumer registration, staff login,
-//              credential verification, and JWT issuance.
+//              credential verification, password recovery, and JWT issuance.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -84,6 +84,98 @@ namespace SmartSolarApi.Controllers
             }
 
             return Ok(result.AuthData);
+        }
+
+        /// <summary>
+        /// Requests a password reset OTP.
+        /// Generates a 6-digit OTP with a 5-minute expiry.
+        /// POST: api/auth/request-password-reset-otp
+        /// </summary>
+        [HttpPost("request-password-reset-otp")]
+        public async Task<IActionResult> RequestPasswordResetOtp(
+            [FromBody] RequestPasswordResetOtpDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result =
+                await _authService.RequestPasswordResetOtpAsync(dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                maskedEmail = result.MaskedEmail
+            });
+        }
+
+        /// <summary>
+        /// Verifies the password reset OTP.
+        /// POST: api/auth/verify-password-reset-otp
+        /// </summary>
+        [HttpPost("verify-password-reset-otp")]
+        public async Task<IActionResult> VerifyPasswordResetOtp(
+            [FromBody] VerifyPasswordResetOtpDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result =
+                await _authService.VerifyPasswordResetOtpAsync(dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message
+            });
+        }
+
+        /// <summary>
+        /// Confirms the password reset with a new password.
+        /// POST: api/auth/confirm-password-reset
+        /// </summary>
+        [HttpPost("confirm-password-reset")]
+        public async Task<IActionResult> ConfirmPasswordReset(
+            [FromBody] ConfirmPasswordResetDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result =
+                await _authService.ConfirmPasswordResetAsync(dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message
+            });
         }
     }
 }
