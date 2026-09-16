@@ -4,7 +4,7 @@
 // Course: SE4040 - Enterprise Application Development
 // Description: Automated database seeder that populates initial Backoffice admin,
 //              Grid Operator, sample Solar Prosumers, Microgrid Stations, and
-//              Energy Booking Slots.
+//              Energy Booking Slots if the database is uninitialized.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -21,13 +21,10 @@ namespace SmartSolarApi.Data
         /// <summary>
         /// Asynchronously seeds all required collections with sample data if empty.
         /// </summary>
-        // Evaluates collection counts and creates initial application records
+        // Inline comment: Evaluates collections count and creates initial records
         public static async Task SeedAsync(MongoDbContext db)
         {
-            // =================================================================
-            // Seed Users
-            // =================================================================
-
+            // Seed Users (Backoffice, Operator, Prosumers)
             var userCount = await db.UserDetails.CountDocumentsAsync(_ => true);
 
             if (userCount == 0)
@@ -98,10 +95,7 @@ namespace SmartSolarApi.Data
                     });
             }
 
-            // =================================================================
             // Seed Microgrid Solar Hubs
-            // =================================================================
-
             var stationCount = await db.SolarStationInfo.CountDocumentsAsync(_ => true);
 
             if (stationCount == 0)
@@ -167,10 +161,7 @@ namespace SmartSolarApi.Data
 
                 await db.SolarStationInfo.InsertManyAsync(stations);
 
-                // =================================================================
-                // Seed Discrete Energy Booking Slots
-                // =================================================================
-
+                // Seed discrete booking slots for stations over next 7 days
                 var slots = new List<EnergyBookingSlots>();
 
                 foreach (var station in stations)
@@ -200,6 +191,55 @@ namespace SmartSolarApi.Data
                 }
 
                 await db.EnergyBookingSlots.InsertManyAsync(slots);
+            }
+
+            // Seed Sample Energy Reservations
+            var resCount = await db.EnergyReservation.CountDocumentsAsync(_ => true);
+
+            if (resCount == 0)
+            {
+                var firstStation = await db.SolarStationInfo
+                    .Find(_ => true)
+                    .FirstOrDefaultAsync();
+
+                if (firstStation != null)
+                {
+                    var sampleReservation = new EnergyReservation
+                    {
+                        ReservationCode = "RES-" + new Random().Next(10000, 99999),
+
+                        ProsumerNic = "199512345678",
+                        ProsumerName = "Kamal Perera (Solar Home Owner)",
+
+                        StationId = firstStation.Id!,
+                        StationName = firstStation.Name,
+
+                        SlotId = string.Empty,
+
+                        ScheduledDateTime = DateTime.UtcNow
+                            .AddDays(2)
+                            .Date
+                            .AddHours(14),
+
+                        DurationHours = 2,
+
+                        EnergyAmountKWh = 25.0,
+
+                        TotalCost = 1137.50m,
+
+                        ReservationType = "DropOff",
+
+                        Status = "Approved",
+
+                        QrCodeData =
+                            $"SMART-SOLAR-TOKEN:{firstStation.Id}:199512345678:{DateTime.UtcNow.AddDays(2):yyyyMMddHHmmss}",
+
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await db.EnergyReservation.InsertOneAsync(sampleReservation);
+                }
             }
         }
     }
