@@ -22,19 +22,11 @@ namespace SmartSolarApi.Services
     {
         private readonly MongoDbContext _db;
 
-        /// <summary>
-        /// Constructor injecting the MongoDB database context.
-        /// </summary>
-        // Injects MongoDbContext for station and reservation queries
         public StationService(MongoDbContext db)
         {
             _db = db;
         }
 
-        /// <summary>
-        /// Creates a new microgrid station with GPS location, kW/h capacity, and battery storage slots.
-        /// </summary>
-        // Validates unique station code and builds new SolarStationInfo document
         public async Task<(bool Success, string Message, StationResponseDto? Station)> CreateStationAsync(CreateStationDto dto)
         {
             var existing = await _db.SolarStationInfo
@@ -71,10 +63,6 @@ namespace SmartSolarApi.Services
             );
         }
 
-        /// <summary>
-        /// Retrieves all microgrid stations, optionally filtered by status, with active reservation count.
-        /// </summary>
-        // Fetches station documents and aggregates active reservations per station
         public async Task<List<StationResponseDto>> GetStationsAsync(
             string? status = null,
             double? userLat = null,
@@ -156,9 +144,129 @@ namespace SmartSolarApi.Services
         }
 
         /// <summary>
-        /// Maps SolarStationInfo model to StationResponseDto.
+        /// Retrieves a single microgrid station by its MongoDB ObjectId.
         /// </summary>
-        // Projects database model to client response schema
+        public async Task<StationResponseDto?> GetStationByIdAsync(string id)
+        {
+            var station = await _db.SolarStationInfo
+                .Find(s => s.Id == id)
+                .FirstOrDefaultAsync();
+
+            if (station == null)
+                return null;
+
+            var activeReservations = await _db.EnergyReservation
+                .Find(r =>
+                    (r.StationId == station.Id || r.StationName == station.Name) &&
+                    (r.Status == "Approved" ||
+                     r.Status == "Pending" ||
+                     (r.Status != "Completed" && r.Status != "Cancelled")))
+                .ToListAsync();
+
+            var activeCount = activeReservations.Count;
+
+            var occupiedSlots = activeReservations
+                .Where(r => r.SlotNumber.HasValue && r.SlotNumber.Value > 0)
+                .Select(r => r.SlotNumber!.Value)
+                .Distinct()
+                .ToList();
+
+            var unassigned = activeCount - occupiedSlots.Count;
+
+            if (unassigned > 0)
+            {
+                for (int i = 1; i <= station.TotalBatterySlots && unassigned > 0; i++)
+                {
+                    if (!occupiedSlots.Contains(i))
+                    {
+                        occupiedSlots.Add(i);
+                        unassigned--;
+                    }
+                }
+            }
+
+            occupiedSlots.Sort();
+
+            return MapToDto(station, activeCount, occupiedSlots);
+        }
+
+        /// <summary>
+        /// Updates microgrid station details, capacity specifications, and operational schedules.
+        /// </summary>
+        public async Task<(bool Success, string Message, StationResponseDto? Station)> UpdateStationAsync(
+            string id,
+            UpdateStationDto dto)
+        {
+            var station = await _db.SolarStationInfo
+                .Find(s => s.Id == id)
+                .FirstOrDefaultAsync();
+
+            if (station == null)
+            {
+                return (false, "Microgrid station not found.", null);
+            }
+
+            if (dto.AvailableBatterySlots > dto.TotalBatterySlots)
+            {
+                return (
+                    false,
+                    $"Available battery slots ({dto.AvailableBatterySlots}) cannot exceed total battery slots ({dto.TotalBatterySlots}).",
+                    null);
+            }
+
+            var newStationCode = dto.StationCode?.Trim().ToUpperInvariant();
+
+            if (!string.IsNullOrEmpty(newStationCode) &&
+                !newStationCode.Equals(
+                    station.StationCode,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                var existing = await _db.SolarStationInfo
+                    .Find(s =>
+                        s.Id != id &&
+                        s.StationCode.ToLower() == newStationCode.ToLower())
+                    .FirstOrDefaultAsync();
+
+                if (existing != null)
+                {
+                    return (
+                        false,
+                        $"Station code '{newStationCode}' is already in use by another solar hub ({existing.Name}).",
+                        null);
+                }
+            }
+
+            var update = Builders<SolarStationInfo>.Update
+                .Set(
+                    s => s.StationCode,
+                    string.IsNullOrEmpty(newStationCode)
+                        ? station.StationCode
+                        : newStationCode)
+                .Set(s => s.Name, dto.Name.Trim())
+                .Set(s => s.Location, dto.Location.Trim())
+                .Set(s => s.Latitude, dto.Latitude)
+                .Set(s => s.Longitude, dto.Longitude)
+                .Set(s => s.CapacityKWh, dto.CapacityKWh)
+                .Set(s => s.TotalBatterySlots, dto.TotalBatterySlots)
+                .Set(s => s.AvailableBatterySlots, dto.AvailableBatterySlots)
+                .Set(s => s.OperationalSchedule, dto.OperationalSchedule.Trim())
+                .Set(s => s.Status, dto.Status)
+                .Set(s => s.UpdatedAt, DateTime.UtcNow);
+
+            await _db.SolarStationInfo.UpdateOneAsync(
+                s => s.Id == id,
+                update);
+
+            var updatedStation = await _db.SolarStationInfo
+                .Find(s => s.Id == id)
+                .FirstOrDefaultAsync();
+
+            return (
+                true,
+                "Station specifications, location, capacity and schedule updated successfully.",
+                MapToDto(updatedStation!, 0));
+        }
+
         private static StationResponseDto MapToDto(
             SolarStationInfo s,
             int activeReservations,
@@ -190,10 +298,6 @@ namespace SmartSolarApi.Services
             };
         }
 
-        /// <summary>
-        /// Haversine formula to compute geographical distance between two GPS coordinates in kilometers.
-        /// </summary>
-        // Calculates spherical distance for Google Maps nearby station search
         private static double CalculateDistanceKm(
             double lat1,
             double lon1,
