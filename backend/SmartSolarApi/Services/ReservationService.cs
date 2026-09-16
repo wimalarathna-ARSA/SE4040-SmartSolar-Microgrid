@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using MongoDB.Driver;
 using SmartSolarApi.Data;
 using SmartSolarApi.DTOs;
@@ -84,9 +86,19 @@ namespace SmartSolarApi.Services
                 UpdatedAt = now
             };
 
+            reservation.QrCodeData = GenerateSecureQrPayload(reservation);
             await _db.EnergyReservation.InsertOneAsync(reservation);
 
             return (true, "Reservation created successfully.", MapToDto(reservation));
+        }
+
+        private static string GenerateSecureQrPayload(EnergyReservation res)
+        {
+            var rawData = $"{res.ReservationCode}:{res.ProsumerNic}:{res.StationId}:{res.ScheduledDateTime:O}";
+            using var sha = SHA256.Create();
+            var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawData + ":SmartSolarSecretTokenSalt2026"));
+            var hash = Convert.ToHexString(hashBytes)[..16];
+            return $"SMARTSOLAR-TX|{res.ReservationCode}|{res.ProsumerNic}|{res.StationId}|{hash}";
         }
 
         public async Task<List<ReservationResponseDto>> GetReservationsAsync(
