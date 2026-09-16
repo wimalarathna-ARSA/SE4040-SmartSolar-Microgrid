@@ -55,4 +55,31 @@ public class OperatorTransactionDetailActivity extends AppCompatActivity {
 
         fetchHistoricalData();
     }
+
+        private void bindViews() {
+        // Map all origin booking, financial settlement, and historical QR code display views
+        progressBar          = findViewById(R.id.progress_bar);
+        tvTransactionTitle   = findViewById(R.id.tv_transaction_title);
+        tvTransactionBanner  = findViewById(R.id.tv_transaction_banner);
+
+        // Origin section
+        tvBookingId          = findViewById(R.id.tv_booking_id);
+        tvProsumerName       = findViewById(R.id.tv_prosumer_name);
+        tvProsumerNic        = findViewById(R.id.tv_prosumer_nic);
+        tvNodeName           = findViewById(R.id.tv_node_name);
+        tvScheduledTime      = findViewById(R.id.tv_scheduled_time);
+
+        // Settlement section
+        tvTransactionId      = findViewById(R.id.tv_transaction_id);
+        tvTransactionStatus  = findViewById(R.id.tv_transaction_status);
+        tvEnergyTransferred  = findViewById(R.id.tv_energy_transferred);
+        tvCompletionTime     = findViewById(R.id.tv_completion_time);
+        
+        // QR section
+        tvQrPayload          = findViewById(R.id.tv_qr_payload);
+        ivHistoricalQr       = findViewById(R.id.iv_historical_qr);
+        tvQrHeaderLabel      = findViewById(R.id.tv_qr_header_label);
+        tvQrSubLabel         = findViewById(R.id.tv_qr_sub_label);
+    }
+
 }
