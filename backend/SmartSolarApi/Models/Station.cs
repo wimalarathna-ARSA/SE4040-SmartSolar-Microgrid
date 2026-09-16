@@ -23,5 +23,17 @@ namespace SmartSolarApi.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
+
+        // Human-readable name for this charging station
+        public string Name { get; set; } = string.Empty;
+
+        // Physical address or location description
+        public string Location { get; set; } = string.Empty;
+
+        // GPS Latitude coordinate of the station
+        public double Latitude { get; set; }
+
+        // GPS Longitude coordinate of the station
+        public double Longitude { get; set; }
     }
 }
