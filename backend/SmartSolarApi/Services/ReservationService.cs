@@ -65,6 +65,7 @@ namespace SmartSolarApi.Services
 
             decimal unitRate = 45.0m;
             decimal totalCost = (decimal)dto.EnergyAmountKWh * unitRate;
+
             var reservationCode = "RES-" + Random.Shared.Next(100000, 999999);
 
             var reservation = new EnergyReservation
@@ -87,9 +88,16 @@ namespace SmartSolarApi.Services
             };
 
             reservation.QrCodeData = GenerateSecureQrPayload(reservation);
+
             await _db.EnergyReservation.InsertOneAsync(reservation);
 
-            return (true, "Reservation created successfully.", MapToDto(reservation));
+            var newAvail = Math.Max(0, station.TotalBatterySlots - (occupiedSlotNumbers.Count + 1));
+            var slotUpdate = Builders<SolarStationInfo>.Update
+                .Set(s => s.AvailableBatterySlots, newAvail)
+                .Set(s => s.UpdatedAt, now);
+            await _db.SolarStationInfo.UpdateOneAsync(s => s.Id == station.Id, slotUpdate);
+
+            return (true, $"Reservation created successfully for Slot #{chosenSlotNumber}.", MapToDto(reservation));
         }
 
         private static string GenerateSecureQrPayload(EnergyReservation res)
