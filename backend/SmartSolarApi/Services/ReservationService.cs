@@ -29,7 +29,27 @@ namespace SmartSolarApi.Services
                 return (false, $"Power trading reservations must be scheduled within 7 days. Maximum permitted date is {maxAllowedDate:yyyy-MM-dd HH:mm UTC}.", null);
             }
 
-            return (false, "Not implemented yet", null);
+            var station = await _db.SolarStationInfo.Find(s => s.Id == dto.StationId).FirstOrDefaultAsync();
+            if (station == null)
+            {
+                return (false, "Target solar station hub does not exist.", null);
+            }
+
+            var activeReservations = await _db.EnergyReservation.Find(r =>
+                r.StationId == station.Id &&
+                (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
+
+            var occupiedSlotNumbers = activeReservations
+                .Where(r => r.SlotNumber.HasValue && r.SlotNumber.Value > 0)
+                .Select(r => r.SlotNumber!.Value)
+                .ToHashSet();
+
+            if (dto.SlotNumber.HasValue && occupiedSlotNumbers.Contains(dto.SlotNumber.Value))
+            {
+                return (false, $"Slot #{dto.SlotNumber.Value} is already reserved by another prosumer. Please select another slot.", null);
+            }
+
+            return (false, "In progress", null);
         }
 
         public async Task<List<ReservationResponseDto>> GetReservationsAsync(
