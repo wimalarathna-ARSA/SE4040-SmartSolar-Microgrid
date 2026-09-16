@@ -51,5 +51,13 @@ namespace SmartSolarApi.Models
         // Trading price per kWh in local currency
         [BsonElement("pricePerKWh")]
         public decimal PricePerKWh { get; set; }
+
+        // Slot status: "Available", "Booked", "Maintenance"
+        [BsonElement("status")]
+        public string Status { get; set; } = "Available";
+
+        // Timestamp when slot was created
+        [BsonElement("createdAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
