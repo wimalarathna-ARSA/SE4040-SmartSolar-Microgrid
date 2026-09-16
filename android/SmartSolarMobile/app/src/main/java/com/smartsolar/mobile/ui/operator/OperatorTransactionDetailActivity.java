@@ -162,5 +162,15 @@ public class OperatorTransactionDetailActivity extends AppCompatActivity {
 
         } catch (Exception ignored) {}
     }
-
+ /** Renders the historical QR reference visually using ZXing */
+    private void renderQr(String data) {
+        // Use ZXing BarcodeEncoder to generate and render 400x400 QR code bitmap from payload
+        try {
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            Bitmap bitmap = encoder.encodeBitmap(data, BarcodeFormat.QR_CODE, 400, 400);
+            ivHistoricalQr.setImageBitmap(bitmap);
+        } catch (Exception e) {
+            Toast.makeText(this, "QR Rendering Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
