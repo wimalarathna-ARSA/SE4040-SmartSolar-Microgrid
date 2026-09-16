@@ -16,88 +16,56 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
-        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> CreateReservationAsync(string prosumerNic, CreateReservationDto dto)
+        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> UpdateReservationAsync(string reservationId, string prosumerNic, UpdateReservationDto dto)
         {
+            var reservation = await _db.EnergyReservation.Find(r => r.Id == reservationId).FirstOrDefaultAsync();
+            if (reservation == null)
+            {
+                return (false, "Reservation not found.", null);
+            }
+
+            bool isStaff = string.IsNullOrEmpty(prosumerNic);
+            if (!isStaff && !reservation.ProsumerNic.Equals(prosumerNic, StringComparison.OrdinalIgnoreCase))
+            {
+                return (false, "Unauthorized: You do not own this reservation.", null);
+            }
+
+            if (reservation.Status == "Completed" || reservation.Status == "Cancelled")
+            {
+                return (false, $"Cannot modify reservation that is already {reservation.Status}.", null);
+            }
+
             var now = DateTime.UtcNow;
-
-            if (dto.ScheduledDateTime <= now)
+            var noticeTime = reservation.ScheduledDateTime - now;
+            if (!isStaff && noticeTime < TimeSpan.FromHours(12))
             {
-                return (false, "Reservation date and time must be in the future.", null);
-            }
-
-            var maxAllowedDate = now.AddDays(7);
-            if (dto.ScheduledDateTime > maxAllowedDate)
-            {
-                return (false, $"Power trading reservations must be scheduled within 7 days. Maximum permitted date is {maxAllowedDate:yyyy-MM-dd HH:mm UTC}.", null);
-            }
-
-            var prosumer = await _db.UserDetails.Find(u => u.Nic.ToLower() == prosumerNic.Trim().ToLower()).FirstOrDefaultAsync();
-            if (prosumer == null || prosumer.Status != "Active")
-            {
-                return (false, "Prosumer record not found or inactive.", null);
-            }
-
-            var station = await _db.SolarStationInfo.Find(s => s.Id == dto.StationId).FirstOrDefaultAsync();
-            if (station == null || station.Status != "Active")
-            {
-                return (false, "Selected station hub is unavailable.", null);
-            }
-
-            var activeReservations = await _db.EnergyReservation.Find(r =>
-                r.StationId == station.Id &&
-                (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
-
-            var occupiedSlotNumbers = activeReservations
-                .Where(r => r.SlotNumber.HasValue && r.SlotNumber.Value > 0)
-                .Select(r => r.SlotNumber!.Value)
-                .ToHashSet();
-
-            if (occupiedSlotNumbers.Count >= station.TotalBatterySlots || station.AvailableBatterySlots <= 0)
-            {
-                return (false, "Selected solar station currently has no available battery storage slots.", null);
-            }
-
-            int chosenSlotNumber = 1;
-            while (chosenSlotNumber <= station.TotalBatterySlots && occupiedSlotNumbers.Contains(chosenSlotNumber))
-            {
-                chosenSlotNumber++;
+                return (false, $"Reservation updates require at least 12 hours' notice prior to scheduled slot time.", null);
             }
 
             decimal unitRate = 45.0m;
             decimal totalCost = (decimal)dto.EnergyAmountKWh * unitRate;
 
-            var reservationCode = "RES-" + Random.Shared.Next(100000, 999999);
+            var update = Builders<EnergyReservation>.Update
+                .Set(r => r.ScheduledDateTime, dto.ScheduledDateTime)
+                .Set(r => r.DurationHours, dto.DurationHours)
+                .Set(r => r.EnergyAmountKWh, dto.EnergyAmountKWh)
+                .Set(r => r.ReservationType, dto.ReservationType)
+                .Set(r => r.TotalCost, totalCost)
+                .Set(r => r.UpdatedAt, now);
 
-            var reservation = new EnergyReservation
-            {
-                ReservationCode = reservationCode,
-                ProsumerNic = prosumer.Nic,
-                ProsumerName = prosumer.FullName,
-                StationId = station.Id!,
-                StationName = station.Name,
-                SlotId = dto.SlotId ?? string.Empty,
-                SlotNumber = chosenSlotNumber,
-                ScheduledDateTime = dto.ScheduledDateTime,
-                DurationHours = dto.DurationHours,
-                EnergyAmountKWh = dto.EnergyAmountKWh,
-                TotalCost = totalCost,
-                ReservationType = dto.ReservationType,
-                Status = "Approved",
-                CreatedAt = now,
-                UpdatedAt = now
-            };
+            reservation.ScheduledDateTime = dto.ScheduledDateTime;
+            reservation.DurationHours = dto.DurationHours;
+            reservation.EnergyAmountKWh = dto.EnergyAmountKWh;
+            reservation.ReservationType = dto.ReservationType;
+            reservation.TotalCost = totalCost;
+            reservation.UpdatedAt = now;
 
             reservation.QrCodeData = GenerateSecureQrPayload(reservation);
+            update = update.Set(r => r.QrCodeData, reservation.QrCodeData);
 
-            await _db.EnergyReservation.InsertOneAsync(reservation);
+            await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservationId, update);
 
-            var newAvail = Math.Max(0, station.TotalBatterySlots - (occupiedSlotNumbers.Count + 1));
-            var slotUpdate = Builders<SolarStationInfo>.Update
-                .Set(s => s.AvailableBatterySlots, newAvail)
-                .Set(s => s.UpdatedAt, now);
-            await _db.SolarStationInfo.UpdateOneAsync(s => s.Id == station.Id, slotUpdate);
-
-            return (true, $"Reservation created successfully for Slot #{chosenSlotNumber}.", MapToDto(reservation));
+            return (true, "Reservation updated successfully.", MapToDto(reservation));
         }
 
         private static string GenerateSecureQrPayload(EnergyReservation res)
