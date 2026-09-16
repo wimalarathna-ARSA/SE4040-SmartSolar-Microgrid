@@ -2,7 +2,7 @@
 // File: EnergyBookingSlots.cs
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Model representing power trading reservation time slots for
+// Description: Model representing power trading reservation time slots for 
 //              energy drop-off and charging at microgrid nodes.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
