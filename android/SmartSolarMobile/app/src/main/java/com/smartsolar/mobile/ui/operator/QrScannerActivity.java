@@ -38,4 +38,51 @@ public class QrScannerActivity extends AppCompatActivity {
     // ZXing activity result launcher for camera scanning
     private final ActivityResultLauncher<ScanOptions> qrLauncher = registerForActivityResult(
             new ScanContract(), this::onQrScanResult);
+
+    
+    /** Initializes QR scanner UI with camera and manual entry options. */
+    // Sets up ZXing scanner launcher and verify button
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // Initialise session, bind views, configure ZXing camera launcher and verify click handler
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_qr_scanner);
+
+        sessionManager = new SessionManager(this);
+
+        etQrManual     = findViewById(R.id.et_qr_manual);
+        etOperatorNotes = findViewById(R.id.et_operator_notes);
+        tvScanResult   = findViewById(R.id.tv_scan_result);
+        tvError        = findViewById(R.id.tv_error);
+        tvSuccess      = findViewById(R.id.tv_success);
+        btnScanCamera  = findViewById(R.id.btn_scan_camera);
+        btnVerifyFinalize = findViewById(R.id.btn_verify_finalize);
+        progressBar    = findViewById(R.id.progress_bar);
+
+        findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
+
+        // Launch ZXing camera QR scanner
+        btnScanCamera.setOnClickListener(v -> {
+            ScanOptions options = new ScanOptions();
+            options.setPrompt("Scan Prosumer Transaction QR Code");
+            options.setBeepEnabled(true);
+            options.setOrientationLocked(true);
+            options.setBarcodeImageEnabled(false);
+            qrLauncher.launch(options);
+        });
+
+        // Verify and finalize job with API
+        btnVerifyFinalize.setOnClickListener(v -> {
+            scannedQrData = etQrManual.getText().toString().trim().isEmpty()
+                    ? scannedQrData : etQrManual.getText().toString().trim();
+            if (scannedQrData.isEmpty()) {
+                tvError.setText("Please scan or enter a QR code.");
+                tvError.setVisibility(View.VISIBLE);
+                return;
+            }
+            verifyAndFinalizeJob();
+        });
     }
+
+    
+}
