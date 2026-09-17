@@ -23,10 +23,6 @@ namespace SmartSolarApi.DTOs
         [Required]
         public string FullName { get; set; } = string.Empty;
 
-        // Prosumer full name
-        [Required]
-        public string FullName { get; set; } = string.Empty;
-
         // Contact email
         [Required]
         [EmailAddress]
@@ -41,13 +37,13 @@ namespace SmartSolarApi.DTOs
         [Required]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        // Installation address
+        // Installation address (text description)
         public string Address { get; set; } = string.Empty;
 
-        // Optional GPS Latitude of solar installation site
+        // Optional GPS Latitude of solar installation site (for nearby nodes feature)
         public double? InstallationLatitude { get; set; }
 
-        // Optional GPS Longitude of solar installation site
+        // Optional GPS Longitude of solar installation site (for nearby nodes feature)
         public double? InstallationLongitude { get; set; }
     }
 
