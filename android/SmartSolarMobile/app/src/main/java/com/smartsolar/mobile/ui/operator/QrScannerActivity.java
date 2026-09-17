@@ -96,5 +96,71 @@ public class QrScannerActivity extends AppCompatActivity {
             tvError.setVisibility(View.GONE);
         }
     }
+ /** Verifies QR code against central C# Web API and finalizes energy transfer job. */
+    // Calls POST /api/reservations/verify-qr?operatorNic=... with QR payload
+    private void verifyAndFinalizeJob() {
+        // POST /api/reservations/verify-qr with QR payload and operator notes to finalize job
+        progressBar.setVisibility(View.VISIBLE);
+        btnVerifyFinalize.setEnabled(false);
+        tvError.setVisibility(View.GONE);
+        tvSuccess.setVisibility(View.GONE);
 
+        String operatorNic = sessionManager.getNic();
+        String notes = etOperatorNotes.getText().toString().trim();
+        if (notes.isEmpty()) notes = "Physical battery inspection passed. Energy transfer completed by Grid Operator.";
+
+        final String finalNotes = notes;
+
+        new Thread(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("qrCodeData", scannedQrData);
+                body.put("operatorNotes", finalNotes);
+
+                Request request = ApiClient.buildAuthRequest(this,
+                        "reservations/verify-qr?operatorNic=" + operatorNic)
+                        .post(ApiClient.jsonBody(body)).build();
+
+                Response response = ApiClient.getClient().newCall(request).execute();
+                String responseBody = response.body().string();
+                JSONObject json = new JSONObject(responseBody);
+
+                if (response.isSuccessful()) {
+                    JSONObject res = json.optJSONObject("reservation");
+                    String code = res != null ? res.optString("reservationCode") : "";
+                    String name = res != null ? res.optString("prosumerName") : "";
+                    double energy = res != null ? res.optDouble("energyAmountKWh") : 0;
+                    double cost = res != null ? res.optDouble("totalCost") : 0;
+
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnVerifyFinalize.setEnabled(true);
+                        tvSuccess.setText("Job finalized.\n" +
+                                "Booking: " + code + "\n" +
+                                "Prosumer: " + name + "\n" +
+                                "Energy Transferred: " + energy + " kWh\n" +
+                                "Transaction Value: Rs. " + String.format("%.2f", cost));
+                        tvSuccess.setVisibility(View.VISIBLE);
+                        etQrManual.setText("");
+                        scannedQrData = "";
+                    });
+                } else {
+                    String msg = json.optString("message", "QR verification failed.");
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnVerifyFinalize.setEnabled(true);
+                        tvError.setText("Verification Failed: " + msg);
+                        tvError.setVisibility(View.VISIBLE);
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnVerifyFinalize.setEnabled(true);
+                    tvError.setText("Network error: " + e.getMessage());
+                    tvError.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
+    }
 }
