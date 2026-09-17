@@ -54,5 +54,21 @@ namespace SmartSolarApi.Models
         // Total physical battery storage slots configured at this hub
         [BsonElement("totalBatterySlots")]
         public int TotalBatterySlots { get; set; }
+
+        // Operational hours and weekly schedule (e.g., "Mon-Sun 06:00-20:00")
+        [BsonElement("operationalSchedule")]
+        public string OperationalSchedule { get; set; } = "Mon-Sun 06:00-22:00";
+
+        // Operational status: "Active", "Inactive"
+        [BsonElement("status")]
+        public string Status { get; set; } = "Active";
+
+        // Timestamp when station was registered
+        [BsonElement("createdAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Timestamp of latest modification
+        [BsonElement("updatedAt")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }
