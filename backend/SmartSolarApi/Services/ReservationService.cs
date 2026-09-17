@@ -16,95 +16,39 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
-        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> UpdateReservationAsync(string reservationId, string prosumerNic, UpdateReservationDto dto)
+        public async Task<(bool Success, string Message)> CancelReservationAsync(string reservationId, string prosumerNic)
         {
             var reservation = await _db.EnergyReservation.Find(r => r.Id == reservationId).FirstOrDefaultAsync();
             if (reservation == null)
             {
-                return (false, "Reservation not found.", null);
+                return (false, "Reservation not found.");
             }
 
             bool isStaff = string.IsNullOrEmpty(prosumerNic);
             if (!isStaff && !reservation.ProsumerNic.Equals(prosumerNic, StringComparison.OrdinalIgnoreCase))
             {
-                return (false, "Unauthorized: You do not own this reservation.", null);
+                return (false, "Unauthorized: You do not own this reservation.");
             }
 
-            if (reservation.Status == "Completed" || reservation.Status == "Cancelled")
+            if (reservation.Status == "Cancelled" || reservation.Status == "Completed")
             {
-                return (false, $"Cannot modify reservation that is already {reservation.Status}.", null);
+                return (false, $"Cannot cancel reservation that is already {reservation.Status}.");
             }
 
             var now = DateTime.UtcNow;
             var noticeTime = reservation.ScheduledDateTime - now;
             if (!isStaff && noticeTime < TimeSpan.FromHours(12))
             {
-                return (false, $"Reservation updates require at least 12 hours' notice prior to scheduled slot time.", null);
+                return (false, $"Cancellations require at least 12 hours' notice prior to scheduled slot time. Time remaining: {noticeTime.TotalHours:F1} hours.");
             }
 
-            decimal unitRate = 45.0m;
-            decimal totalCost = (decimal)dto.EnergyAmountKWh * unitRate;
-
             var update = Builders<EnergyReservation>.Update
-                .Set(r => r.ScheduledDateTime, dto.ScheduledDateTime)
-                .Set(r => r.DurationHours, dto.DurationHours)
-                .Set(r => r.EnergyAmountKWh, dto.EnergyAmountKWh)
-                .Set(r => r.ReservationType, dto.ReservationType)
-                .Set(r => r.TotalCost, totalCost)
+                .Set(r => r.Status, "Cancelled")
                 .Set(r => r.UpdatedAt, now);
-
-            reservation.ScheduledDateTime = dto.ScheduledDateTime;
-            reservation.DurationHours = dto.DurationHours;
-            reservation.EnergyAmountKWh = dto.EnergyAmountKWh;
-            reservation.ReservationType = dto.ReservationType;
-            reservation.TotalCost = totalCost;
-            reservation.UpdatedAt = now;
-
-            reservation.QrCodeData = GenerateSecureQrPayload(reservation);
-            update = update.Set(r => r.QrCodeData, reservation.QrCodeData);
 
             await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservationId, update);
 
-            return (true, "Reservation updated successfully.", MapToDto(reservation));
-        }
-
-        private static string GenerateSecureQrPayload(EnergyReservation res)
-        {
-            var rawData = $"{res.ReservationCode}:{res.ProsumerNic}:{res.StationId}:{res.ScheduledDateTime:O}";
-            using var sha = SHA256.Create();
-            var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawData + ":SmartSolarSecretTokenSalt2026"));
-            var hash = Convert.ToHexString(hashBytes)[..16];
-            return $"SMARTSOLAR-TX|{res.ReservationCode}|{res.ProsumerNic}|{res.StationId}|{hash}";
-        }
-
-        public async Task<List<ReservationResponseDto>> GetReservationsAsync(
-            string? prosumerNic = null,
-            string? status = null,
-            string? stationId = null)
-        {
-            var filterBuilder = Builders<EnergyReservation>.Filter;
-            var filter = filterBuilder.Empty;
-
-            if (!string.IsNullOrWhiteSpace(prosumerNic))
-                filter &= filterBuilder.Eq(r => r.ProsumerNic, prosumerNic);
-
-            if (!string.IsNullOrWhiteSpace(status))
-                filter &= filterBuilder.Eq(r => r.Status, status);
-
-            if (!string.IsNullOrWhiteSpace(stationId))
-                filter &= filterBuilder.Eq(r => r.StationId, stationId);
-
-            var reservations = await _db.EnergyReservation.Find(filter)
-                .SortByDescending(r => r.ScheduledDateTime)
-                .ToListAsync();
-
-            return reservations.Select(MapToDto).ToList();
-        }
-
-        public async Task<ReservationResponseDto?> GetReservationByIdAsync(string id)
-        {
-            var reservation = await _db.EnergyReservation.Find(r => r.Id == id).FirstOrDefaultAsync();
-            return reservation == null ? null : MapToDto(reservation);
+            return (true, "Reservation cancelled successfully.");
         }
 
         private static ReservationResponseDto MapToDto(EnergyReservation r)
