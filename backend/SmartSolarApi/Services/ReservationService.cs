@@ -16,39 +16,41 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
-        public async Task<(bool Success, string Message)> CancelReservationAsync(string reservationId, string prosumerNic)
+        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> VerifyAndCompleteJobAsync(string operatorNic, VerifyQrDto dto)
         {
-            var reservation = await _db.EnergyReservation.Find(r => r.Id == reservationId).FirstOrDefaultAsync();
+            var reservation = await _db.EnergyReservation.Find(r => r.QrCodeData == dto.QrCodeData.Trim()).FirstOrDefaultAsync();
             if (reservation == null)
             {
-                return (false, "Reservation not found.");
+                return (false, "Invalid QR code. No matching reservation found on central server.", null);
             }
 
-            bool isStaff = string.IsNullOrEmpty(prosumerNic);
-            if (!isStaff && !reservation.ProsumerNic.Equals(prosumerNic, StringComparison.OrdinalIgnoreCase))
+            if (reservation.Status == "Completed")
             {
-                return (false, "Unauthorized: You do not own this reservation.");
+                return (false, $"This reservation was already completed on {reservation.CompletedAt:yyyy-MM-dd HH:mm UTC} by operator {reservation.OperatorNic}.", null);
             }
 
-            if (reservation.Status == "Cancelled" || reservation.Status == "Completed")
+            if (reservation.Status == "Cancelled")
             {
-                return (false, $"Cannot cancel reservation that is already {reservation.Status}.");
+                return (false, "Transaction rejected: This reservation has been cancelled.", null);
             }
 
             var now = DateTime.UtcNow;
-            var noticeTime = reservation.ScheduledDateTime - now;
-            if (!isStaff && noticeTime < TimeSpan.FromHours(12))
-            {
-                return (false, $"Cancellations require at least 12 hours' notice prior to scheduled slot time. Time remaining: {noticeTime.TotalHours:F1} hours.");
-            }
 
             var update = Builders<EnergyReservation>.Update
-                .Set(r => r.Status, "Cancelled")
+                .Set(r => r.Status, "Completed")
+                .Set(r => r.CompletedAt, now)
+                .Set(r => r.OperatorNic, operatorNic)
+                .Set(r => r.OperatorNotes, dto.OperatorNotes ?? "Energy transfer verified and completed by Grid Operator")
                 .Set(r => r.UpdatedAt, now);
 
-            await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservationId, update);
+            await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservation.Id, update);
 
-            return (true, "Reservation cancelled successfully.");
+            reservation.Status = "Completed";
+            reservation.CompletedAt = now;
+            reservation.OperatorNic = operatorNic;
+            reservation.OperatorNotes = dto.OperatorNotes ?? "Energy transfer completed";
+
+            return (true, $"Energy transfer successfully verified and finalized!", MapToDto(reservation));
         }
 
         private static ReservationResponseDto MapToDto(EnergyReservation r)
