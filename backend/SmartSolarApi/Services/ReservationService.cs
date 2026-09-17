@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using MongoDB.Driver;
 using SmartSolarApi.Data;
 using SmartSolarApi.DTOs;
@@ -16,41 +14,37 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
-        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> VerifyAndCompleteJobAsync(string operatorNic, VerifyQrDto dto)
+        public async Task<List<ReservationResponseDto>> GetReservationsAsync(
+            string? prosumerNic = null,
+            string? status = null,
+            string? stationId = null,
+            string? search = null)
         {
-            var reservation = await _db.EnergyReservation.Find(r => r.QrCodeData == dto.QrCodeData.Trim()).FirstOrDefaultAsync();
-            if (reservation == null)
+            var filterBuilder = Builders<EnergyReservation>.Filter;
+            var filter = filterBuilder.Empty;
+
+            if (!string.IsNullOrWhiteSpace(prosumerNic))
+                filter &= filterBuilder.Eq(r => r.ProsumerNic, prosumerNic);
+
+            if (!string.IsNullOrWhiteSpace(status))
+                filter &= filterBuilder.Eq(r => r.Status, status);
+
+            if (!string.IsNullOrWhiteSpace(stationId))
+                filter &= filterBuilder.Eq(r => r.StationId, stationId);
+
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                return (false, "Invalid QR code. No matching reservation found on central server.", null);
+                var q = search.Trim();
+                filter &= (filterBuilder.Regex(r => r.ReservationCode, new MongoDB.Bson.BsonRegularExpression(q, "i")) |
+                           filterBuilder.Regex(r => r.ProsumerName, new MongoDB.Bson.BsonRegularExpression(q, "i")) |
+                           filterBuilder.Regex(r => r.StationName, new MongoDB.Bson.BsonRegularExpression(q, "i")));
             }
 
-            if (reservation.Status == "Completed")
-            {
-                return (false, $"This reservation was already completed on {reservation.CompletedAt:yyyy-MM-dd HH:mm UTC} by operator {reservation.OperatorNic}.", null);
-            }
+            var reservations = await _db.EnergyReservation.Find(filter)
+                .SortByDescending(r => r.ScheduledDateTime)
+                .ToListAsync();
 
-            if (reservation.Status == "Cancelled")
-            {
-                return (false, "Transaction rejected: This reservation has been cancelled.", null);
-            }
-
-            var now = DateTime.UtcNow;
-
-            var update = Builders<EnergyReservation>.Update
-                .Set(r => r.Status, "Completed")
-                .Set(r => r.CompletedAt, now)
-                .Set(r => r.OperatorNic, operatorNic)
-                .Set(r => r.OperatorNotes, dto.OperatorNotes ?? "Energy transfer verified and completed by Grid Operator")
-                .Set(r => r.UpdatedAt, now);
-
-            await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservation.Id, update);
-
-            reservation.Status = "Completed";
-            reservation.CompletedAt = now;
-            reservation.OperatorNic = operatorNic;
-            reservation.OperatorNotes = dto.OperatorNotes ?? "Energy transfer completed";
-
-            return (true, $"Energy transfer successfully verified and finalized!", MapToDto(reservation));
+            return reservations.Select(MapToDto).ToList();
         }
 
         private static ReservationResponseDto MapToDto(EnergyReservation r)
