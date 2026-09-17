@@ -84,5 +84,17 @@ public class QrScannerActivity extends AppCompatActivity {
         });
     }
 
-    
+        /** Handles ZXing scan result and populates QR field. */
+    // Called by ZXing after camera capture with decoded string
+    private void onQrScanResult(ScanIntentResult result) {
+        // Receive decoded barcode payload from ZXing scanner and update input fields
+        if (result.getContents() != null) {
+            scannedQrData = result.getContents();
+            etQrManual.setText(scannedQrData);
+            tvScanResult.setText("QR Scanned: " + scannedQrData);
+            tvScanResult.setVisibility(View.VISIBLE);
+            tvError.setVisibility(View.GONE);
+        }
+    }
+
 }
