@@ -14,63 +14,36 @@ namespace SmartSolarApi.Services
             _db = db;
         }
 
-        public async Task<List<ReservationResponseDto>> GetReservationsAsync(
-            string? prosumerNic = null,
-            string? status = null,
-            string? stationId = null,
-            string? search = null)
+        public async Task<DashboardStatsDto> GetDashboardStatsAsync(string? prosumerNic = null)
         {
+            var now = DateTime.UtcNow;
             var filterBuilder = Builders<EnergyReservation>.Filter;
-            var filter = filterBuilder.Empty;
 
-            if (!string.IsNullOrWhiteSpace(prosumerNic))
-                filter &= filterBuilder.Eq(r => r.ProsumerNic, prosumerNic);
+            var baseFilter = string.IsNullOrWhiteSpace(prosumerNic) 
+                ? filterBuilder.Empty 
+                : filterBuilder.Eq(r => r.ProsumerNic, prosumerNic);
 
-            if (!string.IsNullOrWhiteSpace(status))
-                filter &= filterBuilder.Eq(r => r.Status, status);
+            var pendingFilter = baseFilter & filterBuilder.Eq(r => r.Status, "Pending");
+            var activeFilter = baseFilter & (filterBuilder.Eq(r => r.Status, "Approved") | filterBuilder.Eq(r => r.Status, "Pending"));
+            var approvedFutureFilter = baseFilter & filterBuilder.Eq(r => r.Status, "Approved") & filterBuilder.Gt(r => r.ScheduledDateTime, now);
+            var completedFilter = baseFilter & filterBuilder.Eq(r => r.Status, "Completed");
 
-            if (!string.IsNullOrWhiteSpace(stationId))
-                filter &= filterBuilder.Eq(r => r.StationId, stationId);
+            var pendingCount = (int)await _db.EnergyReservation.CountDocumentsAsync(pendingFilter);
+            var activeCount = (int)await _db.EnergyReservation.CountDocumentsAsync(activeFilter);
+            var approvedFutureCount = (int)await _db.EnergyReservation.CountDocumentsAsync(approvedFutureFilter);
+            var completedCount = (int)await _db.EnergyReservation.CountDocumentsAsync(completedFilter);
 
-            if (!string.IsNullOrWhiteSpace(search))
+            var totalStations = (int)await _db.SolarStationInfo.CountDocumentsAsync(s => s.Status == "Active");
+            var totalProsumers = (int)await _db.UserDetails.CountDocumentsAsync(u => u.Role == "Prosumer");
+
+            return new DashboardStatsDto
             {
-                var q = search.Trim();
-                filter &= (filterBuilder.Regex(r => r.ReservationCode, new MongoDB.Bson.BsonRegularExpression(q, "i")) |
-                           filterBuilder.Regex(r => r.ProsumerName, new MongoDB.Bson.BsonRegularExpression(q, "i")) |
-                           filterBuilder.Regex(r => r.StationName, new MongoDB.Bson.BsonRegularExpression(q, "i")));
-            }
-
-            var reservations = await _db.EnergyReservation.Find(filter)
-                .SortByDescending(r => r.ScheduledDateTime)
-                .ToListAsync();
-
-            return reservations.Select(MapToDto).ToList();
-        }
-
-        private static ReservationResponseDto MapToDto(EnergyReservation r)
-        {
-            return new ReservationResponseDto
-            {
-                Id = r.Id ?? string.Empty,
-                ReservationCode = r.ReservationCode,
-                ProsumerNic = r.ProsumerNic,
-                ProsumerName = r.ProsumerName,
-                StationId = r.StationId,
-                StationName = r.StationName,
-                SlotId = r.SlotId,
-                SlotNumber = r.SlotNumber,
-                ScheduledDateTime = r.ScheduledDateTime,
-                DurationHours = r.DurationHours,
-                EnergyAmountKWh = r.EnergyAmountKWh,
-                TotalCost = r.TotalCost,
-                ReservationType = r.ReservationType,
-                Status = r.Status,
-                QrCodeData = r.QrCodeData,
-                CompletedAt = r.CompletedAt,
-                OperatorNic = r.OperatorNic,
-                OperatorNotes = r.OperatorNotes,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt
+                PendingReservationsCount = pendingCount,
+                ActiveReservationsCount = activeCount,
+                CountOfApprovedFutureReservations = approvedFutureCount,
+                CompletedReservationsCount = completedCount,
+                TotalStationsCount = totalStations,
+                TotalProsumersCount = totalProsumers
             };
         }
     }
