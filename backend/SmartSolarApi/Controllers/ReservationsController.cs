@@ -3,8 +3,12 @@ using SmartSolarApi.Services;
 
 namespace SmartSolarApi.Controllers
 {
+    /// <summary>
+    /// //////
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+
     public class ReservationsController : ControllerBase
     {
         private readonly ReservationService _reservationService;
@@ -42,5 +46,13 @@ namespace SmartSolarApi.Controllers
             var reservations = await _reservationService.GetReservationsAsync(userId, null, null, null);
             return Ok(reservations);
         }
+
+        [HttpGet("station/{stationId}/availability")]
+        public async Task<IActionResult> GetStationAvailability(string stationId)
+        {
+            var reservations = await _reservationService.GetReservationsAsync(null, null, stationId, null);
+            return Ok(reservations);
+        }
     }
+
 }
