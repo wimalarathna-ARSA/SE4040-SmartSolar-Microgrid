@@ -104,5 +104,26 @@ namespace SmartSolarApi.Controllers
             var reservations = await _reservationService.GetReservationsAsync(null, null, stationId, null);
             return Ok(reservations);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromQuery] string? prosumerNic, [FromBody] UpdateReservationDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _reservationService.UpdateReservationAsync(id, prosumerNic ?? string.Empty, dto);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                reservation = result.Reservation
+            });
+        }
     }
 }
