@@ -24,5 +24,16 @@ namespace SmartSolarApi.Controllers
             var reservations = await _reservationService.GetReservationsAsync(prosumerNic, status, stationId, search);
             return Ok(reservations);
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var reservation = await _reservationService.GetReservationByIdAsync(id);
+            if (reservation == null)
+            {
+                return NotFound(new { message = "Reservation not found." });
+            }
+            return Ok(reservation);
+        }
     }
 }
