@@ -44,18 +44,14 @@ namespace SmartSolarApi.Services
                 .FirstOrDefaultAsync();
 
             if (existingByNic != null)
-            {
                 return (false, "An account with this National Identity Card (NIC) already exists.", null);
-            }
 
             var existingByEmail = await _db.UserDetails
                 .Find(u => u.Email.ToLower() == dto.Email.Trim().ToLower())
                 .FirstOrDefaultAsync();
 
             if (existingByEmail != null)
-            {
                 return (false, "An account with this email address already exists.", null);
-            }
 
             var prosumer = new UserDetails
             {
@@ -187,9 +183,6 @@ namespace SmartSolarApi.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        /// <summary>
-        /// Generates and sends a six-digit password reset OTP.
-        /// </summary>
         public async Task<(bool Success, string Message, string? MaskedEmail)>
             RequestPasswordResetOtpAsync(RequestPasswordResetOtpDto dto)
         {
@@ -201,13 +194,7 @@ namespace SmartSolarApi.Services
             ).FirstOrDefaultAsync();
 
             if (user == null)
-            {
-                return (
-                    false,
-                    "No account was found matching the provided Email or NIC.",
-                    null
-                );
-            }
+                return (false, "No account was found matching the provided Email or NIC.", null);
 
             var otp = RandomNumberGenerator
                 .GetInt32(100000, 1000000)
@@ -239,6 +226,63 @@ namespace SmartSolarApi.Services
                 true,
                 $"A 6-digit verification code has been dispatched to {masked}. Please enter it within 5 minutes.",
                 masked
+            );
+        }
+
+        /// <summary>
+        /// Verifies the submitted OTP against the stored code and expiry time.
+        /// </summary>
+        public async Task<(bool Success, string Message)> VerifyPasswordResetOtpAsync(
+            VerifyPasswordResetOtpDto dto)
+        {
+            var identifier = dto.EmailOrNic.Trim().ToLowerInvariant();
+
+            var user = await _db.UserDetails.Find(u =>
+                u.Email.ToLower() == identifier ||
+                u.Nic.ToLower() == identifier
+            ).FirstOrDefaultAsync();
+
+            if (user == null)
+                return (false, "Account not found.");
+
+            if (string.IsNullOrEmpty(user.PasswordResetOtp) ||
+                !user.PasswordResetOtpExpiry.HasValue)
+            {
+                return (
+                    false,
+                    "No active password reset request found. Please request a new verification code."
+                );
+            }
+
+            if (DateTime.UtcNow > user.PasswordResetOtpExpiry.Value)
+            {
+                return (
+                    false,
+                    "This verification code has expired (strictly valid for 5 minutes). Please request a new code."
+                );
+            }
+
+            if (!string.Equals(
+                    user.PasswordResetOtp.Trim(),
+                    dto.Otp.Trim(),
+                    StringComparison.Ordinal))
+            {
+                return (
+                    false,
+                    "Invalid verification code. Please check your email and try again."
+                );
+            }
+
+            await _db.UserDetails.UpdateOneAsync(
+                u => u.Nic == user.Nic,
+                Builders<UserDetails>.Update
+                    .Set(u => u.PasswordResetVerified, true)
+                    .Set(u => u.UpdatedAt, DateTime.UtcNow)
+            );
+
+            return (
+                true,
+                "Verification code confirmed! Please enter and confirm your new password."
             );
         }
 
