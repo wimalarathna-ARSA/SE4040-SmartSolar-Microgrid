@@ -35,5 +35,12 @@ namespace SmartSolarApi.Controllers
             }
             return Ok(reservation);
         }
+
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId(string userId)
+        {
+            var reservations = await _reservationService.GetReservationsAsync(userId, null, null, null);
+            return Ok(reservations);
+        }
     }
 }
