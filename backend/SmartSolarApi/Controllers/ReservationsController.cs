@@ -1,14 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartSolarApi.DTOs;
 using SmartSolarApi.Services;
 
 namespace SmartSolarApi.Controllers
 {
-    /// <summary>
-    /// //////
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-
     public class ReservationsController : ControllerBase
     {
         private readonly ReservationService _reservationService;
@@ -16,6 +13,60 @@ namespace SmartSolarApi.Controllers
         public ReservationsController(ReservationService reservationService)
         {
             _reservationService = reservationService;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromQuery] string prosumerNic, [FromBody] CreateReservationDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(prosumerNic))
+            {
+                return BadRequest(new { message = "prosumerNic query parameter is required." });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _reservationService.CreateReservationAsync(prosumerNic, dto);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Reservation?.Id }, result.Reservation);
+        }
+
+        [HttpPost("backoffice-create")]
+        public async Task<IActionResult> BackofficeCreate([FromBody] BackofficeCreateReservationDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var createDto = new CreateReservationDto
+            {
+                StationId = dto.StationId,
+                SlotId = dto.SlotId,
+                SlotNumber = dto.SlotNumber,
+                ScheduledDateTime = dto.ScheduledDateTime,
+                DurationHours = dto.DurationHours,
+                EnergyAmountKWh = dto.EnergyAmountKWh,
+                ReservationType = dto.ReservationType,
+            };
+
+            var result = await _reservationService.CreateReservationAsync(dto.ProsumerNic.Trim(), createDto);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Reservation?.Id }, new
+            {
+                message = result.Message,
+                reservation = result.Reservation
+            });
         }
 
         [HttpGet]
@@ -54,5 +105,4 @@ namespace SmartSolarApi.Controllers
             return Ok(reservations);
         }
     }
-
 }
