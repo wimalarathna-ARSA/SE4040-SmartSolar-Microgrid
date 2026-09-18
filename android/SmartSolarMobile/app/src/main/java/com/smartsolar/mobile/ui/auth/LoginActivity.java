@@ -384,3 +384,4 @@ public class LoginActivity extends AppCompatActivity {
         if (forgotDialog != null && forgotDialog.isShowing()) forgotDialog.dismiss();
     }
 }
+
