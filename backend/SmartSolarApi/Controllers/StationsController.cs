@@ -2,7 +2,8 @@
 // File: StationsController.cs
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Microgrid Hub Controller for creating and retrieving solar hubs.
+// Description: Microgrid Hub Controller. Manages solar stations, deactivation,
+//              and battery storage slots.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -13,7 +14,7 @@ using SmartSolarApi.Services;
 namespace SmartSolarApi.Controllers
 {
     /// <summary>
-    /// Solar Microgrid Station management endpoints.
+    /// Solar Microgrid Station and battery slot management endpoints.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -29,10 +30,6 @@ namespace SmartSolarApi.Controllers
             _stationService = stationService;
         }
 
-        /// <summary>
-        /// Creates a new microgrid solar hub.
-        /// POST: api/stations
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateStation(
             [FromBody] CreateStationDto dto)
@@ -60,11 +57,6 @@ namespace SmartSolarApi.Controllers
             );
         }
 
-        /// <summary>
-        /// Retrieves all microgrid stations.
-        /// Supports optional status and GPS parameters.
-        /// GET: api/stations?lat=6.9175&lng=79.8654
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] string? status,
@@ -81,10 +73,6 @@ namespace SmartSolarApi.Controllers
             return Ok(stations);
         }
 
-        /// <summary>
-        /// Retrieves a specific solar microgrid station.
-        /// GET: api/stations/{id}
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -100,6 +88,101 @@ namespace SmartSolarApi.Controllers
             }
 
             return Ok(station);
+        }
+
+        /// <summary>
+        /// Updates station specifications and operational schedule.
+        /// PUT: api/stations/{id}
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
+            string id,
+            [FromBody] UpdateStationDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result =
+                await _stationService.UpdateStationAsync(
+                    id,
+                    dto
+                );
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                station = result.Station
+            });
+        }
+
+        /// <summary>
+        /// Deactivates a microgrid node.
+        /// Active reservations are checked by the service layer.
+        /// DELETE: api/stations/{id}
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Deactivate(string id)
+        {
+            var result =
+                await _stationService
+                    .DeactivateStationAsync(id);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message
+            });
+        }
+
+        /// <summary>
+        /// Updates available battery storage slots.
+        /// PUT: api/stations/{id}/battery-slots
+        /// </summary>
+        [HttpPut("{id}/battery-slots")]
+        public async Task<IActionResult> UpdateBatterySlots(
+            string id,
+            [FromBody] UpdateBatterySlotsDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result =
+                await _stationService.UpdateBatterySlotsAsync(
+                    id,
+                    dto.AvailableBatterySlots
+                );
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message
+            });
         }
     }
 }
