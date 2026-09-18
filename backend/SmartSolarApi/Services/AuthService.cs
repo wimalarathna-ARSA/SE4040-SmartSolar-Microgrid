@@ -10,6 +10,7 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
@@ -19,24 +20,22 @@ using SmartSolarApi.Models;
 
 namespace SmartSolarApi.Services
 {
-    /// <summary>
-    /// Service layer handling user authentication, credential verification,
-    /// and token issuance.
-    /// </summary>
     public class AuthService
     {
         private readonly MongoDbContext _db;
         private readonly IConfiguration _config;
+        private readonly EmailService _emailService;
 
-        public AuthService(MongoDbContext db, IConfiguration config)
+        public AuthService(
+            MongoDbContext db,
+            IConfiguration config,
+            EmailService emailService)
         {
             _db = db;
             _config = config;
+            _emailService = emailService;
         }
 
-        /// <summary>
-        /// Registers a new Solar Prosumer with NIC as the unique business primary key.
-        /// </summary>
         public async Task<(bool Success, string Message, UserResponseDto? User)> RegisterProsumerAsync(
             RegisterProsumerDto dto)
         {
@@ -46,11 +45,7 @@ namespace SmartSolarApi.Services
 
             if (existingByNic != null)
             {
-                return (
-                    false,
-                    "An account with this National Identity Card (NIC) already exists.",
-                    null
-                );
+                return (false, "An account with this National Identity Card (NIC) already exists.", null);
             }
 
             var existingByEmail = await _db.UserDetails
@@ -59,11 +54,7 @@ namespace SmartSolarApi.Services
 
             if (existingByEmail != null)
             {
-                return (
-                    false,
-                    "An account with this email address already exists.",
-                    null
-                );
+                return (false, "An account with this email address already exists.", null);
             }
 
             var prosumer = new UserDetails
@@ -104,9 +95,6 @@ namespace SmartSolarApi.Services
             );
         }
 
-        /// <summary>
-        /// Authenticates users via Email or NIC and password.
-        /// </summary>
         public async Task<(bool Success, string Message, AuthResponseDto? AuthData)> LoginAsync(
             LoginDto dto)
         {
@@ -118,52 +106,43 @@ namespace SmartSolarApi.Services
             ).FirstOrDefaultAsync();
 
             if (user == null)
-            {
                 return (false, "Invalid credentials. User not found.", null);
-            }
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            {
                 return (false, "Invalid email/NIC or password.", null);
-            }
 
             if (user.Status == "PendingApproval")
-            {
                 return (
                     false,
                     "Your account is pending Backoffice activation. Please contact system administrator.",
                     null
                 );
-            }
 
             if (user.Status == "Deactivated")
-            {
                 return (
                     false,
                     "This account is deactivated. Deactivated accounts can only be reactivated by a Backoffice officer.",
                     null
                 );
-            }
 
             var token = GenerateJwtToken(user);
 
-            var authResponse = new AuthResponseDto
-            {
-                Token = token,
-                Nic = user.Nic,
-                FullName = user.FullName,
-                Email = user.Email,
-                Role = user.Role,
-                Status = user.Status,
-                Message = $"Login successful. Welcome {user.FullName}!"
-            };
-
-            return (true, "Authentication successful", authResponse);
+            return (
+                true,
+                "Authentication successful",
+                new AuthResponseDto
+                {
+                    Token = token,
+                    Nic = user.Nic,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    Role = user.Role,
+                    Status = user.Status,
+                    Message = $"Login successful. Welcome {user.FullName}!"
+                }
+            );
         }
 
-        /// <summary>
-        /// Generates signed JWT bearer token containing user identity and role claims.
-        /// </summary>
         public string GenerateJwtToken(UserDetails user)
         {
             var jwtKey = _config["Jwt:Key"]
@@ -206,6 +185,76 @@ namespace SmartSolarApi.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        /// <summary>
+        /// Generates and sends a six-digit password reset OTP.
+        /// </summary>
+        public async Task<(bool Success, string Message, string? MaskedEmail)>
+            RequestPasswordResetOtpAsync(RequestPasswordResetOtpDto dto)
+        {
+            var identifier = dto.EmailOrNic.Trim().ToLowerInvariant();
+
+            var user = await _db.UserDetails.Find(u =>
+                u.Email.ToLower() == identifier ||
+                u.Nic.ToLower() == identifier
+            ).FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return (
+                    false,
+                    "No account was found matching the provided Email or NIC.",
+                    null
+                );
+            }
+
+            var otp = RandomNumberGenerator
+                .GetInt32(100000, 1000000)
+                .ToString("D6");
+
+            var now = DateTime.UtcNow;
+            var expiry = now.AddMinutes(5);
+
+            var update = Builders<UserDetails>.Update
+                .Set(u => u.PasswordResetOtp, otp)
+                .Set(u => u.PasswordResetOtpExpiry, expiry)
+                .Set(u => u.PasswordResetVerified, false)
+                .Set(u => u.UpdatedAt, now);
+
+            await _db.UserDetails.UpdateOneAsync(
+                u => u.Nic == user.Nic,
+                update
+            );
+
+            await _emailService.SendPasswordResetOtpAsync(
+                user.Email,
+                user.FullName,
+                otp
+            );
+
+            var masked = MaskEmail(user.Email);
+
+            return (
+                true,
+                $"A 6-digit verification code has been dispatched to {masked}. Please enter it within 5 minutes.",
+                masked
+            );
+        }
+
+        private static string MaskEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+                return email;
+
+            var parts = email.Split('@');
+            var name = parts[0];
+            var domain = parts[1];
+
+            if (name.Length <= 2)
+                return $"{name[0]}*@{domain}";
+
+            return $"{name[0]}{new string('*', Math.Min(6, name.Length - 2))}{name[^1]}@{domain}";
         }
     }
 }
