@@ -2,7 +2,7 @@
 // File: AuthContext.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: React Auth context providing JWT token, user state and session management.
+// Description: React Auth context providing JWT token, user state and role-based session management.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore session on application load
+    // Restore session on app load
     const savedToken =
       localStorage.getItem('token');
 
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Store authenticated user information after successful login
+  // Authenticate and persist the logged-in user session
   const login = (authData) => {
     const userData = {
       nic: authData.nic,
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     );
   };
 
-  // Clear the current authentication session
+  // Clear authentication state and remove persisted credentials
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -78,6 +78,30 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
+
+  // Update selected user properties while keeping local storage synchronized
+  const updateUser = (patch) => {
+    setUser((prev) => {
+      const next = {
+        ...(prev || {}),
+        ...patch,
+      };
+
+      localStorage.setItem(
+        'user',
+        JSON.stringify(next)
+      );
+
+      return next;
+    });
+  };
+
+  // Role-specific access flags
+  const isBackoffice =
+    user?.role === 'Backoffice';
+
+  const isOperator =
+    user?.role === 'GridOperator';
 
   return (
     <AuthContext.Provider
@@ -87,7 +111,14 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        updateUser,
+
+        // Authentication state
         isAuthenticated: !!token,
+
+        // Role-based access state
+        isBackoffice,
+        isOperator,
       }}
     >
       {children}
