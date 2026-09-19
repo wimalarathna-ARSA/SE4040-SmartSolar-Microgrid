@@ -125,5 +125,17 @@ namespace SmartSolarApi.Controllers
                 reservation = result.Reservation
             });
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Cancel(string id, [FromQuery] string? prosumerNic)
+        {
+            var result = await _reservationService.CancelReservationAsync(id, prosumerNic ?? string.Empty);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new { message = result.Message });
+        }
     }
 }
