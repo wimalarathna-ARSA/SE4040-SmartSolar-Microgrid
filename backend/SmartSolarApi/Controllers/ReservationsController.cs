@@ -8,6 +8,7 @@
 //              - QR code verification and Operator finalization
 //              - Live dashboard counts (pending and approved future counts)
 // Architecture: FAT Service Pattern (All business logic centralized in API)
+//
 // ============================================================================
 
 using Microsoft.AspNetCore.Mvc;
