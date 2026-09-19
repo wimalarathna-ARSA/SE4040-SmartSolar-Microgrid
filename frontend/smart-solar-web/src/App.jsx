@@ -42,6 +42,48 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
 
+              {/* Backoffice Protected Routes */}
+              <Route
+                path="/backoffice"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice']}>
+                    <BackofficeDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/backoffice/staff"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice']}>
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/backoffice/prosumers"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice']}>
+                    <ProsumerManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/backoffice/stations"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice']}>
+                    <StationManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/backoffice/reservations"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice']}>
+                    <ReservationManagement />
+                  </ProtectedRoute>
+                }
+              />
+
 
 
 
