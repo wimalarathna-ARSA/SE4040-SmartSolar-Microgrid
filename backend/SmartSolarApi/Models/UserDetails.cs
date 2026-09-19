@@ -30,7 +30,6 @@ namespace SmartSolarApi.Models
         [BsonElement("passwordHash")]
         public string PasswordHash { get; set; } = string.Empty;
 
-        // Role: "Backoffice", "GridOperator", or "Prosumer"
         [BsonElement("role")]
         public string Role { get; set; } = "Prosumer";
 
@@ -40,16 +39,42 @@ namespace SmartSolarApi.Models
         [BsonElement("address")]
         public string Address { get; set; } = string.Empty;
 
-        // Account status: "PendingApproval", "Active", "Deactivated"
         [BsonElement("status")]
         public string Status { get; set; } = "PendingApproval";
 
-        // Flag if prosumer requested deactivation
         [BsonElement("deactivationRequested")]
         public bool DeactivationRequested { get; set; } = false;
 
-        // Reason provided when requesting deactivation
         [BsonElement("deactivationReason")]
         public string? DeactivationReason { get; set; }
+
+        // Flag indicating if Backoffice has granted permission to update email
+        [BsonElement("emailUpdateAccessGranted")]
+        public bool EmailUpdateAccessGranted { get; set; } = false;
+
+        // Email update request status: "None", "Pending", "Approved", "Denied", "Completed"
+        [BsonElement("emailUpdateRequestStatus")]
+        public string EmailUpdateRequestStatus { get; set; } = "None";
+
+        // Optional proposed new email address submitted with the request
+        [BsonElement("requestedNewEmail")]
+        public string? RequestedNewEmail { get; set; }
+
+        // Optional reason provided by prosumer for changing email
+        [BsonElement("emailUpdateRequestReason")]
+        public string? EmailUpdateRequestReason { get; set; }
+
+        // Timestamp when prosumer submitted email update request
+        [BsonElement("emailUpdateRequestDate")]
+        public DateTime? EmailUpdateRequestDate { get; set; }
+
+        // Review notes or justification provided by Backoffice officer
+        [BsonElement("emailUpdateReviewNotes")]
+        public string? EmailUpdateReviewNotes { get; set; }
+
+        // History of timestamps when email updates were performed
+        // Used for 24h rate limiting: maximum 3 updates
+        [BsonElement("emailUpdateHistory")]
+        public List<DateTime> EmailUpdateHistory { get; set; } = new List<DateTime>();
     }
 }
