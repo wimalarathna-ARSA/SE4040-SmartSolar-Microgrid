@@ -80,6 +80,13 @@ namespace SmartSolarApi.Controllers
             return Ok(reservations);
         }
 
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetDashboardStats([FromQuery] string? prosumerNic)
+        {
+            var stats = await _reservationService.GetDashboardStatsAsync(prosumerNic);
+            return Ok(stats);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -136,6 +143,32 @@ namespace SmartSolarApi.Controllers
             }
 
             return Ok(new { message = result.Message });
+        }
+
+        [HttpPost("verify-qr")]
+        public async Task<IActionResult> VerifyQr([FromQuery] string operatorNic, [FromBody] VerifyQrDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(operatorNic))
+            {
+                return BadRequest(new { message = "operatorNic query parameter is required." });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _reservationService.VerifyAndCompleteJobAsync(operatorNic, dto);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                reservation = result.Reservation
+            });
         }
     }
 }
