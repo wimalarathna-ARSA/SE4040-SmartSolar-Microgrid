@@ -4,6 +4,9 @@ using SmartSolarApi.Services;
 
 namespace SmartSolarApi.Controllers
 {
+    /// <summary>
+    /// Energy trading reservation endpoints.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ReservationsController : ControllerBase
@@ -15,6 +18,9 @@ namespace SmartSolarApi.Controllers
             _reservationService = reservationService;
         }
 
+        /// <summary>
+        /// Creates a new energy drop-off / charging slot reservation.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromQuery] string prosumerNic, [FromBody] CreateReservationDto dto)
         {
@@ -37,6 +43,9 @@ namespace SmartSolarApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Reservation?.Id }, result.Reservation);
         }
 
+        /// <summary>
+        /// Backoffice officer creates a reservation on behalf of a prosumer.
+        /// </summary>
         [HttpPost("backoffice-create")]
         public async Task<IActionResult> BackofficeCreate([FromBody] BackofficeCreateReservationDto dto)
         {
@@ -69,6 +78,9 @@ namespace SmartSolarApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves reservations matching query parameters.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetReservations(
             [FromQuery] string? prosumerNic,
@@ -80,6 +92,9 @@ namespace SmartSolarApi.Controllers
             return Ok(reservations);
         }
 
+        /// <summary>
+        /// Retrieves live dashboard aggregated statistics.
+        /// </summary>
         [HttpGet("dashboard-stats")]
         public async Task<IActionResult> GetDashboardStats([FromQuery] string? prosumerNic)
         {
@@ -87,6 +102,9 @@ namespace SmartSolarApi.Controllers
             return Ok(stats);
         }
 
+        /// <summary>
+        /// Retrieves a reservation by ID.
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -98,20 +116,9 @@ namespace SmartSolarApi.Controllers
             return Ok(reservation);
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetByUserId(string userId)
-        {
-            var reservations = await _reservationService.GetReservationsAsync(userId, null, null, null);
-            return Ok(reservations);
-        }
-
-        [HttpGet("station/{stationId}/availability")]
-        public async Task<IActionResult> GetStationAvailability(string stationId)
-        {
-            var reservations = await _reservationService.GetReservationsAsync(null, null, stationId, null);
-            return Ok(reservations);
-        }
-
+        /// <summary>
+        /// Modifies an existing energy reservation.
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromQuery] string? prosumerNic, [FromBody] UpdateReservationDto dto)
         {
@@ -133,6 +140,9 @@ namespace SmartSolarApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Cancels a power trading reservation.
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Cancel(string id, [FromQuery] string? prosumerNic)
         {
@@ -145,6 +155,9 @@ namespace SmartSolarApi.Controllers
             return Ok(new { message = result.Message });
         }
 
+        /// <summary>
+        /// Operator mode: Scans prosumer's transaction QR code and verifies.
+        /// </summary>
         [HttpPost("verify-qr")]
         public async Task<IActionResult> VerifyQr([FromQuery] string operatorNic, [FromBody] VerifyQrDto dto)
         {
