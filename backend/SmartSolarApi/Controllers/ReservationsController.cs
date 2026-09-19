@@ -71,11 +71,13 @@ namespace SmartSolarApi.Controllers
         [HttpPost("backoffice-create")]
         public async Task<IActionResult> BackofficeCreate([FromBody] BackofficeCreateReservationDto dto)
         {
+            // Validate model, map to CreateReservationDto, and delegate to shared reservation creation logic
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            // Map into the standard CreateReservationDto and delegate to the shared service method
             var createDto = new CreateReservationDto
             {
                 StationId = dto.StationId,
