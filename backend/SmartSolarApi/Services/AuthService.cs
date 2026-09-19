@@ -2,8 +2,8 @@
 // File: AuthService.cs
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Authentication and authorization service. Handles prosumer
-//              registration using NIC as primary key, role-based login,
+// Description: Authentication and authorization service. Handles prosumer 
+//              registration using NIC as primary key, role-based login, 
 //              and secure JWT issuance.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
@@ -28,11 +28,13 @@ namespace SmartSolarApi.Services
         private readonly IConfiguration _config;
         private readonly EmailService _emailService;
 
-        public AuthService(
-            MongoDbContext db,
-            IConfiguration config,
-            EmailService emailService)
+        /// <summary>
+        /// Constructor injecting database context, configuration, and email service.
+        /// </summary>
+        // Injects MongoDbContext, configuration settings, and EmailService for OTP transmission
+        public AuthService(MongoDbContext db, IConfiguration config, EmailService emailService)
         {
+            // Injects database context, configuration settings, and email service for auth workflows
             _db = db;
             _config = config;
             _emailService = emailService;
@@ -41,35 +43,24 @@ namespace SmartSolarApi.Services
         /// <summary>
         /// Registers a new Solar Prosumer with NIC as the unique business primary key.
         /// </summary>
-        public async Task<(bool Success, string Message, UserResponseDto? User)> RegisterProsumerAsync(
-            RegisterProsumerDto dto)
+        // Validates unique NIC and email, hashes password, and creates account with PendingApproval or Active status
+        public async Task<(bool Success, string Message, UserResponseDto? User)> RegisterProsumerAsync(RegisterProsumerDto dto)
         {
-            var existingByNic = await _db.UserDetails
-                .Find(u => u.Nic.ToLower() == dto.Nic.Trim().ToLower())
-                .FirstOrDefaultAsync();
-
+            // Enforce unique NIC and email, hash password, and register pending prosumer
+            var existingByNic = await _db.UserDetails.Find(u => u.Nic.ToLower() == dto.Nic.Trim().ToLower()).FirstOrDefaultAsync();
             if (existingByNic != null)
             {
-                return (
-                    false,
-                    "An account with this National Identity Card (NIC) already exists.",
-                    null
-                );
+                return (false, "An account with this National Identity Card (NIC) already exists.", null);
             }
 
-            var existingByEmail = await _db.UserDetails
-                .Find(u => u.Email.ToLower() == dto.Email.Trim().ToLower())
-                .FirstOrDefaultAsync();
-
+            // Check email uniqueness
+            var existingByEmail = await _db.UserDetails.Find(u => u.Email.ToLower() == dto.Email.Trim().ToLower()).FirstOrDefaultAsync();
             if (existingByEmail != null)
             {
-                return (
-                    false,
-                    "An account with this email address already exists.",
-                    null
-                );
+                return (false, "An account with this email address already exists.", null);
             }
 
+            // Create new prosumer entity with initial PendingApproval status
             var prosumer = new UserDetails
             {
                 Nic = dto.Nic.Trim().ToUpperInvariant(),
@@ -81,7 +72,7 @@ namespace SmartSolarApi.Services
                 Address = dto.Address.Trim(),
                 InstallationLatitude = dto.InstallationLatitude,
                 InstallationLongitude = dto.InstallationLongitude,
-                Status = "PendingApproval",
+                Status = "PendingApproval", // Requires Backoffice approval per rubric workflow
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -101,54 +92,46 @@ namespace SmartSolarApi.Services
                 CreatedAt = prosumer.CreatedAt
             };
 
-            return (
-                true,
-                "Prosumer account registered successfully. Awaiting Backoffice officer activation.",
-                userDto
-            );
+            return (true, "Prosumer account registered successfully. Awaiting Backoffice officer activation.", userDto);
         }
 
         /// <summary>
-        /// Authenticates users via Email or NIC and password.
+        /// Authenticates users (Backoffice, Operator, Prosumer) via Email or NIC and password.
         /// </summary>
-        public async Task<(bool Success, string Message, AuthResponseDto? AuthData)> LoginAsync(
-            LoginDto dto)
+        // Validates credentials, checks account active status, and returns signed JWT
+        public async Task<(bool Success, string Message, AuthResponseDto? AuthData)> LoginAsync(LoginDto dto)
         {
+            // Verify user credentials by email or NIC, validate account status, and issue JWT bearer token
             var identifier = dto.EmailOrNic.Trim();
 
-            var user = await _db.UserDetails.Find(u =>
-                u.Email.ToLower() == identifier.ToLower() ||
-                u.Nic.ToLower() == identifier.ToLower()
-            ).FirstOrDefaultAsync();
+            // Locate user by Email or NIC
+            var user = await _db.UserDetails.Find(u => 
+                u.Email.ToLower() == identifier.ToLower() || 
+                u.Nic.ToLower() == identifier.ToLower()).FirstOrDefaultAsync();
 
             if (user == null)
             {
                 return (false, "Invalid credentials. User not found.", null);
             }
 
+            // Verify password hash
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             {
                 return (false, "Invalid email/NIC or password.", null);
             }
 
+            // Business rule: Check account status
             if (user.Status == "PendingApproval")
             {
-                return (
-                    false,
-                    "Your account is pending Backoffice activation. Please contact system administrator.",
-                    null
-                );
+                return (false, "Your account is pending Backoffice activation. Please contact system administrator.", null);
             }
 
             if (user.Status == "Deactivated")
             {
-                return (
-                    false,
-                    "This account is deactivated. Deactivated accounts can only be reactivated by a Backoffice officer.",
-                    null
-                );
+                return (false, "This account is deactivated. Deactivated accounts can only be reactivated by a Backoffice officer.", null);
             }
 
+            // Generate JWT Token
             var token = GenerateJwtToken(user);
 
             var authResponse = new AuthResponseDto
@@ -168,27 +151,17 @@ namespace SmartSolarApi.Services
         /// <summary>
         /// Generates signed JWT bearer token containing user identity and role claims.
         /// </summary>
+        // Assembles claims (Sub, Email, NIC, Role) and signs with HMAC-SHA256
         public string GenerateJwtToken(UserDetails user)
         {
-            var jwtKey = _config["Jwt:Key"]
-                ?? "SmartSolarSecretKey2026SuperSecureMicrogridEnterpriseSystemToken12345!";
-
+            // Build JWT claims identity with user role and sign using HMAC-SHA256 security key
+            var jwtKey = _config["Jwt:Key"] ?? "SmartSolarSecretKey2026SuperSecureMicrogridEnterpriseSystemToken12345!";
             var issuer = _config["Jwt:Issuer"] ?? "SmartSolarApi";
             var audience = _config["Jwt:Audience"] ?? "SmartSolarClients";
+            var expiryMinutes = int.TryParse(_config["Jwt:ExpiryMinutes"], out var exp) ? exp : 1440;
 
-            var expiryMinutes =
-                int.TryParse(_config["Jwt:ExpiryMinutes"], out var exp)
-                    ? exp
-                    : 1440;
-
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtKey)
-            );
-
-            var creds = new SigningCredentials(
-                key,
-                SecurityAlgorithms.HmacSha256
-            );
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
@@ -213,33 +186,26 @@ namespace SmartSolarApi.Services
         }
 
         /// <summary>
-        /// Generates and sends a six-digit password reset OTP.
+        /// Initiates the Password Reset workflow by generating a 6-digit cryptographic OTP,
+        /// storing it with a strict 5-minute expiration timestamp, and dispatching it to user's registered Gmail.
         /// </summary>
-        public async Task<(bool Success, string Message, string? MaskedEmail)>
-            RequestPasswordResetOtpAsync(RequestPasswordResetOtpDto dto)
+        public async Task<(bool Success, string Message, string? MaskedEmail)> RequestPasswordResetOtpAsync(RequestPasswordResetOtpDto dto)
         {
+            // Generate 6-digit numeric OTP with 5-minute expiry, save to database, and dispatch via email
             var identifier = dto.EmailOrNic.Trim().ToLowerInvariant();
-
-            var user = await _db.UserDetails.Find(u =>
-                u.Email.ToLower() == identifier ||
-                u.Nic.ToLower() == identifier
-            ).FirstOrDefaultAsync();
+            var user = await _db.UserDetails.Find(u => 
+                u.Email.ToLower() == identifier || 
+                u.Nic.ToLower() == identifier).FirstOrDefaultAsync();
 
             if (user == null)
             {
-                return (
-                    false,
-                    "No account was found matching the provided Email or NIC.",
-                    null
-                );
+                return (false, "No account was found matching the provided Email or NIC.", null);
             }
 
-            var otp = System.Security.Cryptography.RandomNumberGenerator
-                .GetInt32(100000, 1000000)
-                .ToString("D6");
-
+            // Generate cryptographically secure 6-digit numeric OTP
+            var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
             var now = DateTime.UtcNow;
-            var expiry = now.AddMinutes(5);
+            var expiry = now.AddMinutes(5); // Strictly 5 minutes expiration
 
             var update = Builders<UserDetails>.Update
                 .Set(u => u.PasswordResetOtp, otp)
@@ -247,154 +213,100 @@ namespace SmartSolarApi.Services
                 .Set(u => u.PasswordResetVerified, false)
                 .Set(u => u.UpdatedAt, now);
 
-            await _db.UserDetails.UpdateOneAsync(
-                u => u.Nic == user.Nic,
-                update
-            );
+            await _db.UserDetails.UpdateOneAsync(u => u.Nic == user.Nic, update);
 
-            await _emailService.SendPasswordResetOtpAsync(
-                user.Email,
-                user.FullName,
-                otp
-            );
+            // Send via Gmail SMTP (or fallback logger)
+            await _emailService.SendPasswordResetOtpAsync(user.Email, user.FullName, otp);
 
             var masked = MaskEmail(user.Email);
-
-            return (
-                true,
-                $"A 6-digit verification code has been dispatched to {masked}. Please enter it within 5 minutes.",
-                masked
-            );
+            return (true, $"A 6-digit verification code has been dispatched to {masked}. Please enter it within 5 minutes.", masked);
         }
 
         /// <summary>
-        /// Verifies that the submitted 6-digit OTP matches the stored code
-        /// and has not exceeded the 5-minute window.
+        /// Verifies that the submitted 6-digit OTP matches the stored code and has not exceeded the 5-minute window.
         /// </summary>
-        public async Task<(bool Success, string Message)> VerifyPasswordResetOtpAsync(
-            VerifyPasswordResetOtpDto dto)
+        public async Task<(bool Success, string Message)> VerifyPasswordResetOtpAsync(VerifyPasswordResetOtpDto dto)
         {
+            // Validate submitted 6-digit OTP against database record and verify 5-minute expiration window
             var identifier = dto.EmailOrNic.Trim().ToLowerInvariant();
-
-            var user = await _db.UserDetails.Find(u =>
-                u.Email.ToLower() == identifier ||
-                u.Nic.ToLower() == identifier
-            ).FirstOrDefaultAsync();
+            var user = await _db.UserDetails.Find(u => 
+                u.Email.ToLower() == identifier || 
+                u.Nic.ToLower() == identifier).FirstOrDefaultAsync();
 
             if (user == null)
             {
                 return (false, "Account not found.");
             }
 
-            if (string.IsNullOrEmpty(user.PasswordResetOtp) ||
-                !user.PasswordResetOtpExpiry.HasValue)
+            if (string.IsNullOrEmpty(user.PasswordResetOtp) || !user.PasswordResetOtpExpiry.HasValue)
             {
-                return (
-                    false,
-                    "No active password reset request found. Please request a new verification code."
-                );
+                return (false, "No active password reset request found. Please request a new verification code.");
             }
 
             if (DateTime.UtcNow > user.PasswordResetOtpExpiry.Value)
             {
-                return (
-                    false,
-                    "This verification code has expired (strictly valid for 5 minutes). Please request a new code."
-                );
+                return (false, "This verification code has expired (strictly valid for 5 minutes). Please request a new code.");
             }
 
-            if (!string.Equals(
-                    user.PasswordResetOtp.Trim(),
-                    dto.Otp.Trim(),
-                    StringComparison.Ordinal))
+            if (!string.Equals(user.PasswordResetOtp.Trim(), dto.Otp.Trim(), StringComparison.Ordinal))
             {
-                return (
-                    false,
-                    "Invalid verification code. Please check your email and try again."
-                );
+                return (false, "Invalid verification code. Please check your email and try again.");
             }
 
+            // Mark as verified
             await _db.UserDetails.UpdateOneAsync(
                 u => u.Nic == user.Nic,
                 Builders<UserDetails>.Update
                     .Set(u => u.PasswordResetVerified, true)
-                    .Set(u => u.UpdatedAt, DateTime.UtcNow)
-            );
+                    .Set(u => u.UpdatedAt, DateTime.UtcNow));
 
-            return (
-                true,
-                "Verification code confirmed! Please enter and confirm your new password."
-            );
+            return (true, "Verification code confirmed! Please enter and confirm your new password.");
         }
 
         /// <summary>
-        /// Finalizes password reset after successful OTP verification.
+        /// Finalizes the password reset by validating passwords, verifying the OTP state,
+        /// hashing the new password with BCrypt, and clearing the OTP security fields.
         /// </summary>
-        public async Task<(bool Success, string Message)> ConfirmPasswordResetAsync(
-            ConfirmPasswordResetDto dto)
+        public async Task<(bool Success, string Message)> ConfirmPasswordResetAsync(ConfirmPasswordResetDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.NewPassword) ||
-                dto.NewPassword.Length < 6)
+            // Validate password requirements, check verified OTP status, hash new password, and clear reset tokens
+            if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
             {
-                return (
-                    false,
-                    "Password must be at least 6 characters long."
-                );
+                return (false, "Password must be at least 6 characters long.");
             }
 
             if (dto.NewPassword != dto.ConfirmPassword)
             {
-                return (
-                    false,
-                    "New password and confirmation password do not match."
-                );
+                return (false, "New password and confirmation password do not match.");
             }
 
             var identifier = dto.EmailOrNic.Trim().ToLowerInvariant();
-
-            var user = await _db.UserDetails.Find(u =>
-                u.Email.ToLower() == identifier ||
-                u.Nic.ToLower() == identifier
-            ).FirstOrDefaultAsync();
+            var user = await _db.UserDetails.Find(u => 
+                u.Email.ToLower() == identifier || 
+                u.Nic.ToLower() == identifier).FirstOrDefaultAsync();
 
             if (user == null)
             {
                 return (false, "Account not found.");
             }
 
-            if (!user.PasswordResetVerified ||
-                string.IsNullOrEmpty(user.PasswordResetOtp))
+            if (!user.PasswordResetVerified || string.IsNullOrEmpty(user.PasswordResetOtp))
             {
-                return (
-                    false,
-                    "Security verification incomplete. Please enter and verify your OTP first."
-                );
+                return (false, "Security verification incomplete. Please enter and verify your OTP first.");
             }
 
-            if (!user.PasswordResetOtpExpiry.HasValue ||
-                DateTime.UtcNow > user.PasswordResetOtpExpiry.Value)
+            if (!user.PasswordResetOtpExpiry.HasValue || DateTime.UtcNow > user.PasswordResetOtpExpiry.Value)
             {
-                return (
-                    false,
-                    "Your verification session has expired (5-minute limit). Please request a new code."
-                );
+                return (false, "Your verification session has expired (5-minute limit). Please request a new code.");
             }
 
-            if (!string.Equals(
-                    user.PasswordResetOtp.Trim(),
-                    dto.Otp.Trim(),
-                    StringComparison.Ordinal))
+            if (!string.Equals(user.PasswordResetOtp.Trim(), dto.Otp.Trim(), StringComparison.Ordinal))
             {
-                return (
-                    false,
-                    "Invalid verification code token."
-                );
+                return (false, "Invalid verification code token.");
             }
 
-            var newHash = BCrypt.Net.BCrypt.HashPassword(
-                dto.NewPassword.Trim()
-            );
-
+            // Update password with BCrypt and clear OTP fields
+            var newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword.Trim());
             var update = Builders<UserDetails>.Update
                 .Set(u => u.PasswordHash, newHash)
                 .Set(u => u.PasswordResetOtp, null)
@@ -402,25 +314,18 @@ namespace SmartSolarApi.Services
                 .Set(u => u.PasswordResetVerified, false)
                 .Set(u => u.UpdatedAt, DateTime.UtcNow);
 
-            await _db.UserDetails.UpdateOneAsync(
-                u => u.Nic == user.Nic,
-                update
-            );
+            await _db.UserDetails.UpdateOneAsync(u => u.Nic == user.Nic, update);
 
-            return (
-                true,
-                "Your password has been successfully reset! You can now log in with your new password."
-            );
+            return (true, "Your password has been successfully reset! You can now log in with your new password.");
         }
 
         /// <summary>
-        /// Masks an email address for safe client display.
+        /// Masks an email address for safe client display (e.g. prosumer@gmail.com -> p******r@gmail.com).
         /// </summary>
         private static string MaskEmail(string email)
         {
-            if (string.IsNullOrEmpty(email) || !email.Contains('@'))
-                return email;
-
+            // Obfuscate local portion of email address to protect prosumer privacy on display
+            if (string.IsNullOrEmpty(email) || !email.Contains('@')) return email;
             var parts = email.Split('@');
             var name = parts[0];
             var domain = parts[1];
