@@ -25,6 +25,9 @@ namespace SmartSolarApi.Controllers
     {
         private readonly ReservationService _reservationService;
 
+        /// <summary>
+        /// Constructor injecting ReservationService.
+        /// </summary>
         public ReservationsController(ReservationService reservationService)
         {
             _reservationService = reservationService;
