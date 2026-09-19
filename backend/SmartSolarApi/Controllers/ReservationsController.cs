@@ -28,6 +28,7 @@ namespace SmartSolarApi.Controllers
         /// <summary>
         /// Constructor injecting ReservationService.
         /// </summary>
+        // Injects ReservationService to execute energy trading workflows
         public ReservationsController(ReservationService reservationService)
         {
             _reservationService = reservationService;
@@ -38,6 +39,7 @@ namespace SmartSolarApi.Controllers
         /// Strictly enforces: must be scheduled within 7 days.
         /// POST: api/reservations?prosumerNic=199512345678
         /// </summary>
+        // Validates 7-day rule, reserves slot, and generates secure transaction QR code
         [HttpPost]
         public async Task<IActionResult> Create([FromQuery] string prosumerNic, [FromBody] CreateReservationDto dto)
         {
@@ -102,6 +104,7 @@ namespace SmartSolarApi.Controllers
         /// Retrieves reservations matching query parameters (search, status, station, prosumer).
         /// GET: api/reservations?prosumerNic=...&status=Approved&search=...
         /// </summary>
+        // Retrieves filtered energy reservations list
         [HttpGet]
         public async Task<IActionResult> GetReservations(
             [FromQuery] string? prosumerNic,
@@ -118,6 +121,7 @@ namespace SmartSolarApi.Controllers
         /// Displays pending reservation counts and approved future reservation counts.
         /// GET: api/reservations/dashboard-stats?prosumerNic=...
         /// </summary>
+        // Computes real-time counts directly from central database
         [HttpGet("dashboard-stats")]
         public async Task<IActionResult> GetDashboardStats([FromQuery] string? prosumerNic)
         {
@@ -129,6 +133,7 @@ namespace SmartSolarApi.Controllers
         /// Retrieves a reservation by ID.
         /// GET: api/reservations/{id}
         /// </summary>
+        // Finds single reservation by MongoDB ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -145,6 +150,7 @@ namespace SmartSolarApi.Controllers
         /// Strictly enforces: At least 12 hours' notice prior to scheduled slot time.
         /// PUT: api/reservations/{id}?prosumerNic=...
         /// </summary>
+        // Enforces 12-hour rule on update and refreshes QR payload
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromQuery] string? prosumerNic, [FromBody] UpdateReservationDto dto)
         {
@@ -171,6 +177,7 @@ namespace SmartSolarApi.Controllers
         /// Strictly enforces: At least 12 hours' notice prior to scheduled slot time.
         /// DELETE: api/reservations/{id}?prosumerNic=...
         /// </summary>
+        // Enforces 12-hour rule on cancellation and updates reservation status to Cancelled
         [HttpDelete("{id}")]
         public async Task<IActionResult> Cancel(string id, [FromQuery] string? prosumerNic)
         {
@@ -188,6 +195,7 @@ namespace SmartSolarApi.Controllers
         /// and finalizes energy transfer business logic.
         /// POST: api/reservations/verify-qr?operatorNic=199087654321
         /// </summary>
+        // Verifies QR code, marks reservation as Completed, and updates operator audit logs
         [HttpPost("verify-qr")]
         public async Task<IActionResult> VerifyQr([FromQuery] string operatorNic, [FromBody] VerifyQrDto dto)
         {
