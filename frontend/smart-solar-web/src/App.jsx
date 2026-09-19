@@ -84,6 +84,31 @@ function App() {
                 }
               />
 
+{/* Staff profile (Backoffice + Grid Operator) */}
+              <Route
+                path="/backoffice/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice']}>
+                    <StaffProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['GridOperator']}>
+                    <StaffProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['Backoffice', 'GridOperator']}>
+                    <StaffProfile />
+                  </ProtectedRoute>
+                }
+              />
 
 
 
