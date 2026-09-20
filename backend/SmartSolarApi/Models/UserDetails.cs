@@ -48,33 +48,35 @@ namespace SmartSolarApi.Models
         [BsonElement("deactivationReason")]
         public string? DeactivationReason { get; set; }
 
-        // Flag indicating if Backoffice has granted permission to update email
         [BsonElement("emailUpdateAccessGranted")]
         public bool EmailUpdateAccessGranted { get; set; } = false;
 
-        // Email update request status: "None", "Pending", "Approved", "Denied", "Completed"
         [BsonElement("emailUpdateRequestStatus")]
         public string EmailUpdateRequestStatus { get; set; } = "None";
 
-        // Optional proposed new email address submitted with the request
         [BsonElement("requestedNewEmail")]
         public string? RequestedNewEmail { get; set; }
 
-        // Optional reason provided by prosumer for changing email
         [BsonElement("emailUpdateRequestReason")]
         public string? EmailUpdateRequestReason { get; set; }
 
-        // Timestamp when prosumer submitted email update request
         [BsonElement("emailUpdateRequestDate")]
         public DateTime? EmailUpdateRequestDate { get; set; }
 
-        // Review notes or justification provided by Backoffice officer
         [BsonElement("emailUpdateReviewNotes")]
         public string? EmailUpdateReviewNotes { get; set; }
 
-        // History of timestamps when email updates were performed
-        // Used for 24h rate limiting: maximum 3 updates
         [BsonElement("emailUpdateHistory")]
         public List<DateTime> EmailUpdateHistory { get; set; } = new List<DateTime>();
+
+        // GPS Latitude of the prosumer's solar panel installation site
+        // Used for nearby nodes lookup
+        [BsonElement("installationLatitude")]
+        public double? InstallationLatitude { get; set; }
+
+        // GPS Longitude of the prosumer's solar panel installation site
+        // Used for nearby nodes lookup
+        [BsonElement("installationLongitude")]
+        public double? InstallationLongitude { get; set; }
     }
 }
