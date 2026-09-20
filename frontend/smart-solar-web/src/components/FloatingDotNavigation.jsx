@@ -60,13 +60,44 @@ const FloatingDotNavigation = () => {
       aria-label="Page section navigation"
       style={{ position: 'fixed', left: '24px', top: '50%', transform: 'translateY(-50%)', zIndex: 1050 }}
     >
+      {/* Background vertical connecting track */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '6px',
+          bottom: '6px',
+          left: '50%',
+          width: '1px',
+          backgroundColor: 'rgba(0, 255, 206, 0.12)',
+          transform: 'translateX(-50%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Animated active depth line */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '6px',
+          left: '50%',
+          width: '2px',
+          height: `${(activeIdx / (SECTIONS.length - 1)) * 100}%`,
+          background: 'linear-gradient(180deg, rgba(0,255,206,0.3) 0%, #00ffce 100%)',
+          boxShadow: '0 0 8px rgba(0, 255, 206, 0.6)',
+          transform: 'translateX(-50%)',
+          transition: 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: 1,
+          pointerEvents: 'none',
+        }}
+      />
+
       {SECTIONS.map((sec, idx) => {
         const isActive = activeIdx === idx;
         return (
           <div key={sec.id} className="freq-nav-dot-item" style={{ zIndex: 2 }}>
             <button
               type="button"
-              className={`freq-floating-dot ${isActive ? 'active' : ''}`}
+              className={`freq-floating-dot ${isActive ? 'active motion-glow-pulse' : ''}`}
               title={sec.label}
               aria-label={`Scroll to ${sec.label}`}
               aria-current={isActive ? 'true' : undefined}
