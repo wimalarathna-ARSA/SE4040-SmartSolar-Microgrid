@@ -17,38 +17,48 @@ const FloatingDotNavigation = () => {
   const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const docHeight = document.documentElement.scrollHeight;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollPosition = window.scrollY;
+          const windowHeight = window.innerHeight;
+          const docHeight = document.documentElement.scrollHeight;
 
-      if (scrollPosition < 80) {
-        setActiveIdx(0);
-        return;
-      }
-
-      if (scrollPosition + windowHeight >= docHeight - 80) {
-        setActiveIdx(SECTIONS.length - 1);
-        return;
-      }
-
-      let currentIdx = 0;
-      const triggerPoint = scrollPosition + windowHeight * 0.38;
-
-      for (let i = 0; i < SECTIONS.length; i++) {
-        const el = document.getElementById(SECTIONS[i].id);
-        if (el) {
-          const top = el.getBoundingClientRect().top + scrollPosition;
-          if (triggerPoint >= top) {
-            currentIdx = i;
+          if (scrollPosition < 80) {
+            setActiveIdx(0);
+            ticking = false;
+            return;
           }
-        }
-      }
 
-      setActiveIdx(currentIdx);
+          if (scrollPosition + windowHeight >= docHeight - 80) {
+            setActiveIdx(SECTIONS.length - 1);
+            ticking = false;
+            return;
+          }
+
+          let currentIdx = 0;
+          const triggerPoint = scrollPosition + windowHeight * 0.38;
+
+          for (let i = 0; i < SECTIONS.length; i++) {
+            const el = document.getElementById(SECTIONS[i].id);
+            if (el) {
+              const top = el.getBoundingClientRect().top + scrollPosition;
+              if (triggerPoint >= top) {
+                currentIdx = i;
+              }
+            }
+          }
+
+          setActiveIdx(currentIdx);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
@@ -109,7 +119,6 @@ const FloatingDotNavigation = () => {
               aria-label={`Scroll to ${sec.label}`}
               aria-current={isActive ? 'true' : undefined}
             />
-            {/* Tooltip on Hover */}
             <div className="freq-dot-tooltip">
               {sec.label}
             </div>
