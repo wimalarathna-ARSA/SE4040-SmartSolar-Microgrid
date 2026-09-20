@@ -2,14 +2,15 @@
 // File: OnboardingPrefs.java
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: SharedPreferences utility for tracking SmartSolar onboarding state.
+// Description: Lightweight SharedPreferences flag tracking whether the
+//              two-screen onboarding has been completed.
 // ============================================================================
 package com.smartsolar.mobile.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** Stores the onboarding completion state for the SmartSolar application. */
+/** Onboarding completion flag for the SmartSolar pre-login flow. */
 public final class OnboardingPrefs {
 
     private static final String FILE = "smartsolar_prefs";
@@ -17,7 +18,10 @@ public final class OnboardingPrefs {
 
     private OnboardingPrefs() {}
 
-    /** Returns whether onboarding has been completed. */
+    /**
+     * Returns true after the user completes the onboarding walkthrough.
+     * Defaults to false for a fresh installation.
+     */
     public static boolean isCompleted(Context context) {
         SharedPreferences prefs =
                 context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
@@ -25,7 +29,7 @@ public final class OnboardingPrefs {
         return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false);
     }
 
-    /** Saves the onboarding completion state. */
+    /** Persists whether the onboarding walkthrough has been completed. */
     public static void setCompleted(Context context, boolean completed) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
                 .edit()
