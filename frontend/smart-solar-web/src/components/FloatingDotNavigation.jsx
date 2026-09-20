@@ -54,13 +54,20 @@ const FloatingDotNavigation = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollTo = (id, idx) => {
+    setActiveIdx(idx);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <nav
       className="freq-floating-nav d-none d-md-flex"
       aria-label="Page section navigation"
       style={{ position: 'fixed', left: '24px', top: '50%', transform: 'translateY(-50%)', zIndex: 1050 }}
     >
-      {/* Background vertical connecting track */}
       <div
         style={{
           position: 'absolute',
@@ -74,7 +81,6 @@ const FloatingDotNavigation = () => {
           pointerEvents: 'none',
         }}
       />
-      {/* Animated active depth line */}
       <div
         style={{
           position: 'absolute',
@@ -97,6 +103,7 @@ const FloatingDotNavigation = () => {
           <div key={sec.id} className="freq-nav-dot-item" style={{ zIndex: 2 }}>
             <button
               type="button"
+              onClick={() => scrollTo(sec.id, idx)}
               className={`freq-floating-dot ${isActive ? 'active motion-glow-pulse' : ''}`}
               title={sec.label}
               aria-label={`Scroll to ${sec.label}`}
