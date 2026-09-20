@@ -4,11 +4,13 @@
 // Course: SE4040 - Enterprise Application Development
 // Description: Grid Operator field inspection screen showing all solar stations
 //              with battery slot status, capacity specs, and active bookings.
+//              Allows operators to update available battery slots from the field.
 // Architecture: FAT Service Pattern - Slot updates committed to C# Web API
 // ============================================================================
 
 package com.smartsolar.mobile.ui.operator;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -28,7 +30,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OperatorStationsActivity extends AppCompatActivity {
+public class OperatorStationsActivity
+        extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private View progressBar;
@@ -147,7 +150,187 @@ public class OperatorStationsActivity extends AppCompatActivity {
     private void showUpdateSlotsDialog(
             JSONObject station
     ) {
-        // Added in the next commit.
+
+        try {
+
+            String stationId =
+                    station.getString("id");
+
+            String stationName =
+                    station.getString("name");
+
+            int totalSlots =
+                    station.getInt(
+                            "totalBatterySlots"
+                    );
+
+            int currentSlots =
+                    station.getInt(
+                            "availableBatterySlots"
+                    );
+
+            AlertDialog.Builder builder =
+                    new AlertDialog.Builder(this);
+
+            builder.setTitle(
+                    "Update Battery Slots: "
+                            + stationName
+            );
+
+            EditText input =
+                    new EditText(this);
+
+            input.setInputType(
+                    android.text.InputType
+                            .TYPE_CLASS_NUMBER
+            );
+
+            input.setText(
+                    String.valueOf(currentSlots)
+            );
+
+            input.setHint(
+                    "Max: "
+                            + totalSlots
+                            + " slots"
+            );
+
+            builder.setView(input);
+
+            builder.setPositiveButton(
+                    "Update Slots",
+                    (dialog, which) -> {
+
+                        int newSlots;
+
+                        try {
+
+                            newSlots =
+                                    Integer.parseInt(
+                                            input.getText()
+                                                    .toString()
+                                                    .trim()
+                                    );
+
+                        } catch (
+                                NumberFormatException e
+                        ) {
+                            return;
+                        }
+
+                        if (newSlots > totalSlots) {
+
+                            Toast.makeText(
+                                    this,
+                                    "Cannot exceed "
+                                            + totalSlots
+                                            + " total slots.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            return;
+                        }
+
+                        if (newSlots < 0) {
+
+                            Toast.makeText(
+                                    this,
+                                    "Slots cannot be negative.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            return;
+                        }
+
+                        updateSlots(
+                                stationId,
+                                newSlots
+                        );
+                    }
+            );
+
+            builder.setNegativeButton(
+                    "Cancel",
+                    null
+            );
+
+            builder.show();
+
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void updateSlots(
+            String stationId,
+            int newSlots
+    ) {
+
+        new Thread(() -> {
+
+            try {
+
+                JSONObject body =
+                        new JSONObject();
+
+                body.put(
+                        "availableBatterySlots",
+                        newSlots
+                );
+
+                Request request =
+                        ApiClient
+                                .buildAuthRequest(
+                                        this,
+                                        "stations/"
+                                                + stationId
+                                                + "/battery-slots"
+                                )
+                                .put(
+                                        ApiClient.jsonBody(body)
+                                )
+                                .build();
+
+                Response response =
+                        ApiClient
+                                .getClient()
+                                .newCall(request)
+                                .execute();
+
+                JSONObject json =
+                        new JSONObject(
+                                response.body().string()
+                        );
+
+                String message =
+                        json.optString(
+                                "message",
+                                "Slots updated."
+                        );
+
+                runOnUiThread(() -> {
+
+                    Toast.makeText(
+                            this,
+                            message,
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    loadStations();
+                });
+
+            } catch (Exception e) {
+
+                runOnUiThread(() ->
+                        Toast.makeText(
+                                this,
+                                "Update failed: "
+                                        + e.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show()
+                );
+            }
+
+        }).start();
     }
 
     static class StationAdapter
@@ -198,7 +381,9 @@ public class OperatorStationsActivity extends AppCompatActivity {
             holder.tvName.setText(
                     station.optString("name")
                             + " ["
-                            + station.optString("stationCode")
+                            + station.optString(
+                            "stationCode"
+                    )
                             + "]"
             );
 
