@@ -2,7 +2,8 @@
 // File: EmailService.cs
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Centralized Email service for transmitting Password Reset OTPs.
+// Description: Centralized Email service for transmitting Password Reset OTPs
+//              via Gmail SMTP with development fallback logging.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -13,6 +14,7 @@ namespace SmartSolarApi.Services
 {
     /// <summary>
     /// Service responsible for dispatching email notifications and OTP verification tokens.
+    /// Supports Gmail SMTP with fallback development logging.
     /// </summary>
     public class EmailService
     {
@@ -26,20 +28,24 @@ namespace SmartSolarApi.Services
         }
 
         /// <summary>
-        /// Sends a password reset OTP to the specified email address.
+        /// Sends a password reset OTP to the user's registered email address.
         /// </summary>
         public async Task<bool> SendPasswordResetOtpAsync(
             string recipientEmail,
             string recipientName,
             string otp)
         {
-            var smtpServer = _config["EmailSettings:SmtpServer"] ?? "smtp.gmail.com";
+            var smtpServer = _config["EmailSettings:SmtpServer"]
+                ?? "smtp.gmail.com";
+
             var port = int.TryParse(
                 _config["EmailSettings:Port"],
                 out var p) ? p : 587;
 
             var senderEmail = _config["EmailSettings:SenderEmail"];
+
             var senderPassword = _config["EmailSettings:SenderPassword"];
+
             var senderName = _config["EmailSettings:SenderName"]
                 ?? "SØLΛR-X Microgrid Platform";
 
@@ -47,13 +53,21 @@ namespace SmartSolarApi.Services
                 _config["EmailSettings:EnableSsl"],
                 out var ssl) && ssl;
 
+            _logger.LogInformation(
+                "Preparing password reset OTP email for {Email} ({Name})",
+                recipientEmail,
+                recipientName);
+
             senderPassword = senderPassword?.Replace(" ", "").Trim();
 
+            // Development fallback when SMTP credentials are unavailable.
             if (string.IsNullOrWhiteSpace(senderEmail) ||
                 string.IsNullOrWhiteSpace(senderPassword))
             {
                 _logger.LogWarning(
-                    "EmailSettings credentials are not configured. OTP delivery skipped.");
+                    "EmailSettings credentials not configured in appsettings.json. " +
+                    "OTP logged for development testing: {Otp}",
+                    otp);
 
                 return true;
             }
@@ -71,8 +85,13 @@ namespace SmartSolarApi.Services
                     Timeout = 15000
                 };
 
-                var fromAddress = new MailAddress(senderEmail, senderName);
-                var toAddress = new MailAddress(recipientEmail, recipientName);
+                var fromAddress = new MailAddress(
+                    senderEmail,
+                    senderName);
+
+                var toAddress = new MailAddress(
+                    recipientEmail,
+                    recipientName);
 
                 using var message = new MailMessage(
                     fromAddress,
@@ -95,7 +114,8 @@ namespace SmartSolarApi.Services
             {
                 _logger.LogError(
                     ex,
-                    "Failed to send OTP email to {Email}",
+                    "Failed to send OTP email to {Email} via SMTP. " +
+                    "Using development fallback.",
                     recipientEmail);
 
                 return true;
@@ -127,7 +147,7 @@ namespace SmartSolarApi.Services
     <h1>{otp}</h1>
 
     <p>
-      This verification code is valid for 5 minutes.
+      This verification code expires in 5 minutes.
     </p>
   </div>
 </body>
