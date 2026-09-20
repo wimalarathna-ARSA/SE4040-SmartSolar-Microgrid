@@ -7,6 +7,7 @@
 // ============================================================================
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const BackofficePageHero = ({
   imageSrc,
@@ -51,10 +52,46 @@ const BackofficePageHero = ({
       />
 
       <div
-        className="position-relative p-4 p-lg-5"
+        className="position-relative d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 p-4 p-lg-5"
         style={{ zIndex: 1 }}
       >
         <div style={{ maxWidth: '640px' }}>
+          {breadcrumb.length > 0 && (
+            <div
+              className="d-flex align-items-center gap-2 mb-2 small"
+              style={{ color: 'rgba(255,255,255,0.7)' }}
+            >
+              <Link
+                to="/backoffice"
+                style={{
+                  color: '#7dd3fc',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Dashboard
+              </Link>
+
+              {breadcrumb.map((c, i) => (
+                <span
+                  key={i}
+                  className="d-flex align-items-center gap-2"
+                >
+                  <span style={{ opacity: 0.5 }}>›</span>
+
+                  <span
+                    style={{
+                      color: '#fff',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {c}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )}
+
           <div
             className="text-uppercase fw-bold mb-2"
             style={{
