@@ -2,8 +2,9 @@
 // File: StationsController.cs
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Microgrid Hub Controller. Manages solar stations, deactivation,
-//              and battery storage slots.
+// Description: Microgrid Hub Controller. Exposes endpoints for managing solar
+//              grid hubs, battery storage slots, and operational schedules.
+//              Enforces rule: Deactivation blocked if active reservations exist.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -25,11 +26,18 @@ namespace SmartSolarApi.Controllers
         /// <summary>
         /// Constructor injecting StationService.
         /// </summary>
+        // Injects StationService to manage solar hub operations
         public StationsController(StationService stationService)
         {
             _stationService = stationService;
         }
 
+        /// <summary>
+        /// Creates a new microgrid solar hub with GPS coordinates,
+        /// kW/h capacity, and battery storage slots.
+        /// POST: api/stations
+        /// </summary>
+        // Registers solar station and configures initial battery slot specs
         [HttpPost]
         public async Task<IActionResult> CreateStation(
             [FromBody] CreateStationDto dto)
@@ -57,6 +65,13 @@ namespace SmartSolarApi.Controllers
             );
         }
 
+        /// <summary>
+        /// Retrieves all microgrid stations.
+        /// Supports GPS latitude/longitude parameters to return
+        /// sorted nearby stations.
+        /// GET: api/stations?lat=6.9175&lng=79.8654
+        /// </summary>
+        // Fetches solar stations and computes distance for Google Maps integration
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] string? status,
@@ -73,6 +88,11 @@ namespace SmartSolarApi.Controllers
             return Ok(stations);
         }
 
+        /// <summary>
+        /// Retrieves a specific solar microgrid station by its ID.
+        /// GET: api/stations/{id}
+        /// </summary>
+        // Fetches station details and active reservation count
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -91,9 +111,10 @@ namespace SmartSolarApi.Controllers
         }
 
         /// <summary>
-        /// Updates station specifications and operational schedule.
+        /// Updates a microgrid station specs and operational schedule.
         /// PUT: api/stations/{id}
         /// </summary>
+        // Modifies station details and enforces active reservation check if setting Inactive
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(
             string id,
@@ -127,9 +148,10 @@ namespace SmartSolarApi.Controllers
 
         /// <summary>
         /// Deactivates a microgrid node.
-        /// Active reservations are checked by the service layer.
+        /// Strictly blocked if active energy reservations exist.
         /// DELETE: api/stations/{id}
         /// </summary>
+        // Enforces rule: Station deactivation is blocked if active reservations exist
         [HttpDelete("{id}")]
         public async Task<IActionResult> Deactivate(string id)
         {
@@ -152,9 +174,10 @@ namespace SmartSolarApi.Controllers
         }
 
         /// <summary>
-        /// Updates available battery storage slots.
+        /// Updates available battery storage slots at a station.
         /// PUT: api/stations/{id}/battery-slots
         /// </summary>
+        // Enables Grid Operators to adjust available battery storage slots
         [HttpPut("{id}/battery-slots")]
         public async Task<IActionResult> UpdateBatterySlots(
             string id,
@@ -182,6 +205,51 @@ namespace SmartSolarApi.Controllers
             return Ok(new
             {
                 message = result.Message
+            });
+        }
+
+        /// <summary>
+        /// Retrieves available energy booking slots for a given station.
+        /// GET: api/stations/{id}/slots
+        /// </summary>
+        // Lists future time slots for energy drop-off and charging
+        [HttpGet("{id}/slots")]
+        public async Task<IActionResult> GetSlots(string id)
+        {
+            var slots =
+                await _stationService
+                    .GetSlotsForStationAsync(id);
+
+            return Ok(slots);
+        }
+
+        /// <summary>
+        /// Returns all active microgrid stations sorted by distance
+        /// from a prosumer's solar installation GPS.
+        /// GET: api/stations/nearby-prosumer/{nic}
+        /// </summary>
+        // Uses prosumer's stored InstallationLatitude/Longitude
+        // to compute Haversine distances
+        [HttpGet("nearby-prosumer/{nic}")]
+        public async Task<IActionResult> GetNearbyForProsumer(
+            string nic)
+        {
+            var result =
+                await _stationService
+                    .GetNearbyStationsForProsumerAsync(nic);
+
+            if (!result.Success)
+            {
+                return NotFound(new
+                {
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                stations = result.Stations
             });
         }
     }
