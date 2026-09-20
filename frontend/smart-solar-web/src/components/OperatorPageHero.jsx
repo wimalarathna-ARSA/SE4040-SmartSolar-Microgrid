@@ -24,6 +24,31 @@ const OperatorPageHero = ({
         minHeight: '190px',
       }}
     >
+      <img
+        src={imageSrc}
+        alt=""
+        aria-hidden="true"
+        onError={(e) => {
+          e.currentTarget.style.display = 'none';
+        }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }}
+      />
+
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(95deg, rgba(2,44,34,0.94) 30%, rgba(2,44,34,0.72) 55%, rgba(2,44,34,0.30) 100%)',
+        }}
+      />
+
       <div
         className="position-relative d-flex align-items-center p-4"
         style={{
@@ -56,6 +81,7 @@ const OperatorPageHero = ({
                   className="d-flex align-items-center gap-2"
                 >
                   <span style={{ opacity: 0.5 }}>›</span>
+
                   <span
                     style={{
                       color: '#fff',
@@ -102,6 +128,53 @@ const OperatorPageHero = ({
               {subtitle}
             </p>
           )}
+        </div>
+
+        <div className="d-flex align-items-center gap-2 ms-auto">
+          <img
+            src="/images/Solar_2.jpg"
+            alt=""
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              objectFit: 'cover',
+              border: '2px solid rgba(255,255,255,0.5)',
+            }}
+          />
+
+          <img
+            src="/images/house_5.png"
+            alt=""
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              objectFit: 'cover',
+              border: '2px solid rgba(255,255,255,0.5)',
+            }}
+          />
+
+          <img
+            src="/images/solar-hero-panels.jpg"
+            alt=""
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '14px',
+              objectFit: 'cover',
+              border: '2px solid rgba(255,255,255,0.5)',
+            }}
+          />
         </div>
       </div>
     </div>
