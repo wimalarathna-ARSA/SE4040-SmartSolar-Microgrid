@@ -1,3 +1,10 @@
+// ============================================================================
+// File: FloatingDotNavigation.jsx
+// Author: IT22166210
+// Course: SE4040 - Enterprise Application Development
+// Description: Floating section dot navigation for single-page scroll layouts.
+// Architecture: FAT Service Pattern (All business logic centralized in API)
+// ============================================================================
 import React, { useState, useEffect } from 'react';
 
 const SECTIONS = [
@@ -13,6 +20,12 @@ const SECTIONS = [
   { id: 'footer', label: 'Company & Support' },
 ];
 
+/**
+ * FloatingDotNavigation
+ * Sticky/fixed vertical dot navigation rail pinned to the left edge across all homepage sections.
+ * Automatically tracks scroll progress and illuminates the corresponding glowing cyan dot,
+ * matching Frequenz.com exactly.
+ */
 const FloatingDotNavigation = () => {
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -26,18 +39,21 @@ const FloatingDotNavigation = () => {
           const windowHeight = window.innerHeight;
           const docHeight = document.documentElement.scrollHeight;
 
+          // If at very top
           if (scrollPosition < 80) {
             setActiveIdx(0);
             ticking = false;
             return;
           }
 
+          // If near bottom of page
           if (scrollPosition + windowHeight >= docHeight - 80) {
             setActiveIdx(SECTIONS.length - 1);
             ticking = false;
             return;
           }
 
+          // Find current active section
           let currentIdx = 0;
           const triggerPoint = scrollPosition + windowHeight * 0.38;
 
@@ -59,6 +75,7 @@ const FloatingDotNavigation = () => {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    // Run once on initial load
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
@@ -78,6 +95,7 @@ const FloatingDotNavigation = () => {
       aria-label="Page section navigation"
       style={{ position: 'fixed', left: '24px', top: '50%', transform: 'translateY(-50%)', zIndex: 1050 }}
     >
+      {/* Background vertical connecting track */}
       <div
         style={{
           position: 'absolute',
@@ -91,6 +109,7 @@ const FloatingDotNavigation = () => {
           pointerEvents: 'none',
         }}
       />
+      {/* Animated active depth line */}
       <div
         style={{
           position: 'absolute',
@@ -119,6 +138,7 @@ const FloatingDotNavigation = () => {
               aria-label={`Scroll to ${sec.label}`}
               aria-current={isActive ? 'true' : undefined}
             />
+            {/* Tooltip on Hover */}
             <div className="freq-dot-tooltip">
               {sec.label}
             </div>
