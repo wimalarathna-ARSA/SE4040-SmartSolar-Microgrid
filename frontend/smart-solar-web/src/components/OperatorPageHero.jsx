@@ -22,6 +22,7 @@ const OperatorPageHero = ({
       style={{
         borderRadius: '18px',
         minHeight: '190px',
+        border: '1px solid rgba(255,255,255,0.25)',
       }}
     >
       <img
@@ -50,9 +51,8 @@ const OperatorPageHero = ({
       />
 
       <div
-        className="position-relative d-flex align-items-center p-4"
+        className="position-relative d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 p-4 p-lg-5"
         style={{
-          minHeight: '190px',
           zIndex: 1,
         }}
       >
@@ -109,8 +109,9 @@ const OperatorPageHero = ({
           <h2
             className="fw-bold text-white mb-2"
             style={{
-              fontSize: '2rem',
+              fontSize: 'clamp(1.5rem, 2.6vw, 2.1rem)',
               letterSpacing: '-0.02em',
+              lineHeight: 1.15,
             }}
           >
             {title}
@@ -130,7 +131,7 @@ const OperatorPageHero = ({
           )}
         </div>
 
-        <div className="d-flex align-items-center gap-2 ms-auto">
+        <div className="d-flex align-items-center gap-2 flex-shrink-0">
           <img
             src="/images/Solar_2.jpg"
             alt=""
