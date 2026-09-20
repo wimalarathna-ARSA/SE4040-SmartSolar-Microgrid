@@ -109,6 +109,10 @@ const FloatingDotNavigation = () => {
               aria-label={`Scroll to ${sec.label}`}
               aria-current={isActive ? 'true' : undefined}
             />
+            {/* Tooltip on Hover */}
+            <div className="freq-dot-tooltip">
+              {sec.label}
+            </div>
           </div>
         );
       })}
