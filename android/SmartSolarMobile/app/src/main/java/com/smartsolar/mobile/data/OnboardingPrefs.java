@@ -2,7 +2,7 @@
 // File: OnboardingPrefs.java
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: SharedPreferences utility for storing SmartSolar onboarding state.
+// Description: SharedPreferences utility for tracking SmartSolar onboarding state.
 // ============================================================================
 package com.smartsolar.mobile.data;
 
@@ -23,5 +23,13 @@ public final class OnboardingPrefs {
                 context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
 
         return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false);
+    }
+
+    /** Saves the onboarding completion state. */
+    public static void setCompleted(Context context, boolean completed) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_ONBOARDING_COMPLETED, completed)
+                .apply();
     }
 }
