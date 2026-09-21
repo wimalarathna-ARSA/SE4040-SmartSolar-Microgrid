@@ -35,27 +35,66 @@ const IntroductionSection = () => {
 
           {/* Bottom Half: 3 Columns - Manage, Store, Trade */}
           <div className="row g-4 pt-3 border-top">
+            {/* Column 1: Manage */}
             <div className="col-lg-4 col-md-12">
               <MotionReveal animation="fade-up" delay={0.1} className="d-flex flex-column h-100 pe-lg-2">
-                <h3 className="fw-bold mb-0 fs-5">Manage</h3>
+                <div className="d-flex align-items-center gap-2 mb-2 pb-1">
+                  <div className="d-flex align-items-end gap-1" style={{ height: '22px' }}>
+                    <div style={{ width: '4px', height: '13px', backgroundColor: '#0c0233', borderRadius: '2px' }} />
+                    <div style={{ width: '4px', height: '20px', backgroundColor: '#00cbb0', borderRadius: '2px' }} />
+                    <div style={{ width: '4px', height: '15px', backgroundColor: '#0c0233', borderRadius: '2px' }} />
+                    <div style={{ width: '4px', height: '9px', backgroundColor: '#00cbb0', borderRadius: '2px' }} />
+                  </div>
+                  <h3 className="fw-bold mb-0 fs-5">Manage</h3>
+                </div>
+
                 <div className="fw-bold mb-2">Actively manage and customize local energy systems.</div>
                 <p>Implement decentralized energy resources that utilize real-time data analysis and intelligent algorithms for optimized energy efficiency and savings.</p>
                 <p>Enhance energy resilience through local power generation and distributed grid node orchestration across Sri Lankan provinces.</p>
               </MotionReveal>
             </div>
 
+            {/* Column 2: Store */}
             <div className="col-lg-4 col-md-12">
               <MotionReveal animation="fade-up" delay={0.2} className="d-flex flex-column h-100 pe-lg-2">
-                <h3 className="fw-bold mb-0 fs-5">Store</h3>
+                <div className="d-flex align-items-center gap-2 mb-2 pb-1">
+                  <div
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      border: '2.8px solid #00cbb0',
+                      borderTopColor: '#0c0233',
+                      display: 'inline-block',
+                    }}
+                  />
+                  <h3 className="fw-bold mb-0 fs-5">Store</h3>
+                </div>
+
                 <div className="fw-bold mb-2">Capture and store excess energy to maximize the utilization of renewable power sources.</div>
                 <p>Leverage dynamic BESS container storage to reduce dependence on expensive peak-hour grid consumption and peak tariff surcharges.</p>
                 <p>Take advantage of storage capacities to schedule prosumer battery slots during low-price windows while avoiding sell-offs at low prices.</p>
               </MotionReveal>
             </div>
 
+            {/* Column 3: Trade */}
             <div className="col-lg-4 col-md-12">
               <MotionReveal animation="fade-up" delay={0.3} className="d-flex flex-column h-100">
-                <h3 className="fw-bold mb-0 fs-5">Trade</h3>
+                <div className="d-flex align-items-center gap-2 mb-2 pb-1">
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      border: '2.2px solid #0c0233',
+                      borderTop: '2.2px solid #00cbb0',
+                      borderRight: '2.2px solid #00cbb0',
+                      borderRadius: '3px',
+                      display: 'inline-block',
+                    }}
+                  />
+                  <h3 className="fw-bold mb-0 fs-5">Trade</h3>
+                </div>
+
                 <div className="fw-bold mb-2">Connect microgrids to various energy markets.</div>
                 <p>Enable power trading, balancing energy for grid stability, and offering demand response capabilities via cryptographically verified QR tokens.</p>
                 <p>Foresee and dynamically respond to price changes, weather conditions, and prosumer demand spikes in real-time.</p>
