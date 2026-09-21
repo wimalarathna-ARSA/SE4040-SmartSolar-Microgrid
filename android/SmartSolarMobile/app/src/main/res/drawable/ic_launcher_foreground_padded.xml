@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Super-constrain the icon size to 44dp to ensure the sharp diagonal
+         tips fit inside the circular launcher mask without being cut. -->
+    <item
+        android:drawable="@drawable/ic_launcher_foreground"
+        android:width="44dp"
+        android:height="44dp"
+        android:gravity="center" />
+</layer-list>
