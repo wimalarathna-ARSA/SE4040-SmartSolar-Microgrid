@@ -12,8 +12,12 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+import SolarMicrogrid3D from '../components/3d/SolarMicrogrid3D';
 import FrequenzConstellation3D from '../components/3d/FrequenzConstellation3D';
 import FloatingDotNavigation from '../components/FloatingDotNavigation';
+import IntroductionSection from '../components/IntroductionSection';
+import PlatformFunctionalitiesSection from '../components/PlatformFunctionalitiesSection';
+import MotionReveal from '../components/MotionReveal';
 
 const Home = () => {
   const { isAuthenticated, user, isBackoffice, isOperator } = useAuth();
@@ -215,10 +219,7 @@ const Home = () => {
                       <span>↗</span> Get started
                     </Link>
 
-                    <a
-                      href="#digital-twin"
-                      className="freq-btn-secondary"
-                    >
+                    <a href="#digital-twin" className="freq-btn-secondary">
                       <i
                         className="bi bi-box-fill text-info me-1"
                         style={{ color: '#00ffce' }}
@@ -226,10 +227,7 @@ const Home = () => {
                       3D Digital Twin
                     </a>
 
-                    <a
-                      href="#hubs"
-                      className="freq-btn-secondary"
-                    >
+                    <a href="#hubs" className="freq-btn-secondary">
                       <i
                         className="bi bi-radar text-info me-1"
                         style={{ color: '#00ffce' }}
@@ -250,6 +248,62 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================
+          INTRODUCTION
+          ======================================================================== */}
+
+      <IntroductionSection />
+
+      {/* ========================================================================
+          DIGITAL TWIN
+          ======================================================================== */}
+
+      <section
+        id="digital-twin"
+        className="py-5 px-3 border-top border-secondary border-opacity-10"
+        style={{ backgroundColor: '#04070d' }}
+      >
+        <div className="container-fluid px-lg-5 px-3">
+          <MotionReveal animation="fade-up">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+              <div>
+                <div className="freq-badge mb-2">
+                  <i className="bi bi-cpu"></i> High-Precision Digital Twin
+                </div>
+
+                <h2 className="display-6 fw-bold text-white mb-2">
+                  Real-Time Photovoltaic &amp; BESS Simulation
+                </h2>
+
+                <p
+                  className="text-secondary mb-0"
+                  style={{ maxWidth: '680px' }}
+                >
+                  Interact directly with monocrystalline solar arrays, dynamic
+                  BESS lithium storage containers, and grid synchronization
+                  inverters with live lighting simulation.
+                </p>
+              </div>
+
+              <div className="text-secondary small d-none d-md-block">
+                <i className="bi bi-mouse me-1"></i>
+                Drag to rotate &bull; Scroll to zoom &bull; Click presets
+              </div>
+            </div>
+          </MotionReveal>
+
+          <div id="twin-features" className="my-2">
+            <SolarMicrogrid3D />
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================
+          PLATFORM FUNCTIONALITIES
+          ======================================================================== */}
+
+      <PlatformFunctionalitiesSection />
     </div>
   );
 };
