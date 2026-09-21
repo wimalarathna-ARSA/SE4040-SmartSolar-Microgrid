@@ -13,9 +13,10 @@ import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import OperatorPageHero from '../../components/OperatorPageHero';
 
 const StationSlots = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const filterStationId = searchParams.get('stationId');
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -39,6 +40,17 @@ const StationSlots = () => {
 
   useEffect(() => {
     fetchStations();
+
+    const interval = setInterval(() => {
+      api
+        .get('/stations')
+        .then((res) => {
+          setStations(res.data);
+        })
+        .catch(() => {});
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const displayedStations = stations.filter((s) => {
@@ -46,8 +58,25 @@ const StationSlots = () => {
       return false;
     }
 
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+
+      return (
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.stationCode &&
+          s.stationCode.toLowerCase().includes(q)) ||
+        (s.location &&
+          s.location.toLowerCase().includes(q))
+      );
+    }
+
     return true;
   });
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSearchParams({});
+  };
 
   return (
     <div
@@ -77,28 +106,140 @@ const StationSlots = () => {
           imageSrc="/images/Solar_2.jpg"
           eyebrow="SOLARX • Battery Slots"
           title="Station Slot Management"
-          subtitle="Monitor available battery slots across active microgrid stations."
+          subtitle="Real-time available battery slots with 5-second live telemetry."
           breadcrumb={['Slots']}
         />
 
-        <div className="d-flex justify-content-end mb-4">
-          <div className="d-flex align-items-center gap-2">
-            <button
-              onClick={fetchStations}
-              className="btn btn-light rounded-pill px-4 fw-bold"
-            >
-              <i className="bi bi-arrow-clockwise me-2"></i>
-              Refresh
-            </button>
+        <div className="d-flex justify-content-end mb-4 flex-wrap gap-3">
+          <button
+            onClick={fetchStations}
+            className="btn btn-light rounded-pill px-4 fw-bold"
+          >
+            <i className="bi bi-arrow-clockwise me-2"></i>
+            Refresh
+          </button>
 
-            <Link
-              to="/operator"
-              className="btn btn-light rounded-pill px-4 fw-bold"
-            >
-              <i className="bi bi-arrow-left me-2"></i>
-              Back to Console
-            </Link>
+          <Link
+            to="/operator"
+            className="btn btn-light rounded-pill px-4 fw-bold"
+          >
+            <i className="bi bi-arrow-left me-2"></i>
+            Back to Console
+          </Link>
+        </div>
+
+        {/* Search Bar */}
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '18px',
+            padding: '14px 22px',
+            marginBottom: '22px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 18px rgba(4, 120, 87, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.9)',
+          }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              flex: 1,
+              minWidth: '240px',
+            }}
+          >
+            <i
+              className="bi bi-search"
+              style={{
+                position: 'absolute',
+                left: '16px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#059669',
+              }}
+            ></i>
+
+            <input
+              type="text"
+              placeholder="Search hub by code, station name, or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 38px 10px 42px',
+                borderRadius: '50px',
+                background: '#fff',
+                border: '1px solid rgba(5, 150, 105, 0.35)',
+                fontSize: '0.86rem',
+                color: '#0f172a',
+                outline: 'none',
+              }}
+            />
+
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                }}
+              >
+                <i className="bi bi-x-circle-fill"></i>
+              </button>
+            )}
           </div>
+
+          <button
+            type="button"
+            style={{
+              background:
+                'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '10px 22px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <i className="bi bi-search me-2"></i>
+            Search Hub
+          </button>
+
+          {(filterStationId || searchQuery) && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="btn btn-light rounded-pill px-3 fw-semibold"
+            >
+              <i className="bi bi-grid-3x3-gap-fill me-2"></i>
+              Show All Hubs
+            </button>
+          )}
+
+          <span
+            style={{
+              fontSize: '0.82rem',
+              color: '#064e3b',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {displayedStations.length === stations.length
+              ? `${stations.length} Hubs`
+              : `${displayedStations.length} of ${stations.length} Hubs`}
+          </span>
         </div>
 
         {message.text && (
@@ -133,10 +274,12 @@ const StationSlots = () => {
           ) : displayedStations.length === 0 ? (
             <div className="col-12 text-center py-5">
               <i
-                className="bi bi-battery"
+                className="bi bi-search"
                 style={{
                   fontSize: '2.5rem',
                   color: '#94a3b8',
+                  display: 'block',
+                  marginBottom: '12px',
                 }}
               ></i>
 
@@ -144,11 +287,22 @@ const StationSlots = () => {
                 style={{
                   fontWeight: 700,
                   color: '#1e293b',
-                  marginTop: '12px',
                 }}
               >
-                No microgrid stations available.
+                {searchQuery
+                  ? `No hubs found matching "${searchQuery}"`
+                  : 'No microgrid stations available.'}
               </div>
+
+              {(filterStationId || searchQuery) && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="btn btn-sm btn-outline-success rounded-pill px-4 mt-3"
+                >
+                  Show All Hubs
+                </button>
+              )}
             </div>
           ) : (
             displayedStations.map((s) => (
@@ -165,41 +319,26 @@ const StationSlots = () => {
                       '0 12px 32px -4px rgba(4, 120, 87, 0.12)',
                   }}
                 >
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <span
-                      style={{
-                        background: '#0f172a',
-                        color: '#34d399',
-                        fontFamily: 'monospace',
-                        fontWeight: 700,
-                        fontSize: '0.82rem',
-                        padding: '4px 12px',
-                        borderRadius: '50px',
-                      }}
-                    >
-                      {s.stationCode}
-                    </span>
-
-                    <span
-                      style={{
-                        background:
-                          s.status === 'Active' ? '#10b981' : '#64748b',
-                        color: '#fff',
-                        borderRadius: '50px',
-                        padding: '4px 14px',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                      }}
-                    >
-                      {s.status}
-                    </span>
-                  </div>
+                  <span
+                    style={{
+                      background: '#0f172a',
+                      color: '#34d399',
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      padding: '4px 12px',
+                      borderRadius: '50px',
+                    }}
+                  >
+                    {s.stationCode}
+                  </span>
 
                   <h3
                     style={{
                       fontSize: '1.25rem',
                       fontWeight: 800,
                       color: '#0f172a',
+                      marginTop: '16px',
                     }}
                   >
                     {s.name}
