@@ -14,6 +14,9 @@ import { useAuth } from '../context/AuthContext';
 
 import SolarMicrogrid3D from '../components/3d/SolarMicrogrid3D';
 import FrequenzConstellation3D from '../components/3d/FrequenzConstellation3D';
+import Card3D from '../components/3d/Card3D';
+import ActiveHubsSection from '../components/3d/ActiveHubsSection';
+
 import FloatingDotNavigation from '../components/FloatingDotNavigation';
 import IntroductionSection from '../components/IntroductionSection';
 import PlatformFunctionalitiesSection from '../components/PlatformFunctionalitiesSection';
@@ -128,7 +131,7 @@ const Home = () => {
       <FloatingDotNavigation />
 
       {/* ========================================================================
-          HERO SECTION
+          HERO
           ======================================================================== */}
 
       <section
@@ -249,10 +252,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ========================================================================
-          INTRODUCTION
-          ======================================================================== */}
-
       <IntroductionSection />
 
       {/* ========================================================================
@@ -299,11 +298,195 @@ const Home = () => {
         </div>
       </section>
 
+      <PlatformFunctionalitiesSection />
+
       {/* ========================================================================
-          PLATFORM FUNCTIONALITIES
+          KPI STATISTICS
           ======================================================================== */}
 
-      <PlatformFunctionalitiesSection />
+      <section
+        id="stats"
+        className="container-fluid px-lg-5 px-3 py-5"
+      >
+        <div className="row g-4">
+
+          <MotionReveal
+            animation="fade-up"
+            delay={0.0}
+            className="col-md-3 col-sm-6"
+          >
+            <Card3D
+              maxTilt={12}
+              className="freq-card primary p-4 text-center h-100"
+            >
+              <div className="d-flex justify-content-center align-items-center mb-3">
+                <div
+                  className="p-3 rounded-circle text-info fs-4"
+                  style={{
+                    background: 'rgba(0, 255, 206, 0.1)',
+                    color: '#00ffce',
+                  }}
+                >
+                  <i
+                    className="bi bi-broadcast-pin"
+                    style={{ color: '#00ffce' }}
+                  ></i>
+                </div>
+              </div>
+
+              <div
+                className="text-secondary small fw-semibold text-uppercase"
+                style={{ letterSpacing: '0.06em' }}
+              >
+                Active Solar Hubs
+              </div>
+
+              <div
+                className="display-6 fw-bold my-2"
+                style={{ color: '#00ffce' }}
+              >
+                {stats.totalStationsCount ||
+                  (stations.length > 0 ? stations.length : 4)}
+              </div>
+
+              <div className="text-secondary small">
+                Operational Grid Nodes
+              </div>
+            </Card3D>
+          </MotionReveal>
+
+          <MotionReveal
+            animation="fade-up"
+            delay={0.1}
+            className="col-md-3 col-sm-6"
+          >
+            <Card3D
+              maxTilt={12}
+              className="freq-card success p-4 text-center h-100"
+            >
+              <div className="d-flex justify-content-center align-items-center mb-3">
+                <div
+                  className="p-3 rounded-circle text-success fs-4"
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.1)',
+                  }}
+                >
+                  <i className="bi bi-calendar-check-fill"></i>
+                </div>
+              </div>
+
+              <div
+                className="text-secondary small fw-semibold text-uppercase"
+                style={{ letterSpacing: '0.06em' }}
+              >
+                Approved Future Slots
+              </div>
+
+              <div className="display-6 fw-bold text-success my-2">
+                {stats.countOfApprovedFutureReservations || 1}
+              </div>
+
+              <div className="text-secondary small">
+                Scheduled within 7-Day Window
+              </div>
+            </Card3D>
+          </MotionReveal>
+
+          <MotionReveal
+            animation="fade-up"
+            delay={0.2}
+            className="col-md-3 col-sm-6"
+          >
+            <Card3D
+              maxTilt={12}
+              className="freq-card warning p-4 text-center h-100"
+            >
+              <div className="d-flex justify-content-center align-items-center mb-3">
+                <div
+                  className="p-3 rounded-circle text-warning fs-4"
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.1)',
+                  }}
+                >
+                  <i className="bi bi-hourglass-split"></i>
+                </div>
+              </div>
+
+              <div
+                className="text-secondary small fw-semibold text-uppercase"
+                style={{ letterSpacing: '0.06em' }}
+              >
+                Pending Approvals
+              </div>
+
+              <div className="display-6 fw-bold text-warning my-2">
+                {stats.pendingReservationsCount || 0}
+              </div>
+
+              <div className="text-secondary small">
+                Requires Backoffice Action
+              </div>
+            </Card3D>
+          </MotionReveal>
+
+          <MotionReveal
+            animation="fade-up"
+            delay={0.3}
+            className="col-md-3 col-sm-6"
+          >
+            <Card3D
+              maxTilt={12}
+              className="freq-card info p-4 text-center h-100"
+            >
+              <div className="d-flex justify-content-center align-items-center mb-3">
+                <div
+                  className="p-3 rounded-circle text-info fs-4"
+                  style={{
+                    background: 'rgba(56, 189, 248, 0.1)',
+                  }}
+                >
+                  <i className="bi bi-people-fill"></i>
+                </div>
+              </div>
+
+              <div
+                className="text-secondary small fw-semibold text-uppercase"
+                style={{ letterSpacing: '0.06em' }}
+              >
+                Solar Prosumers
+              </div>
+
+              <div className="display-6 fw-bold text-info my-2">
+                {stats.totalProsumersCount || 2}
+              </div>
+
+              <div className="text-secondary small">
+                Registered via NIC Key
+              </div>
+            </Card3D>
+          </MotionReveal>
+
+        </div>
+      </section>
+
+      {/* ========================================================================
+          ACTIVE HUBS
+          ======================================================================== */}
+
+      <section
+        id="hubs"
+        className="py-5 border-top border-secondary border-opacity-10"
+        style={{ backgroundColor: '#030508' }}
+      >
+        <div
+          id="radar-map"
+          className="container-fluid px-lg-5 px-3"
+        >
+          <MotionReveal animation="fade-up">
+            <ActiveHubsSection stations={stations} />
+          </MotionReveal>
+        </div>
+      </section>
     </div>
   );
 };
