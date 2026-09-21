@@ -33,58 +33,36 @@ namespace SmartSolarApi.Controllers
         }
 
         /// <summary>
-        /// Creates a new microgrid solar hub with GPS coordinates,
-        /// kW/h capacity, and battery storage slots.
+        /// Creates a new microgrid solar hub with GPS coordinates, kW/h capacity, and battery storage slots.
         /// POST: api/stations
         /// </summary>
         // Registers solar station and configures initial battery slot specs
         [HttpPost]
-        public async Task<IActionResult> CreateStation(
-            [FromBody] CreateStationDto dto)
+        public async Task<IActionResult> CreateStation([FromBody] CreateStationDto dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result =
-                await _stationService.CreateStationAsync(dto);
-
+            var result = await _stationService.CreateStationAsync(dto);
             if (!result.Success)
             {
-                return BadRequest(new
-                {
-                    message = result.Message
-                });
+                return BadRequest(new { message = result.Message });
             }
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = result.Station?.Id },
-                result.Station
-            );
+            return CreatedAtAction(nameof(GetById), new { id = result.Station?.Id }, result.Station);
         }
 
         /// <summary>
-        /// Retrieves all microgrid stations.
-        /// Supports GPS latitude/longitude parameters to return
-        /// sorted nearby stations.
+        /// Retrieves all microgrid stations. Supports GPS latitude/longitude parameters to return sorted nearby stations.
         /// GET: api/stations?lat=6.9175&lng=79.8654
         /// </summary>
         // Fetches solar stations and computes distance for Google Maps integration
         [HttpGet]
-        public async Task<IActionResult> GetAll(
-            [FromQuery] string? status,
-            [FromQuery] double? lat,
-            [FromQuery] double? lng)
+        public async Task<IActionResult> GetAll([FromQuery] string? status, [FromQuery] double? lat, [FromQuery] double? lng)
         {
-            var stations =
-                await _stationService.GetStationsAsync(
-                    status,
-                    lat,
-                    lng
-                );
-
+            var stations = await _stationService.GetStationsAsync(status, lat, lng);
             return Ok(stations);
         }
 
@@ -96,17 +74,11 @@ namespace SmartSolarApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
-            var station =
-                await _stationService.GetStationByIdAsync(id);
-
+            var station = await _stationService.GetStationByIdAsync(id);
             if (station == null)
             {
-                return NotFound(new
-                {
-                    message = "Solar station not found."
-                });
+                return NotFound(new { message = "Solar station not found." });
             }
-
             return Ok(station);
         }
 
@@ -116,27 +88,17 @@ namespace SmartSolarApi.Controllers
         /// </summary>
         // Modifies station details and enforces active reservation check if setting Inactive
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(
-            string id,
-            [FromBody] UpdateStationDto dto)
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateStationDto dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result =
-                await _stationService.UpdateStationAsync(
-                    id,
-                    dto
-                );
-
+            var result = await _stationService.UpdateStationAsync(id, dto);
             if (!result.Success)
             {
-                return BadRequest(new
-                {
-                    message = result.Message
-                });
+                return BadRequest(new { message = result.Message });
             }
 
             return Ok(new
@@ -148,64 +110,42 @@ namespace SmartSolarApi.Controllers
 
         /// <summary>
         /// Deactivates a microgrid node.
-        /// Strictly blocked if active energy reservations exist.
+        /// Strictly blocked if active energy reservations exist on this node.
         /// DELETE: api/stations/{id}
         /// </summary>
         // Enforces rule: Station deactivation is blocked if active reservations exist
         [HttpDelete("{id}")]
         public async Task<IActionResult> Deactivate(string id)
         {
-            var result =
-                await _stationService
-                    .DeactivateStationAsync(id);
-
+            var result = await _stationService.DeactivateStationAsync(id);
             if (!result.Success)
             {
-                return BadRequest(new
-                {
-                    message = result.Message
-                });
+                return BadRequest(new { message = result.Message });
             }
 
-            return Ok(new
-            {
-                message = result.Message
-            });
+            return Ok(new { message = result.Message });
         }
 
         /// <summary>
-        /// Updates available battery storage slots at a station.
+        /// Updates available battery storage slots at a station (Operator feature).
         /// PUT: api/stations/{id}/battery-slots
         /// </summary>
         // Enables Grid Operators to adjust available battery storage slots
         [HttpPut("{id}/battery-slots")]
-        public async Task<IActionResult> UpdateBatterySlots(
-            string id,
-            [FromBody] UpdateBatterySlotsDto dto)
+        public async Task<IActionResult> UpdateBatterySlots(string id, [FromBody] UpdateBatterySlotsDto dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result =
-                await _stationService.UpdateBatterySlotsAsync(
-                    id,
-                    dto.AvailableBatterySlots
-                );
-
+            var result = await _stationService.UpdateBatterySlotsAsync(id, dto.AvailableBatterySlots);
             if (!result.Success)
             {
-                return BadRequest(new
-                {
-                    message = result.Message
-                });
+                return BadRequest(new { message = result.Message });
             }
 
-            return Ok(new
-            {
-                message = result.Message
-            });
+            return Ok(new { message = result.Message });
         }
 
         /// <summary>
@@ -216,36 +156,23 @@ namespace SmartSolarApi.Controllers
         [HttpGet("{id}/slots")]
         public async Task<IActionResult> GetSlots(string id)
         {
-            var slots =
-                await _stationService
-                    .GetSlotsForStationAsync(id);
-
+            var slots = await _stationService.GetSlotsForStationAsync(id);
             return Ok(slots);
         }
 
         /// <summary>
-        /// Returns all active microgrid stations sorted by distance
-        /// from a prosumer's solar installation GPS.
+        /// Returns all active microgrid stations sorted by distance from a prosumer's solar installation GPS.
         /// GET: api/stations/nearby-prosumer/{nic}
         /// </summary>
-        // Uses prosumer's stored InstallationLatitude/Longitude
-        // to compute Haversine distances
+        // Uses prosumer's stored InstallationLatitude/Longitude to compute Haversine distances
         [HttpGet("nearby-prosumer/{nic}")]
-        public async Task<IActionResult> GetNearbyForProsumer(
-            string nic)
+        public async Task<IActionResult> GetNearbyForProsumer(string nic)
         {
-            var result =
-                await _stationService
-                    .GetNearbyStationsForProsumerAsync(nic);
-
+            var result = await _stationService.GetNearbyStationsForProsumerAsync(nic);
             if (!result.Success)
             {
-                return NotFound(new
-                {
-                    message = result.Message
-                });
+                return NotFound(new { message = result.Message });
             }
-
             return Ok(new
             {
                 message = result.Message,
