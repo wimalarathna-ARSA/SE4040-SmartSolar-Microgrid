@@ -23,4 +23,12 @@ public final class ThemeManager {
         return context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
                 .getBoolean(KEY_DARK_THEME, false);
     }
+
+    /** Saves the user's theme preference. */
+    public static void setDarkTheme(Context context, boolean dark) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_DARK_THEME, dark)
+                .apply();
+    }
 }
