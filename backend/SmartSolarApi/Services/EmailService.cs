@@ -21,14 +21,17 @@ namespace SmartSolarApi.Services
         private readonly IConfiguration _config;
         private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration config, ILogger<EmailService> logger)
+        public EmailService(
+            IConfiguration config,
+            ILogger<EmailService> logger)
         {
             _config = config;
             _logger = logger;
         }
 
         /// <summary>
-        /// Sends a password reset OTP to the user's registered email address.
+        /// Sends a 6-digit OTP to the user's email address for password reset verification.
+        /// The OTP is communicated as valid for five minutes.
         /// </summary>
         public async Task<bool> SendPasswordResetOtpAsync(
             string recipientEmail,
@@ -54,27 +57,37 @@ namespace SmartSolarApi.Services
                 out var ssl) && ssl;
 
             _logger.LogInformation(
-                "Preparing password reset OTP email for {Email} ({Name})",
+                "==================================================================");
+
+            _logger.LogInformation(
+                "GMAIL OTP VERIFICATION: Preparing OTP for {Email} ({Name})",
                 recipientEmail,
                 recipientName);
 
+            _logger.LogInformation(
+                "OTP CODE: {Otp} (Strictly valid for 5 minutes)",
+                otp);
+
+            _logger.LogInformation(
+                "==================================================================");
+
             senderPassword = senderPassword?.Replace(" ", "").Trim();
 
-            // Development fallback when SMTP credentials are unavailable.
             if (string.IsNullOrWhiteSpace(senderEmail) ||
                 string.IsNullOrWhiteSpace(senderPassword))
             {
                 _logger.LogWarning(
-                    "EmailSettings credentials not configured in appsettings.json. " +
-                    "OTP logged for development testing: {Otp}",
-                    otp);
+                    "EmailSettings credentials not configured in " +
+                    "appsettings.json. OTP logged to console above.");
 
                 return true;
             }
 
             try
             {
-                using var client = new SmtpClient(smtpServer, port)
+                using var client = new SmtpClient(
+                    smtpServer,
+                    port)
                 {
                     UseDefaultCredentials = false,
                     Credentials = new NetworkCredential(
@@ -97,8 +110,13 @@ namespace SmartSolarApi.Services
                     fromAddress,
                     toAddress)
                 {
-                    Subject = $"{otp} is your SØLΛR-X Password Reset Code",
-                    Body = BuildHtmlEmailBody(recipientName, otp),
+                    Subject =
+                        $"{otp} is your SØLΛR-X Password Reset Code",
+
+                    Body = BuildHtmlEmailBody(
+                        recipientName,
+                        otp),
+
                     IsBodyHtml = true
                 };
 
@@ -115,13 +133,15 @@ namespace SmartSolarApi.Services
                 _logger.LogError(
                     ex,
                     "Failed to send OTP email to {Email} via SMTP. " +
-                    "Using development fallback.",
+                    "Using console fallback.",
                     recipientEmail);
 
                 return true;
             }
         }
 
+        // Constructs an HTML email body containing the OTP
+        // and its five-minute expiry warning.
         private static string BuildHtmlEmailBody(
             string recipientName,
             string otp)
@@ -131,24 +151,132 @@ namespace SmartSolarApi.Services
 <html>
 <head>
   <meta charset=""utf-8"">
+  <style>
+    body {{
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 24px;
+    }}
+
+    .container {{
+      max-width: 540px;
+      margin: 0 auto;
+      background: #1e293b;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 36px;
+    }}
+
+    .brand {{
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffffff;
+      text-align: center;
+      margin-bottom: 24px;
+    }}
+
+    .brand span {{
+      color: #10b981;
+    }}
+
+    .title {{
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }}
+
+    .otp-box {{
+      background: linear-gradient(
+        135deg,
+        rgba(16,185,129,0.15),
+        rgba(4,120,87,0.25)
+      );
+
+      border: 2px dashed #10b981;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin: 24px 0;
+    }}
+
+    .otp-code {{
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      color: #34d399;
+      font-family: monospace;
+    }}
+
+    .warning {{
+      background: rgba(239, 68, 68, 0.12);
+      border-left: 4px solid #ef4444;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #fca5a5;
+      margin-top: 20px;
+    }}
+
+    .footer {{
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 28px;
+    }}
+  </style>
 </head>
+
 <body>
-  <div>
-    <h2>SØLΛR-X MICROGRID</h2>
-    <h3>Password Reset Verification</h3>
+  <div class=""container"">
 
-    <p>Hello <strong>{WebUtility.HtmlEncode(recipientName)}</strong>,</p>
+    <div class=""brand"">
+      SØLΛR<span>-X</span> MICROGRID
+    </div>
 
-    <p>
-      We received a request to reset your password.
-      Please use the following verification code:
-    </p>
-
-    <h1>{otp}</h1>
+    <div class=""title"">
+      Password Reset Verification
+    </div>
 
     <p>
-      This verification code expires in 5 minutes.
+      Hello <strong>{WebUtility.HtmlEncode(recipientName)}</strong>,
     </p>
+
+    <p>
+      We received a request to reset your password for the
+      SØLΛR-X Energy Trading Platform.
+      Please use the following 6-digit verification code:
+    </p>
+
+    <div class=""otp-box"">
+      <div style=""
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #a7f3d0;
+        font-weight: 700;
+        margin-bottom: 6px;"">
+        One-Time Verification Code
+      </div>
+
+      <div class=""otp-code"">
+        {otp}
+      </div>
+    </div>
+
+    <div class=""warning"">
+      <strong>Important:</strong>
+      This verification code expires strictly in
+      <strong>5 minutes</strong>.
+    </div>
+
+    <div class=""footer"">
+      &copy; 2026 SØLΛR-X Smart Solar Microgrid Trading Platform.
+      <br/>
+      Automated system message. Please do not reply directly.
+    </div>
+
   </div>
 </body>
 </html>";
