@@ -11,7 +11,9 @@
 package com.smartsolar.mobile.ui.operator;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
 
@@ -29,12 +31,19 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * Station field inspection and battery slot adjustment screen
+ * for Grid Operators.
+ */
 public class OperatorStationsActivity
         extends AppCompatActivity {
 
     private RecyclerView recyclerView;
+
     private View progressBar;
+
     private TextView tvEmpty;
 
     private List<JSONObject> stationList =
@@ -43,7 +52,10 @@ public class OperatorStationsActivity
     private StationAdapter adapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
+
         super.onCreate(savedInstanceState);
 
         setContentView(
@@ -51,18 +63,25 @@ public class OperatorStationsActivity
         );
 
         recyclerView =
-                findViewById(R.id.recycler_stations);
+                findViewById(
+                        R.id.recycler_stations
+                );
 
         progressBar =
-                findViewById(R.id.progress_bar);
+                findViewById(
+                        R.id.progress_bar
+                );
 
         tvEmpty =
-                findViewById(R.id.tv_empty);
-
-        findViewById(R.id.btn_back_header)
-                .setOnClickListener(
-                        v -> finish()
+                findViewById(
+                        R.id.tv_empty
                 );
+
+        findViewById(
+                R.id.btn_back_header
+        ).setOnClickListener(
+                v -> finish()
+        );
 
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(this)
@@ -98,27 +117,56 @@ public class OperatorStationsActivity
                                 .get()
                                 .build();
 
-                Response response =
-                        ApiClient
-                                .getClient()
-                                .newCall(request)
-                                .execute();
+                try (
+                        Response response =
+                                ApiClient
+                                        .getClient()
+                                        .newCall(request)
+                                        .execute()
+                ) {
 
-                JSONArray array =
-                        new JSONArray(
-                                response.body().string()
+                    if (response.body() == null) {
+                        throw new Exception(
+                                "Empty server response"
+                        );
+                    }
+
+                    JSONArray array =
+                            new JSONArray(
+                                    response.body()
+                                            .string()
+                            );
+
+                    stationList.clear();
+
+                    for (
+                            int i = 0;
+                            i < array.length();
+                            i++
+                    ) {
+
+                        stationList.add(
+                                array.getJSONObject(i)
+                        );
+                    }
+
+                    runOnUiThread(() -> {
+
+                        progressBar.setVisibility(
+                                View.GONE
                         );
 
-                stationList.clear();
+                        adapter.notifyDataSetChanged();
 
-                for (int i = 0;
-                     i < array.length();
-                     i++) {
-
-                    stationList.add(
-                            array.getJSONObject(i)
-                    );
+                        tvEmpty.setVisibility(
+                                stationList.isEmpty()
+                                        ? View.VISIBLE
+                                        : View.GONE
+                        );
+                    });
                 }
+
+            } catch (Exception e) {
 
                 runOnUiThread(() -> {
 
@@ -126,22 +174,13 @@ public class OperatorStationsActivity
                             View.GONE
                     );
 
-                    adapter.notifyDataSetChanged();
-
-                    tvEmpty.setVisibility(
-                            stationList.isEmpty()
-                                    ? View.VISIBLE
-                                    : View.GONE
-                    );
+                    Toast.makeText(
+                            this,
+                            "Unable to load stations: "
+                                    + e.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
                 });
-
-            } catch (Exception e) {
-
-                runOnUiThread(() ->
-                        progressBar.setVisibility(
-                                View.GONE
-                        )
-                );
             }
 
         }).start();
@@ -215,16 +254,10 @@ public class OperatorStationsActivity
                         } catch (
                                 NumberFormatException e
                         ) {
-                            return;
-                        }
-
-                        if (newSlots > totalSlots) {
 
                             Toast.makeText(
                                     this,
-                                    "Cannot exceed "
-                                            + totalSlots
-                                            + " total slots.",
+                                    "Enter a valid slot count.",
                                     Toast.LENGTH_SHORT
                             ).show();
 
@@ -236,6 +269,19 @@ public class OperatorStationsActivity
                             Toast.makeText(
                                     this,
                                     "Slots cannot be negative.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            return;
+                        }
+
+                        if (newSlots > totalSlots) {
+
+                            Toast.makeText(
+                                    this,
+                                    "Cannot exceed "
+                                            + totalSlots
+                                            + " total slots.",
                                     Toast.LENGTH_SHORT
                             ).show();
 
@@ -290,33 +336,43 @@ public class OperatorStationsActivity
                                 )
                                 .build();
 
-                Response response =
-                        ApiClient
-                                .getClient()
-                                .newCall(request)
-                                .execute();
+                try (
+                        Response response =
+                                ApiClient
+                                        .getClient()
+                                        .newCall(request)
+                                        .execute()
+                ) {
 
-                JSONObject json =
-                        new JSONObject(
-                                response.body().string()
+                    if (response.body() == null) {
+                        throw new Exception(
+                                "Empty server response"
                         );
+                    }
 
-                String message =
-                        json.optString(
-                                "message",
-                                "Slots updated."
-                        );
+                    JSONObject json =
+                            new JSONObject(
+                                    response.body()
+                                            .string()
+                            );
 
-                runOnUiThread(() -> {
+                    String message =
+                            json.optString(
+                                    "message",
+                                    "Slots updated."
+                            );
 
-                    Toast.makeText(
-                            this,
-                            message,
-                            Toast.LENGTH_LONG
-                    ).show();
+                    runOnUiThread(() -> {
 
-                    loadStations();
-                });
+                        Toast.makeText(
+                                this,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show();
+
+                        loadStations();
+                    });
+                }
 
             } catch (Exception e) {
 
@@ -341,12 +397,14 @@ public class OperatorStationsActivity
         }
 
         private final List<JSONObject> items;
+
         private final OnUpdateSlots listener;
 
         StationAdapter(
                 List<JSONObject> items,
                 OnUpdateSlots listener
         ) {
+
             this.items = items;
             this.listener = listener;
         }
@@ -358,7 +416,7 @@ public class OperatorStationsActivity
         ) {
 
             View view =
-                    android.view.LayoutInflater
+                    LayoutInflater
                             .from(parent.getContext())
                             .inflate(
                                     R.layout.item_station,
@@ -388,7 +446,9 @@ public class OperatorStationsActivity
             );
 
             holder.tvLocation.setText(
-                    station.optString("location")
+                    station.optString(
+                            "location"
+                    )
             );
 
             holder.tvSlots.setText(
@@ -411,7 +471,7 @@ public class OperatorStationsActivity
 
             holder.tvStatus.setText(
                     status.toUpperCase(
-                            java.util.Locale.getDefault()
+                            Locale.getDefault()
                     )
             );
 
@@ -430,8 +490,60 @@ public class OperatorStationsActivity
                 );
             }
 
+            // Professional thumbnail cycles through
+            // the five solar-house artwork assets.
+            if (holder.ivPhoto != null) {
+
+                int[] art = {
+
+                        R.drawable.house_solar_1,
+
+                        R.drawable.house_solar_2,
+
+                        R.drawable.house_solar_3,
+
+                        R.drawable.house_solar_4,
+
+                        R.drawable.house_solar_5
+                };
+
+                try {
+
+                    holder.ivPhoto.setImageResource(
+                            art[position % art.length]
+                    );
+
+                } catch (Exception ignored) {
+                }
+            }
+
             holder.btnUpdate.setOnClickListener(
                     v -> listener.onClick(station)
+            );
+
+            // Open detailed station insight screen.
+            final String currentId =
+                    station.optString("id");
+
+            holder.itemView.setClickable(true);
+
+            holder.itemView.setOnClickListener(
+                    v -> {
+
+                        Intent intent =
+                                new Intent(
+                                        v.getContext(),
+                                        OperatorNodeDetailActivity.class
+                                );
+
+                        intent.putExtra(
+                                "station_id",
+                                currentId
+                        );
+
+                        v.getContext()
+                                .startActivity(intent);
+                    }
             );
         }
 
@@ -449,10 +561,12 @@ public class OperatorStationsActivity
                     tvStatus,
                     tvMeta;
 
-            android.widget.ImageView ivPhoto;
-            android.widget.Button btnUpdate;
+            ImageView ivPhoto;
+
+            Button btnUpdate;
 
             VH(View view) {
+
                 super(view);
 
                 tvName =
