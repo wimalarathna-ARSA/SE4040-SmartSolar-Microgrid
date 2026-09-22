@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Card3D from './Card3D';
 
+// Helper to project Sri Lanka GPS coordinates to SVG viewBox (0 0 260 390)
 function projectCoords(lat, lng) {
   const minLat = 5.8, maxLat = 9.9;
   const minLng = 79.5, maxLng = 82.0;
@@ -24,6 +25,7 @@ function projectCoords(lat, lng) {
     Math.min(maxLng, lng || 79.8)
   );
 
+  // Inverted Y: higher latitude is North
   const y =
     35 +
     ((maxLat - clampedLat) /
@@ -42,6 +44,7 @@ function projectCoords(lat, lng) {
   };
 }
 
+// Dynamically resolve Province from location or coordinates
 function getStationProvince(station) {
   const loc = (station?.location || '').toLowerCase();
   const name = (station?.name || '').toLowerCase();
@@ -50,28 +53,37 @@ function getStationProvince(station) {
     loc.includes('colombo') ||
     loc.includes('western') ||
     name.includes('colombo')
-  ) return 'Western Province';
+  ) {
+    return 'Western Province';
+  }
 
   if (
     loc.includes('kandy') ||
     loc.includes('central') ||
     loc.includes('peradeniya') ||
     name.includes('kandy')
-  ) return 'Central Province';
+  ) {
+    return 'Central Province';
+  }
 
   if (
     loc.includes('galle') ||
     loc.includes('southern') ||
     loc.includes('matara') ||
     name.includes('galle')
-  ) return 'Southern Province';
+  ) {
+    return 'Southern Province';
+  }
 
   if (
     loc.includes('jaffna') ||
     loc.includes('northern') ||
     name.includes('jaffna')
-  ) return 'Northern Province';
+  ) {
+    return 'Northern Province';
+  }
 
+  // Coordinate fallback
   if (station?.latitude > 8.5) {
     return 'Northern Province';
   }
@@ -87,6 +99,7 @@ function getStationProvince(station) {
   return 'Western Province';
 }
 
+// Dynamic station metadata
 function getStationVisualMeta(station) {
   const code =
     (station?.stationCode || '').toUpperCase();
@@ -148,6 +161,7 @@ function getStationVisualMeta(station) {
 
 const ActiveHubsSection = ({ stations = [] }) => {
 
+  // Real database seeded fallback stations
   const fallbackStations = [
     {
       id: '6aab52c1d031de95baf2ff7b',
@@ -213,9 +227,14 @@ const ActiveHubsSection = ({ stations = [] }) => {
       : fallbackStations;
 
   const [selectedId, setSelectedId] = useState(
-    hubList[0]?.id || hubList[0]?.stationCode
+    hubList[0]?.id ||
+    hubList[0]?.stationCode
   );
 
+  const [inspectModalHub, setInspectModalHub] =
+    useState(null);
+
+  // Sync if stations array updates
   useEffect(() => {
     if (
       hubList.length > 0 &&
@@ -245,6 +264,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
   const activeMeta =
     getStationVisualMeta(activeStation);
 
+  // Real-time calculated output based on capacity
   const estimatedRealtimeOutputKw =
     (activeStation.capacityKWh * 0.86).toFixed(1);
 
@@ -252,6 +272,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
     activeStation.totalBatterySlots -
     activeStation.availableBatterySlots;
 
+  // Compute map coordinates for all stations
   const mappedStations = hubList.map((station) => ({
     ...station,
     coords: projectCoords(
@@ -262,6 +283,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
     province: getStationProvince(station),
   }));
 
+  // Sort stations from North to South
   const sortedByLat = [...mappedStations].sort(
     (a, b) => b.latitude - a.latitude
   );
@@ -273,9 +295,12 @@ const ActiveHubsSection = ({ stations = [] }) => {
   return (
     <section className="container my-5">
 
+      {/* Section Header */}
+
       <div className="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
 
         <div>
+
           <h2 className="display-6 fw-bold text-white mb-1">
             Active Microgrid Hubs{' '}
             <span className="text-info glow-text-cyan">
@@ -287,7 +312,10 @@ const ActiveHubsSection = ({ stations = [] }) => {
             Real-time GPS nodes with dual-axis PV generation,
             battery slot capacity, and autonomous trading schedules.
           </p>
+
         </div>
+
+        {/* Dynamic Station Selector Pills */}
 
         <div className="d-flex gap-2 flex-wrap">
 
@@ -313,7 +341,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                     station.stationCode
                   )
                 }
-                className={`btn btn-sm rounded-pill px-3 py-2 fw-semibold d-flex align-items-center gap-2 ${
+                className={`btn btn-sm rounded-pill px-3 py-2 fw-semibold d-flex align-items-center gap-2 transition-all ${
                   isCurrent
                     ? 'btn-primary text-white shadow-lg border border-info'
                     : 'glass-panel text-secondary border-0'
@@ -324,6 +352,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                     : undefined,
                 }}
               >
+
                 <i
                   className={`bi bi-${
                     isCurrent
@@ -337,14 +366,20 @@ const ActiveHubsSection = ({ stations = [] }) => {
                 <span className="badge bg-dark bg-opacity-75 text-info ms-1 small">
                   {station.capacityKWh} kW
                 </span>
+
               </button>
             );
           })}
 
         </div>
+
       </div>
 
+      {/* Main Showcase */}
+
       <div className="row g-4">
+
+        {/* Left: Interactive Sri Lanka Radar Map */}
 
         <div className="col-lg-5">
 
@@ -362,6 +397,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
               </span>
 
             </div>
+
+            {/* Sri Lanka SVG Map */}
 
             <div
               className="position-relative d-flex justify-content-center my-2"
@@ -391,16 +428,19 @@ const ActiveHubsSection = ({ stations = [] }) => {
                       stopColor="#38bdf8"
                       stopOpacity="0.9"
                     />
+
                     <stop
                       offset="50%"
                       stopColor="#0284c7"
                       stopOpacity="0.4"
                     />
+
                     <stop
                       offset="100%"
                       stopColor="#38bdf8"
                       stopOpacity="0.9"
                     />
+
                   </linearGradient>
 
                   <linearGradient
@@ -414,13 +454,17 @@ const ActiveHubsSection = ({ stations = [] }) => {
                       offset="0%"
                       stopColor="#0c2540"
                     />
+
                     <stop
                       offset="100%"
                       stopColor="#071728"
                     />
+
                   </linearGradient>
 
                 </defs>
+
+                {/* Sri Lanka Geographic Island Silhouette */}
 
                 <path
                   d="M 110 30
@@ -437,6 +481,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
                   strokeWidth="2.5"
                   strokeDasharray="4 4"
                 />
+
+                {/* Dynamic Inter-Connecting Power Transmission Lines */}
 
                 {sortedByLat.map((station, index) => {
 
@@ -461,15 +507,19 @@ const ActiveHubsSection = ({ stations = [] }) => {
                       strokeWidth="2.5"
                       strokeDasharray="6 4"
                     >
+
                       <animate
                         attributeName="stroke-dashoffset"
                         values="40;0"
                         dur="2s"
                         repeatCount="indefinite"
                       />
+
                     </line>
                   );
                 })}
+
+                {/* Dynamic Station Node Markers */}
 
                 {mappedStations.map((station) => {
 
@@ -487,6 +537,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                   );
 
                   let slotColor = '#ef4444';
+
                   let slotStatusText =
                     '0 Slots (Full)';
 
@@ -512,16 +563,18 @@ const ActiveHubsSection = ({ stations = [] }) => {
                         station.id ||
                         station.stationCode
                       }
-                      onClick={() =>
+                      onClick={() => {
                         setSelectedId(
                           station.id ||
                           station.stationCode
-                        )
-                      }
+                        );
+                      }}
                       style={{
                         cursor: 'pointer',
                       }}
                     >
+
+                      {/* Pulsing Radar Ring */}
 
                       {isSelected && (
                         <circle
@@ -533,6 +586,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
                           className="radar-ring"
                         />
                       )}
+
+                      {/* Marker Outer Circle */}
 
                       <circle
                         cx={station.coords.x}
@@ -551,6 +606,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
                         }
                       />
 
+                      {/* Center Pin Indicator */}
+
                       <circle
                         cx={station.coords.x}
                         cy={station.coords.y}
@@ -561,6 +618,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
                         }
                         fill="#ffffff"
                       />
+
+                      {/* Station Label */}
 
                       <text
                         x={
@@ -622,7 +681,12 @@ const ActiveHubsSection = ({ stations = [] }) => {
 
             </div>
 
-            <div className="d-flex justify-content-center align-items-center gap-3 pt-2 pb-1 small flex-wrap">
+            {/* Radar Map Slot Availability Legend */}
+
+            <div
+              className="d-flex justify-content-center align-items-center gap-3 pt-2 pb-1 small flex-wrap"
+              style={{ fontSize: '0.72rem' }}
+            >
 
               <div className="d-flex align-items-center gap-1">
                 <span
@@ -634,6 +698,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                     display: 'inline-block',
                   }}
                 />
+
                 <span className="text-light">
                   &gt; 50% Slots (Green)
                 </span>
@@ -649,6 +714,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                     display: 'inline-block',
                   }}
                 />
+
                 <span className="text-light">
                   &lt; 50% Slots (Yellow)
                 </span>
@@ -664,6 +730,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                     display: 'inline-block',
                   }}
                 />
+
                 <span className="text-light">
                   0 Slots (Red)
                 </span>
@@ -671,21 +738,56 @@ const ActiveHubsSection = ({ stations = [] }) => {
 
             </div>
 
+            {/* Radar Status */}
+
             <div className="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 small text-secondary">
 
               <span>
-                <i className="bi bi-geo-alt-fill me-1 text-info" />
+
+                {(() => {
+
+                  const avail = Number(
+                    activeStation.availableBatterySlots ?? 0
+                  );
+
+                  const total = Number(
+                    activeStation.totalBatterySlots ?? 0
+                  );
+
+                  const color =
+                    avail <= 0
+                      ? '#ef4444'
+                      : (
+                        total > 0 &&
+                        avail > total / 2
+                      )
+                        ? '#10b981'
+                        : '#f59e0b';
+
+                  return (
+                    <i
+                      className="bi bi-geo-alt-fill me-1"
+                      style={{ color }}
+                    />
+                  );
+
+                })()}
+
                 Active:{' '}
                 <strong className="text-info">
                   {activeStation.name}
                 </strong>
+
               </span>
 
               <span className="text-success fw-semibold">
+
                 <i className="bi bi-check2-all me-1" />
+
                 {mappedStations.length}/
                 {mappedStations.length}
                 {' '}Grid Nodes Online
+
               </span>
 
             </div>
@@ -693,6 +795,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
           </div>
 
         </div>
+
+        {/* Right: Selected Hub Telemetry Cockpit */}
 
         <div className="col-lg-7">
 
@@ -702,6 +806,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
           >
 
             <div>
+
+              {/* Header */}
 
               <div className="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
 
@@ -729,27 +835,36 @@ const ActiveHubsSection = ({ stations = [] }) => {
                   </h3>
 
                   <div className="text-secondary small mt-1">
+
                     <i className="bi bi-tag me-1 text-info" />
+
                     {activeMeta.type}
+
                     {' • '}
+
                     <span className="text-warning">
                       {activeMeta.tag}
                     </span>
+
                   </div>
 
                 </div>
 
-                <Link
-                  to="/login"
-                  className="btn btn-outline-info btn-sm rounded-pill px-3"
+                <button
+                  onClick={() =>
+                    setInspectModalHub(
+                      activeStation
+                    )
+                  }
+                  className="btn btn-outline-info btn-sm rounded-pill px-3 d-flex align-items-center gap-1 shadow-sm"
                 >
-                  <i className="bi bi-cpu me-1" />
+                  <i className="bi bi-cpu" />
                   Full Telemetry
-                </Link>
+                </button>
 
               </div>
 
-              {/* Battery Slot Array */}
+              {/* Battery Rack */}
 
               <div
                 className="p-3 rounded-3 mb-4"
@@ -763,18 +878,25 @@ const ActiveHubsSection = ({ stations = [] }) => {
 
                 <div className="d-flex justify-content-between align-items-center mb-2">
 
-                  <span className="text-uppercase small fw-bold text-secondary">
-                    <i className="bi bi-battery-charging text-success me-1" />
+                  <span className="text-uppercase small fw-bold text-secondary d-flex align-items-center gap-1">
+
+                    <i className="bi bi-battery-charging text-success" />
+
                     Battery Slot Array (LiFePO4 BESS)
+
                   </span>
 
                   <span className="small text-light">
+
                     <strong className="text-success">
                       {activeStation.availableBatterySlots}
                     </strong>
+
                     {' '}Available /{' '}
+
                     {activeStation.totalBatterySlots}
                     {' '}Total
+
                   </span>
 
                 </div>
@@ -805,6 +927,8 @@ const ActiveHubsSection = ({ stations = [] }) => {
                         style={{
                           minWidth: '46px',
                           minHeight: '52px',
+                          transition:
+                            'all 0.2s ease',
                         }}
                         title={`Slot #${index + 1}: ${
                           isAvailable
@@ -822,7 +946,7 @@ const ActiveHubsSection = ({ stations = [] }) => {
                         />
 
                         <span
-                          className="fw-bold mt-1"
+                          className="smaller fw-bold mt-1"
                           style={{
                             fontSize: '0.68rem',
                           }}
@@ -837,31 +961,35 @@ const ActiveHubsSection = ({ stations = [] }) => {
                 </div>
 
                 <div
-                  className="d-flex justify-content-between text-secondary mt-2"
+                  className="d-flex justify-content-between smaller text-secondary mt-2"
                   style={{
                     fontSize: '0.72rem',
                   }}
                 >
+
                   <span>
                     <i className="bi bi-square-fill text-success me-1" />
-                    Green = Free ({activeStation.availableBatterySlots})
+                    Green = Free for 7-Day Booking ({activeStation.availableBatterySlots})
                   </span>
 
                   <span>
                     <i className="bi bi-square-fill text-info me-1" />
-                    Blue = Occupied ({occupiedSlots})
+                    Blue = Occupied &amp; Trading ({occupiedSlots})
                   </span>
+
                 </div>
 
               </div>
 
-              {/* Core Telemetry */}
+              {/* Four Core Real-Time Telemetry Counters */}
 
               <div className="row g-3 mb-4">
 
                 <div className="col-sm-3 col-6">
+
                   <div className="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
-                    <div className="text-secondary small text-uppercase">
+
+                    <div className="text-secondary smaller text-uppercase">
                       Instant Output
                     </div>
 
@@ -869,15 +997,24 @@ const ActiveHubsSection = ({ stations = [] }) => {
                       {estimatedRealtimeOutputKw} kW
                     </div>
 
-                    <div className="text-secondary" style={{ fontSize: '0.7rem' }}>
+                    <div
+                      className="smaller text-secondary"
+                      style={{
+                        fontSize: '0.7rem',
+                      }}
+                    >
                       Rated: {activeStation.capacityKWh} kW/h
                     </div>
+
                   </div>
+
                 </div>
 
                 <div className="col-sm-3 col-6">
+
                   <div className="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
-                    <div className="text-secondary small text-uppercase">
+
+                    <div className="text-secondary smaller text-uppercase">
                       Irradiance
                     </div>
 
@@ -885,15 +1022,24 @@ const ActiveHubsSection = ({ stations = [] }) => {
                       {activeMeta.irradiance}
                     </div>
 
-                    <div className="text-secondary" style={{ fontSize: '0.7rem' }}>
+                    <div
+                      className="smaller text-secondary"
+                      style={{
+                        fontSize: '0.7rem',
+                      }}
+                    >
                       {activeMeta.weather}
                     </div>
+
                   </div>
+
                 </div>
 
                 <div className="col-sm-3 col-6">
+
                   <div className="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
-                    <div className="text-secondary small text-uppercase">
+
+                    <div className="text-secondary smaller text-uppercase">
                       Active Bookings
                     </div>
 
@@ -901,41 +1047,91 @@ const ActiveHubsSection = ({ stations = [] }) => {
                       {activeStation.activeReservationsCount || 0}
                     </div>
 
-                    <div className="text-secondary" style={{ fontSize: '0.7rem' }}>
+                    <div
+                      className="smaller text-secondary"
+                      style={{
+                        fontSize: '0.7rem',
+                      }}
+                    >
                       Verified on Grid
                     </div>
+
                   </div>
+
                 </div>
 
                 <div className="col-sm-3 col-6">
+
                   <div className="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
-                    <div className="text-secondary small text-uppercase">
+
+                    <div className="text-secondary smaller text-uppercase">
                       Schedule
                     </div>
 
-                    <div className="small fw-bold text-light mt-2">
+                    <div className="fs-6 fw-bold text-light mt-1">
                       {activeStation.operationalSchedule}
                     </div>
 
-                    <div className="text-success" style={{ fontSize: '0.7rem' }}>
+                    <div
+                      className="smaller text-success"
+                      style={{
+                        fontSize: '0.7rem',
+                      }}
+                    >
                       7-Day Rule Enforced
                     </div>
+
                   </div>
+
                 </div>
 
               </div>
 
             </div>
 
+            {/* Card Footer */}
+
             <div className="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-25 flex-wrap gap-2">
 
               <div className="small text-secondary">
-                <i className="bi bi-geo-alt-fill text-info me-1" />
+
+                {(() => {
+
+                  const avail = Number(
+                    activeStation.availableBatterySlots ?? 0
+                  );
+
+                  const total = Number(
+                    activeStation.totalBatterySlots ?? 0
+                  );
+
+                  const color =
+                    avail <= 0
+                      ? '#ef4444'
+                      : (
+                        total > 0 &&
+                        avail > total / 2
+                      )
+                        ? '#10b981'
+                        : '#f59e0b';
+
+                  return (
+                    <i
+                      className="bi bi-geo-alt-fill me-1"
+                      style={{ color }}
+                    />
+                  );
+
+                })()}
+
                 {activeStation.location}
+
                 {' • GPS: '}
+
                 {activeStation.latitude?.toFixed(4)},
                 {' '}
                 {activeStation.longitude?.toFixed(4)}
+
               </div>
 
               <Link
@@ -953,6 +1149,226 @@ const ActiveHubsSection = ({ stations = [] }) => {
         </div>
 
       </div>
+
+      {/* Deep-Dive Inspection Modal */}
+
+      {inspectModalHub && (
+
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+          style={{
+            backgroundColor:
+              'rgba(3, 7, 18, 0.85)',
+            zIndex: 1050,
+            backdropFilter: 'blur(8px)',
+          }}
+          onClick={() =>
+            setInspectModalHub(null)
+          }
+        >
+
+          <div
+            className="glass-panel-glow p-4 rounded-4 text-white position-relative"
+            style={{
+              maxWidth: '640px',
+              width: '100%',
+            }}
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+            {/* Modal Header */}
+
+            <div className="d-flex justify-content-between align-items-center mb-3">
+
+              <div className="d-flex align-items-center gap-2">
+
+                <span className="badge bg-primary fs-6 px-3 py-1">
+                  {inspectModalHub.stationCode}
+                </span>
+
+                <h4 className="fw-bold mb-0 text-white">
+                  {inspectModalHub.name}
+                </h4>
+
+              </div>
+
+              <button
+                onClick={() =>
+                  setInspectModalHub(null)
+                }
+                className="btn btn-sm btn-outline-secondary rounded-circle"
+              >
+                <i className="bi bi-x-lg" />
+              </button>
+
+            </div>
+
+            {/* Location */}
+
+            <p className="text-secondary small mb-3">
+
+              {(() => {
+
+                const avail = Number(
+                  inspectModalHub.availableBatterySlots ?? 0
+                );
+
+                const total = Number(
+                  inspectModalHub.totalBatterySlots ?? 0
+                );
+
+                const color =
+                  avail <= 0
+                    ? '#ef4444'
+                    : (
+                      total > 0 &&
+                      avail > total / 2
+                    )
+                      ? '#10b981'
+                      : '#f59e0b';
+
+                return (
+                  <i
+                    className="bi bi-geo-alt-fill me-1"
+                    style={{ color }}
+                  />
+                );
+
+              })()}
+
+              {inspectModalHub.location}
+
+              {' • Coordinates: '}
+
+              {inspectModalHub.latitude},
+              {' '}
+              {inspectModalHub.longitude}
+
+            </p>
+
+            {/* Inspection Data */}
+
+            <div className="row g-3 mb-3">
+
+              <div className="col-6">
+
+                <div className="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+
+                  <div className="text-secondary smaller">
+                    Rated Solar Capacity
+                  </div>
+
+                  <div className="fs-4 fw-bold text-info">
+                    {inspectModalHub.capacityKWh} kW/h
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div className="col-6">
+
+                <div className="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+
+                  <div className="text-secondary smaller">
+                    Battery Rack Status
+                  </div>
+
+                  <div className="fs-4 fw-bold text-success">
+                    {inspectModalHub.availableBatterySlots}
+                    {' / '}
+                    {inspectModalHub.totalBatterySlots}
+                    {' '}Free
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div className="col-6">
+
+                <div className="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+
+                  <div className="text-secondary smaller">
+                    Operational Daily Window
+                  </div>
+
+                  <div className="fs-5 fw-bold text-warning">
+                    {inspectModalHub.operationalSchedule}
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div className="col-6">
+
+                <div className="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+
+                  <div className="text-secondary smaller">
+                    Active Reservations
+                  </div>
+
+                  <div className="fs-5 fw-bold text-light">
+                    {inspectModalHub.activeReservationsCount || 0}
+                    {' '}Scheduled
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* FAT Notice */}
+
+            <div className="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-4 small text-secondary">
+
+              <div className="text-white fw-bold mb-1">
+
+                <i className="bi bi-shield-check text-success me-1" />
+
+                FAT Service Architecture Notice
+
+              </div>
+
+              All slot reservations and battery dispatch schedules
+              are cryptographically signed using HMAC-SHA256 and
+              verified through the Grid Operator mobile camera scanner.
+              Cancellations must be performed at least 12 hours before
+              schedule.
+
+            </div>
+
+            {/* Modal Actions */}
+
+            <div className="d-flex justify-content-end gap-2">
+
+              <button
+                onClick={() =>
+                  setInspectModalHub(null)
+                }
+                className="btn btn-outline-secondary btn-sm px-3"
+              >
+                Close
+              </button>
+
+              <Link
+                to="/login"
+                className="btn btn-warning btn-sm px-4 fw-bold"
+              >
+                Book This Station
+              </Link>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </section>
   );
