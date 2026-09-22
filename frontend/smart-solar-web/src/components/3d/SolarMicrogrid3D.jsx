@@ -1,57 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-function createSolarCellTexture() {
+function createBatteryContainerTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
-  canvas.height = 512;
+  canvas.height = 256;
   const ctx = canvas.getContext('2d');
 
-  const grad = ctx.createLinearGradient(0, 0, 512, 512);
-  grad.addColorStop(0, '#0c2240');
-  grad.addColorStop(0.5, '#0a192f');
-  grad.addColorStop(1, '#0e2b52');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 512, 512);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(0, 0, 512, 256);
 
-  const cols = 6;
-  const rows = 10;
-  const cellW = 512 / cols;
-  const cellH = 512 / rows;
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const x = c * cellW;
-      const y = r * cellH;
-
-      ctx.strokeStyle = '#040d1a';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x + 1, y + 1, cellW - 2, cellH - 2);
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-      ctx.lineWidth = 0.6;
-      for (let f = 3; f < cellH - 2; f += 4) {
-        ctx.beginPath();
-        ctx.moveTo(x + 2, y + f);
-        ctx.lineTo(x + cellW - 2, y + f);
-        ctx.stroke();
-      }
-
-      ctx.strokeStyle = 'rgba(220, 235, 255, 0.7)';
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(x + cellW * 0.33, y + 1);
-      ctx.lineTo(x + cellW * 0.33, y + cellH - 1);
-      ctx.moveTo(x + cellW * 0.66, y + 1);
-      ctx.lineTo(x + cellW * 0.66, y + cellH - 1);
-      ctx.stroke();
-    }
+  for (let x = 0; x < 512; x += 16) {
+    ctx.fillStyle = x % 32 === 0 ? '#172033' : '#283548';
+    ctx.fillRect(x, 0, 8, 256);
   }
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  return texture;
+  ctx.fillStyle = '#0f172a';
+  for (let y = 40; y < 140; y += 10) {
+    ctx.fillRect(40, y, 120, 5);
+    ctx.fillRect(200, y, 120, 5);
+  }
+
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(360, 40, 110, 40);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText('BESS-480V', 370, 66);
+
+  ctx.fillStyle = '#22c55e';
+  ctx.font = '12px monospace';
+  ctx.fillText('ACTIVE GRID NODE', 360, 110);
+
+  return new THREE.CanvasTexture(canvas);
 }
 
 const SolarMicrogrid3D = () => {
@@ -66,19 +46,14 @@ const SolarMicrogrid3D = () => {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#070e1a');
-    scene.fog = new THREE.FogExp2('#070e1a', 0.016);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(12, 10, 18);
     camera.lookAt(0, 1, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
     container.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight('#1e293b', 1.2);
@@ -89,70 +64,57 @@ const SolarMicrogrid3D = () => {
     sunLight.castShadow = true;
     scene.add(sunLight);
 
-    // Ground Platform
-    const groundGroup = new THREE.Group();
-    const groundGeom = new THREE.CylinderGeometry(18, 19, 0.6, 64);
-    const groundMat = new THREE.MeshStandardMaterial({ color: '#0b1320', roughness: 0.85, metalness: 0.15 });
-    const groundMesh = new THREE.Mesh(groundGeom, groundMat);
-    groundMesh.position.y = -0.3;
-    groundMesh.receiveShadow = true;
-    groundGroup.add(groundMesh);
-
-    const gridHelper = new THREE.PolarGridHelper(17.5, 16, 8, 64, '#0284c7', '#0e3a5a');
-    gridHelper.position.y = 0.02;
-    groundGroup.add(gridHelper);
-    scene.add(groundGroup);
-
-    // Solar Arrays
-    const solarCellTex = createSolarCellTexture();
-    const solarFarmGroup = new THREE.Group();
-    const solarMaterial = new THREE.MeshStandardMaterial({ map: solarCellTex, roughness: 0.15, metalness: 0.65 });
+    const batteryTex = createBatteryContainerTexture();
     const frameMaterial = new THREE.MeshStandardMaterial({ color: '#94a3b8', metalness: 0.85, roughness: 0.25 });
-    const pylonMaterial = new THREE.MeshStandardMaterial({ color: '#475569', metalness: 0.7, roughness: 0.4 });
 
-    function createSolarTracker(offsetX, offsetZ) {
-      const trackerUnit = new THREE.Group();
-      trackerUnit.position.set(offsetX, 0, offsetZ);
+    // BESS BATTERY STORAGE CONTAINER UNIT
+    const bessGroup = new THREE.Group();
+    bessGroup.position.set(7.5, 0, -1.0);
 
-      const footing = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.4, 16), new THREE.MeshStandardMaterial({ color: '#334155' }));
-      footing.position.y = 0.2;
-      trackerUnit.add(footing);
+    const bessGeom = new THREE.BoxGeometry(3.5, 2.6, 5.5);
+    const bessMats = [
+      new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.4, metalness: 0.3 }),
+      new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.4, metalness: 0.3 }),
+      new THREE.MeshStandardMaterial({ color: '#0f172a', roughness: 0.6, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: '#0f172a', roughness: 0.6, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ map: batteryTex, roughness: 0.3, metalness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.4, metalness: 0.3 }),
+    ];
+    const bessMesh = new THREE.Mesh(bessGeom, bessMats);
+    bessMesh.position.y = 1.3;
+    bessMesh.castShadow = true;
+    bessGroup.add(bessMesh);
 
-      const column = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 2.2, 16), pylonMaterial);
-      column.position.y = 1.3;
-      trackerUnit.add(column);
+    const hvacMesh = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.2), frameMaterial);
+    hvacMesh.position.set(0, 2.85, 0);
+    bessGroup.add(hvacMesh);
 
-      const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), frameMaterial);
-      axle.rotation.z = Math.PI / 2;
-      axle.position.y = 2.4;
-      trackerUnit.add(axle);
+    scene.add(bessGroup);
 
-      const tiltingGroup = new THREE.Group();
-      tiltingGroup.position.set(0, 2.4, 0);
+    // CENTRAL SMART INVERTER & TRANSFORMER KIOSK
+    const inverterGroup = new THREE.Group();
+    inverterGroup.position.set(7.5, 0, 4.0);
 
-      for (let px = -1.05; px <= 1.05; px += 2.1) {
-        for (let pz = -0.75; pz <= 0.75; pz += 1.5) {
-          const panelFrame = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.06, 1.4), frameMaterial);
-          panelFrame.position.set(px, 0.04, pz);
-          tiltingGroup.add(panelFrame);
+    const inverterMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(2.0, 2.0, 1.8),
+      new THREE.MeshStandardMaterial({ color: '#0284c7', metalness: 0.5, roughness: 0.3 })
+    );
+    inverterMesh.position.y = 1.0;
+    inverterMesh.castShadow = true;
+    inverterGroup.add(inverterMesh);
 
-          const pvMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.94, 1.34), solarMaterial);
-          pvMesh.rotation.x = -Math.PI / 2;
-          pvMesh.position.set(px, 0.075, pz);
-          tiltingGroup.add(pvMesh);
-        }
-      }
-
-      tiltingGroup.rotation.x = -0.45;
-      trackerUnit.add(tiltingGroup);
-      return trackerUnit;
+    for (let f = -0.7; f <= 0.7; f += 0.25) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.6, 2.1), frameMaterial);
+      fin.position.set(1.05, 1.0, f);
+      inverterGroup.add(fin);
     }
 
-    solarFarmGroup.add(createSolarTracker(-4.5, -2.5));
-    solarFarmGroup.add(createSolarTracker(1.5, -2.5));
-    solarFarmGroup.add(createSolarTracker(-4.5, 3.5));
-    solarFarmGroup.add(createSolarTracker(1.5, 3.5));
-    scene.add(solarFarmGroup);
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), new THREE.MeshBasicMaterial({ color: '#38bdf8' }));
+    screen.rotation.y = -Math.PI / 2;
+    screen.position.set(-1.01, 1.2, 0);
+    inverterGroup.add(screen);
+
+    scene.add(inverterGroup);
 
     let animationFrameId;
     const animate = () => {
@@ -167,7 +129,7 @@ const SolarMicrogrid3D = () => {
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      solarCellTex.dispose();
+      batteryTex.dispose();
     };
   }, []);
 
