@@ -2,24 +2,38 @@
 // File: Home.jsx
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Public landing page with solar microgrid platform introduction.
+// Description: Public landing page with solar microgrid platform introduction and feature overview.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
 import React, { useEffect, useState } from 'react';
 
 import { Link } from 'react-router-dom';
+
 import api from '../services/api';
+
 import { useAuth } from '../context/AuthContext';
 
 import SolarMicrogrid3D from '../components/3d/SolarMicrogrid3D';
+
 import FrequenzConstellation3D from '../components/3d/FrequenzConstellation3D';
+
 import Card3D from '../components/3d/Card3D';
+
+import EnergyYieldCalculator3D from '../components/3d/EnergyYieldCalculator3D';
+
 import ActiveHubsSection from '../components/3d/ActiveHubsSection';
 
 import FloatingDotNavigation from '../components/FloatingDotNavigation';
+
 import IntroductionSection from '../components/IntroductionSection';
+
 import PlatformFunctionalitiesSection from '../components/PlatformFunctionalitiesSection';
+
+import Footer from '../components/Footer';
+
+import MicrogridEdgeSection from '../components/MicrogridEdgeSection';
+
 import MotionReveal from '../components/MotionReveal';
 
 const Home = () => {
@@ -35,6 +49,7 @@ const Home = () => {
   });
 
   const [stations, setStations] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +61,7 @@ const Home = () => {
         ]);
 
         setStats(statsRes.data);
+
         setStations(stationsRes.data);
       } catch (err) {
         console.warn(
@@ -53,6 +69,7 @@ const Home = () => {
           err
         );
 
+        // Real database stations fallback
         setStations([
           {
             id: '6aab52c1d031de95baf2ff7b',
@@ -128,10 +145,14 @@ const Home = () => {
         position: 'relative',
       }}
     >
+      {/* ========================================================================
+          DYNAMIC FLOATING DOT NAVIGATION
+          ======================================================================== */}
+
       <FloatingDotNavigation />
 
       {/* ========================================================================
-          HERO
+          HERO SECTION: Frequenz Signature Deep Atmospheric Gradient & 3D Network
           ======================================================================== */}
 
       <section
@@ -139,6 +160,8 @@ const Home = () => {
         className="frequenz-hero-container position-relative py-5 px-3"
         style={{ isolation: 'isolate' }}
       >
+        {/* Background photo only - no extra content */}
+
         <div
           aria-hidden="true"
           className="position-absolute top-0 start-0 w-100 h-100"
@@ -172,6 +195,10 @@ const Home = () => {
             className="row align-items-center position-relative"
             style={{ zIndex: 2 }}
           >
+            {/* ==================================================================
+                LEFT COLUMN: HERO CONTENT
+                ================================================================== */}
+
             <div className="col-lg-7 col-md-12 ps-lg-5 py-4">
               <h1 className="freq-hero-title">
                 Power reimagined.
@@ -199,6 +226,8 @@ const Home = () => {
                 trades power.
               </p>
 
+              {/* Action Buttons */}
+
               <div
                 id="hero-explore"
                 className="d-flex align-items-center gap-3 flex-wrap pt-2"
@@ -218,11 +247,17 @@ const Home = () => {
                   </Link>
                 ) : (
                   <>
-                    <Link to="/login" className="freq-btn-cyan">
+                    <Link
+                      to="/login"
+                      className="freq-btn-cyan"
+                    >
                       <span>↗</span> Get started
                     </Link>
 
-                    <a href="#digital-twin" className="freq-btn-secondary">
+                    <a
+                      href="#digital-twin"
+                      className="freq-btn-secondary"
+                    >
                       <i
                         className="bi bi-box-fill text-info me-1"
                         style={{ color: '#00ffce' }}
@@ -230,7 +265,10 @@ const Home = () => {
                       3D Digital Twin
                     </a>
 
-                    <a href="#hubs" className="freq-btn-secondary">
+                    <a
+                      href="#hubs"
+                      className="freq-btn-secondary"
+                    >
                       <i
                         className="bi bi-radar text-info me-1"
                         style={{ color: '#00ffce' }}
@@ -242,6 +280,10 @@ const Home = () => {
               </div>
             </div>
 
+            {/* ==================================================================
+                RIGHT COLUMN: 3D CONSTELLATION
+                ================================================================== */}
+
             <div
               className="col-lg-5 col-md-12 ms-auto position-relative"
               style={{ minHeight: '520px' }}
@@ -252,10 +294,14 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ========================================================================
+          SECTION: Frequenz Showcase Card
+          ======================================================================== */}
+
       <IntroductionSection />
 
       {/* ========================================================================
-          DIGITAL TWIN
+          SECTION: Interactive 3D Solar Microgrid Twin & Dispatch Engine
           ======================================================================== */}
 
       <section
@@ -298,10 +344,14 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ========================================================================
+          SECTION: Platform Functionalities
+          ======================================================================== */}
+
       <PlatformFunctionalitiesSection />
 
       {/* ========================================================================
-          KPI STATISTICS
+          SECTION: Real-time KPI Stats Banner
           ======================================================================== */}
 
       <section
@@ -309,6 +359,8 @@ const Home = () => {
         className="container-fluid px-lg-5 px-3 py-5"
       >
         <div className="row g-4">
+
+          {/* Active Hubs */}
 
           <MotionReveal
             animation="fade-up"
@@ -355,6 +407,8 @@ const Home = () => {
             </Card3D>
           </MotionReveal>
 
+          {/* Approved Future Slots */}
+
           <MotionReveal
             animation="fade-up"
             delay={0.1}
@@ -391,6 +445,8 @@ const Home = () => {
               </div>
             </Card3D>
           </MotionReveal>
+
+          {/* Pending Approvals */}
 
           <MotionReveal
             animation="fade-up"
@@ -429,6 +485,8 @@ const Home = () => {
             </Card3D>
           </MotionReveal>
 
+          {/* Solar Prosumers */}
+
           <MotionReveal
             animation="fade-up"
             delay={0.3}
@@ -465,12 +523,11 @@ const Home = () => {
               </div>
             </Card3D>
           </MotionReveal>
-
         </div>
       </section>
 
       {/* ========================================================================
-          ACTIVE HUBS
+          SECTION: Realistic 3D Active Microgrid Hubs
           ======================================================================== */}
 
       <section
@@ -487,6 +544,66 @@ const Home = () => {
           </MotionReveal>
         </div>
       </section>
+
+      {/* ========================================================================
+          SECTION: 3D Yield & Revenue Simulator
+          ======================================================================== */}
+
+      <section
+        id="simulator"
+        className="py-5 border-top border-secondary border-opacity-10 position-relative overflow-hidden"
+        style={{ backgroundColor: '#020202' }}
+      >
+        <div
+          aria-hidden="true"
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{ zIndex: 0 }}
+        >
+          <img
+            src="/images/solar-rooftop-home.jpg"
+            alt=""
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              opacity: 0.38,
+              objectPosition: 'center 65%',
+            }}
+          />
+
+          <div
+            className="position-absolute top-0 start-0 w-100 h-100"
+            style={{
+              background:
+                'linear-gradient(180deg, #020202 0%, rgba(2,2,2,0.35) 25%, rgba(2,2,2,0.35) 75%, #020202 100%), linear-gradient(90deg, rgba(2,2,2,0.55) 0%, transparent 30%, transparent 70%, rgba(2,2,2,0.55) 100%)',
+            }}
+          />
+        </div>
+
+        <div
+          className="container-fluid px-lg-5 px-3 position-relative"
+          style={{ zIndex: 1 }}
+        >
+          <MotionReveal animation="fade-up">
+            <EnergyYieldCalculator3D />
+          </MotionReveal>
+        </div>
+      </section>
+
+      {/* ========================================================================
+          SECTION: Microgrid Edge Control
+          ======================================================================== */}
+
+      <MicrogridEdgeSection />
+
+      {/* ========================================================================
+          COMMERCIAL ENTERPRISE FOOTER
+          ======================================================================== */}
+
+      <Footer />
     </div>
   );
 };
