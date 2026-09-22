@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import BackofficePageHero from '../../components/BackofficePageHero';
+import PasswordStrengthIndicator from '../../components/PasswordStrengthIndicator';
+import { evaluatePassword } from '../../utils/passwordValidator';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -35,7 +37,9 @@ const UserManagement = () => {
       const response = await api.get('/users');
 
       const staffOnly = response.data.filter(
-        (u) => u.role === 'Backoffice' || u.role === 'GridOperator'
+        (u) =>
+          u.role === 'Backoffice' ||
+          u.role === 'GridOperator'
       );
 
       setUsers(staffOnly);
@@ -82,12 +86,31 @@ const UserManagement = () => {
       text: '',
     });
 
+    const pwEval = evaluatePassword(
+      formData.password
+    );
+
+    if (!pwEval.isStrong) {
+      setMessage({
+        type: 'danger',
+        text:
+          'Password is too weak. It must be at least 8 characters long and contain uppercase, lowercase, numbers, and special symbols.',
+      });
+
+      return;
+    }
+
     try {
-      const res = await api.post('/users/staff', formData);
+      const res = await api.post(
+        '/users/staff',
+        formData
+      );
 
       setMessage({
         type: 'success',
-        text: res.data.message || 'Staff member created successfully!',
+        text:
+          res.data?.message ||
+          'Staff member created successfully!',
       });
 
       setShowModal(false);
@@ -137,9 +160,12 @@ const UserManagement = () => {
           breadcrumb={['Staff']}
         />
 
-        <div className="d-flex justify-content-end mb-4">
+        <div className="d-flex justify-content-end align-items-center mb-4">
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setMessage({ type: '', text: '' });
+              setShowModal(true);
+            }}
             style={{
               background: '#1d72f2',
               color: '#ffffff',
@@ -154,10 +180,27 @@ const UserManagement = () => {
               boxShadow:
                 '0 4px 16px rgba(29, 114, 242, 0.35)',
               cursor: 'pointer',
+              transition:
+                'transform 0.15s ease, box-shadow 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform =
+                'translateY(-2px)';
+              e.currentTarget.style.boxShadow =
+                '0 6px 20px rgba(29, 114, 242, 0.45)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform =
+                'translateY(0)';
+              e.currentTarget.style.boxShadow =
+                '0 4px 16px rgba(29, 114, 242, 0.35)';
             }}
           >
-            <i className="bi bi-person-plus"></i>
-            Create Staff User
+            <i
+              className="bi bi-person-plus"
+              style={{ fontSize: '1.05rem' }}
+            />
+            <span>Create Staff User</span>
           </button>
         </div>
 
@@ -168,17 +211,54 @@ const UserManagement = () => {
                 message.type === 'danger'
                   ? 'rgba(254, 226, 226, 0.9)'
                   : 'rgba(220, 252, 231, 0.9)',
+              backdropFilter: 'blur(16px)',
               borderRadius: '16px',
+              border: `1px solid ${
+                message.type === 'danger'
+                  ? 'rgba(239, 68, 68, 0.4)'
+                  : 'rgba(34, 197, 94, 0.4)'
+              }`,
               padding: '14px 20px',
               marginBottom: '22px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               color:
                 message.type === 'danger'
                   ? '#b91c1c'
                   : '#15803d',
               fontWeight: 600,
+              fontSize: '0.9rem',
             }}
           >
-            {message.text}
+            <div className="d-flex align-items-center gap-2">
+              <i
+                className={`bi ${
+                  message.type === 'danger'
+                    ? 'bi-exclamation-triangle-fill'
+                    : 'bi-check-circle-fill'
+                }`}
+              />
+              <span>{message.text}</span>
+            </div>
+
+            <button
+              onClick={() =>
+                setMessage({
+                  type: '',
+                  text: '',
+                })
+              }
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+              }}
+            >
+              &times;
+            </button>
           </div>
         )}
 
@@ -186,8 +266,12 @@ const UserManagement = () => {
           style={{
             background: 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             borderRadius: '28px',
-            border: '1px solid rgba(255,255,255,0.95)',
+            border:
+              '1px solid rgba(255, 255, 255, 0.95)',
+            boxShadow:
+              '0 16px 40px -8px rgba(10, 35, 70, 0.12)',
             overflow: 'hidden',
           }}
         >
@@ -229,17 +313,33 @@ const UserManagement = () => {
               style={{
                 width: '100%',
                 borderCollapse: 'collapse',
+                borderSpacing: 0,
+                textAlign: 'left',
               }}
             >
               <thead>
                 <tr style={{ background: '#e3edf6' }}>
-                  <th style={headerStyle}>NIC (PRIMARY KEY)</th>
-                  <th style={headerStyle}>FULL NAME</th>
-                  <th style={headerStyle}>EMAIL</th>
-                  <th style={headerStyle}>ASSIGNED ROLE</th>
-                  <th style={headerStyle}>PHONE</th>
-                  <th style={headerStyle}>STATUS</th>
-                  <th style={headerStyle}>CREATED DATE</th>
+                  <th style={headerStyle}>
+                    NIC (PRIMARY KEY)
+                  </th>
+                  <th style={headerStyle}>
+                    FULL NAME
+                  </th>
+                  <th style={headerStyle}>
+                    EMAIL
+                  </th>
+                  <th style={headerStyle}>
+                    ASSIGNED ROLE
+                  </th>
+                  <th style={headerStyle}>
+                    PHONE
+                  </th>
+                  <th style={headerStyle}>
+                    STATUS
+                  </th>
+                  <th style={headerStyle}>
+                    CREATED DATE
+                  </th>
                 </tr>
               </thead>
 
@@ -250,7 +350,10 @@ const UserManagement = () => {
                       colSpan="7"
                       style={emptyStyle}
                     >
-                      <div className="spinner-border spinner-border-sm me-2 text-primary" />
+                      <div
+                        className="spinner-border spinner-border-sm me-2 text-primary"
+                        role="status"
+                      />
                       Loading staff records...
                     </td>
                   </tr>
@@ -264,81 +367,100 @@ const UserManagement = () => {
                     </td>
                   </tr>
                 ) : (
-                  users.map((u, idx) => (
-                    <tr
-                      key={u.id || idx}
-                      style={{
-                        background:
-                          idx % 2 === 0
-                            ? '#ebf4fa'
-                            : '#f8fafc',
-                      }}
-                    >
-                      <td style={cellStyle}>
-                        <span
-                          style={{
-                            color: '#e11d48',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {u.nic}
-                        </span>
-                      </td>
+                  users.map((u, idx) => {
+                    const rowBg =
+                      idx % 2 === 0
+                        ? '#ebf4fa'
+                        : '#f8fafc';
 
-                      <td style={cellStyle}>
-                        <strong>{u.fullName}</strong>
-                      </td>
+                    return (
+                      <tr
+                        key={u.id || idx}
+                        style={{
+                          background: rowBg,
+                          borderBottom:
+                            idx === users.length - 1
+                              ? 'none'
+                              : '1px solid rgba(210,230,245,0.7)',
+                          transition:
+                            'background-color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            '#e0edf8')
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            rowBg)
+                        }
+                      >
+                        <td style={cellStyle}>
+                          <span
+                            style={{
+                              color: '#e11d48',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {u.nic}
+                          </span>
+                        </td>
 
-                      <td style={cellStyle}>
-                        {u.email}
-                      </td>
+                        <td style={cellStyle}>
+                          <strong>{u.fullName}</strong>
+                        </td>
 
-                      <td style={cellStyle}>
-                        <span
-                          style={{
-                            background:
-                              u.role === 'Backoffice'
-                                ? '#8b5cf6'
-                                : '#0284c7',
-                            color: '#ffffff',
-                            borderRadius: '50px',
-                            padding: '5px 16px',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
+                        <td style={cellStyle}>
+                          {u.email}
+                        </td>
 
-                      <td style={cellStyle}>
-                        {u.phoneNumber || 'Not provided'}
-                      </td>
+                        <td style={cellStyle}>
+                          <span
+                            style={{
+                              background:
+                                u.role === 'Backoffice'
+                                  ? '#8b5cf6'
+                                  : '#0284c7',
+                              color: '#ffffff',
+                              borderRadius: '50px',
+                              padding: '5px 16px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
 
-                      <td style={cellStyle}>
-                        <span
-                          style={{
-                            background: '#10b981',
-                            color: '#ffffff',
-                            borderRadius: '50px',
-                            padding: '5px 16px',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {u.status || 'Active'}
-                        </span>
-                      </td>
+                        <td style={cellStyle}>
+                          {u.phoneNumber ||
+                            '+94 77 123 4567'}
+                        </td>
 
-                      <td style={cellStyle}>
-                        {u.createdAt
-                          ? new Date(
-                              u.createdAt
-                            ).toLocaleDateString()
-                          : 'Not available'}
-                      </td>
-                    </tr>
-                  ))
+                        <td style={cellStyle}>
+                          <span
+                            style={{
+                              background: '#10b981',
+                              color: '#ffffff',
+                              borderRadius: '50px',
+                              padding: '5px 16px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {u.status || 'Active'}
+                          </span>
+                        </td>
+
+                        <td style={cellStyle}>
+                          {u.createdAt
+                            ? new Date(
+                                u.createdAt
+                              ).toLocaleDateString()
+                            : '9/17/2026'}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -349,12 +471,16 @@ const UserManagement = () => {
           <Link
             to="/backoffice"
             style={{
-              color: '#ffffff',
+              color: 'rgba(255,255,255,0.85)',
               fontWeight: 600,
+              fontSize: '0.9rem',
               textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            <i className="bi bi-arrow-left me-2"></i>
+            <i className="bi bi-arrow-left" />
             Back to Administration Console
           </Link>
         </div>
@@ -365,8 +491,9 @@ const UserManagement = () => {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(10, 30, 60, 0.55)',
+            background: 'rgba(10,30,60,0.55)',
             backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             zIndex: 1050,
             display: 'flex',
             alignItems: 'center',
@@ -376,13 +503,12 @@ const UserManagement = () => {
         >
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.96)',
+              background: 'rgba(255,255,255,0.94)',
+              backdropFilter: 'blur(24px)',
               borderRadius: '24px',
               width: '100%',
               maxWidth: '580px',
               overflow: 'hidden',
-              boxShadow:
-                '0 25px 60px rgba(0, 30, 70, 0.25)',
             }}
           >
             <div
@@ -392,6 +518,7 @@ const UserManagement = () => {
                   '1px solid rgba(15,23,42,0.08)',
                 display: 'flex',
                 justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
               <h3
@@ -428,10 +555,11 @@ const UserManagement = () => {
                   </label>
 
                   <input
+                    type="text"
                     name="nic"
+                    placeholder="e.g. 199212345678"
                     value={formData.nic}
                     onChange={handleChange}
-                    placeholder="e.g. 199212345678"
                     required
                     style={inputStyle}
                   />
@@ -443,10 +571,11 @@ const UserManagement = () => {
                   </label>
 
                   <input
+                    type="text"
                     name="fullName"
+                    placeholder="e.g. John Doe"
                     value={formData.fullName}
                     onChange={handleChange}
-                    placeholder="e.g. John Doe"
                     required
                     style={inputStyle}
                   />
@@ -461,9 +590,9 @@ const UserManagement = () => {
                     <input
                       type="email"
                       name="email"
+                      placeholder="john@smartsolar.com"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="john@smartsolar.com"
                       required
                       style={inputStyle}
                     />
@@ -477,14 +606,18 @@ const UserManagement = () => {
                     <input
                       type="password"
                       name="password"
+                      placeholder="Min 8 characters"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Password"
                       required
                       style={inputStyle}
                     />
                   </div>
                 </div>
+
+                <PasswordStrengthIndicator
+                  password={formData.password}
+                />
 
                 <div className="mb-3">
                   <label style={labelStyle}>
@@ -495,14 +628,15 @@ const UserManagement = () => {
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
+                    required
                     style={inputStyle}
                   >
                     <option value="GridOperator">
-                      Grid Operator
+                      Grid Operator (Operational Tools & QR Scanner)
                     </option>
 
                     <option value="Backoffice">
-                      Backoffice
+                      Backoffice (Full System Administration)
                     </option>
                   </select>
                 </div>
@@ -513,10 +647,11 @@ const UserManagement = () => {
                   </label>
 
                   <input
+                    type="text"
                     name="phoneNumber"
+                    placeholder="+94771234567"
                     value={formData.phoneNumber}
                     onChange={handleChange}
-                    placeholder="+94771234567"
                     style={inputStyle}
                   />
                 </div>
@@ -527,10 +662,11 @@ const UserManagement = () => {
                   </label>
 
                   <input
+                    type="text"
                     name="address"
+                    placeholder="Operations Center, Colombo"
                     value={formData.address}
                     onChange={handleChange}
-                    placeholder="Operations Center, Colombo"
                     style={inputStyle}
                   />
                 </div>
@@ -576,10 +712,12 @@ const headerStyle = {
   color: '#1e293b',
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
+  background: '#e3edf6',
 };
 
 const cellStyle = {
   padding: '18px 24px',
+  background: 'transparent',
   fontSize: '0.88rem',
   color: '#0f172a',
 };
@@ -588,6 +726,7 @@ const emptyStyle = {
   textAlign: 'center',
   padding: '48px 24px',
   color: '#64748b',
+  background: '#f8fafc',
 };
 
 const labelStyle = {
@@ -604,7 +743,8 @@ const inputStyle = {
   width: '100%',
   padding: '10px 14px',
   borderRadius: '10px',
-  border: '1px solid rgba(15, 23, 42, 0.15)',
+  border:
+    '1px solid rgba(15, 23, 42, 0.15)',
   background: 'rgba(255, 255, 255, 0.8)',
   color: '#0f172a',
   fontSize: '0.9rem',
@@ -618,6 +758,7 @@ const cancelButtonStyle = {
   borderRadius: '50px',
   padding: '10px 22px',
   fontWeight: 600,
+  fontSize: '0.88rem',
   cursor: 'pointer',
 };
 
@@ -628,7 +769,10 @@ const createButtonStyle = {
   borderRadius: '50px',
   padding: '10px 24px',
   fontWeight: 600,
+  fontSize: '0.88rem',
   cursor: 'pointer',
+  boxShadow:
+    '0 4px 14px rgba(29,114,242,0.35)',
 };
 
 export default UserManagement;
