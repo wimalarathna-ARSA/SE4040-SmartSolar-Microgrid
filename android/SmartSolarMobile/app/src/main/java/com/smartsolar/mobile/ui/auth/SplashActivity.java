@@ -2,7 +2,8 @@
 // File: SplashActivity.java
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Application launch gateway that checks the active SQLite session.
+// Description: Application launch gateway that checks login session and
+//              routes first-time users through the onboarding flow.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 package com.smartsolar.mobile.ui.auth;
@@ -13,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
 import com.smartsolar.mobile.R;
+import com.smartsolar.mobile.data.OnboardingPrefs;
 import com.smartsolar.mobile.data.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
@@ -27,6 +29,9 @@ public class SplashActivity extends AppCompatActivity {
 
             if (session.isLoggedIn()) {
                 routeByRole(session.getRole());
+            } else if (!OnboardingPrefs.isCompleted(this)) {
+                startActivity(new Intent(this, OnboardingActivity.class));
+                finish();
             } else {
                 startActivity(new Intent(this, LoginActivity.class));
                 finish();
