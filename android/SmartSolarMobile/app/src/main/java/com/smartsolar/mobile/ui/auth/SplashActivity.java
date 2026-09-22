@@ -32,7 +32,6 @@ public class SplashActivity extends AppCompatActivity {
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             SessionManager session = new SessionManager(this);
-
             if (session.isLoggedIn()) {
                 routeByRole(session.getRole());
             } else if (!OnboardingPrefs.isCompleted(this)) {
@@ -42,7 +41,6 @@ public class SplashActivity extends AppCompatActivity {
                 startActivity(new Intent(this, LoginActivity.class));
                 finish();
             }
-
             session.close();
         }, 2000);
     }
@@ -50,18 +48,12 @@ public class SplashActivity extends AppCompatActivity {
     private void routeByRole(String role) {
         // Redirect authenticated user to GridOperator or Prosumer home screen based on role string
         Intent intent;
-
         if ("GridOperator".equals(role)) {
             intent = new Intent(this, OperatorMainActivity.class);
         } else {
             intent = new Intent(this, ProsumerMainActivity.class);
         }
-
-        intent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK |
-                Intent.FLAG_ACTIVITY_CLEAR_TASK
-        );
-
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
