@@ -29,6 +29,36 @@ const ConstellationMeshSVG = ({ theme = 'blue' }) => {
 
   const nodeStroke = isGreen ? '#10b981' : '#00f0ff';
 
+  const nodes = [
+    [40, 160],
+    [130, 50],
+    [190, 310],
+    [80, 430],
+    [260, 520],
+    [40, 740],
+    [180, 860],
+    [380, 110],
+    [620, 60],
+    [520, 340],
+    [480, 680],
+    [380, 890],
+    [690, 820],
+    [760, 280],
+    [880, 100],
+    [1020, 260],
+    [1140, 60],
+    [1380, 120],
+    [1550, 260],
+    [720, 520],
+    [980, 480],
+    [1260, 340],
+    [1210, 580],
+    [1520, 540],
+    [940, 760],
+    [1180, 790],
+    [1460, 780],
+  ];
+
   return (
     <svg
       style={{
@@ -55,6 +85,27 @@ const ConstellationMeshSVG = ({ theme = 'blue' }) => {
           <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
         </filter>
       </defs>
+
+      {nodes.map(([cx, cy], i) => (
+        <g key={i}>
+          <circle
+            cx={cx}
+            cy={cy}
+            r="9"
+            fill={glowFill}
+            filter={`url(#meshNodeGlow-${theme})`}
+          />
+
+          <circle
+            cx={cx}
+            cy={cy}
+            r="3.5"
+            fill="#ffffff"
+            stroke={nodeStroke}
+            strokeWidth="1.2"
+          />
+        </g>
+      ))}
     </svg>
   );
 };
