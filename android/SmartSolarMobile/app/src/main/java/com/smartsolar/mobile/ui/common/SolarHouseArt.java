@@ -16,12 +16,16 @@ import com.smartsolar.mobile.R;
  * Central helper for rotating the 5 professional solar-house photos
  * across prosumer + operator screens.
  *
- * Expected assets:
+ * Expected assets (drop your PNGs here):
  * app/src/main/res/drawable-nodpi/house_solar_1.png
  * app/src/main/res/drawable-nodpi/house_solar_2.png
  * app/src/main/res/drawable-nodpi/house_solar_3.png
  * app/src/main/res/drawable-nodpi/house_solar_4.png
  * app/src/main/res/drawable-nodpi/house_solar_5.png
+ *
+ * Temporary vector placeholders (house_solar_1.xml …) ship with the
+ * project so the build passes until they are replaced with the real PNGs.
+ * To replace: delete the .xml and add the .png with the same base name.
  */
 public final class SolarHouseArt {
 
@@ -36,35 +40,56 @@ public final class SolarHouseArt {
         switch (i) {
             case 0:
                 return R.drawable.house_solar_1;
+
             case 1:
                 return R.drawable.house_solar_2;
+
             case 2:
                 return R.drawable.house_solar_3;
+
             case 3:
                 return R.drawable.house_solar_4;
+
             default:
                 return R.drawable.house_solar_5;
         }
     }
 
     /**
-     * Best hero artwork for the prosumer home screen.
+     * Best hero per screen.
+     * Wide, well-lit houses are selected for major UI banners.
      */
     public static int prosumerHero() {
         return R.drawable.house_solar_4;
     }
 
-    /**
-     * Best hero artwork for the grid operator dashboard.
-     */
     public static int operatorHero() {
         return R.drawable.house_solar_3;
     }
 
-    /**
-     * Profile cover background illustration.
-     */
     public static int profileCover() {
         return R.drawable.house_solar_5;
+    }
+
+    /**
+     * Safe setter — never crashes if an asset is missing.
+     */
+    public static void apply(ImageView view, int resId) {
+        if (view == null) {
+            return;
+        }
+
+        try {
+            view.setImageResource(resId);
+        } catch (Exception ignored) {
+            // Placeholder background stays visible.
+        }
+    }
+
+    /**
+     * Apply a cyclical solar house image based on item position.
+     */
+    public static void applyCycling(ImageView view, int position) {
+        apply(view, forIndex(position));
     }
 }
