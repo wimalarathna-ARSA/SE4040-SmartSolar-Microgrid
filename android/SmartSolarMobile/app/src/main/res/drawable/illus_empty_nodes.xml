@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Empty-state illustration: restrained line drawing of solar panels feeding
+     a grid node. Muted slate strokes on transparent — no bright fills. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="110dp"
+    android:viewportWidth="160"
+    android:viewportHeight="110">
+    <path
+        android:pathData="M14,78 L46,78 L40,56 L20,56 Z"
+        android:strokeColor="@color/illus_line"
+        android:strokeWidth="2"
+        android:fillColor="@color/illus_fill"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M30,56 L36,78 M24,67 L43,67"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M62,78 L94,78 L88,56 L68,56 Z"
+        android:strokeColor="@color/illus_line"
+        android:strokeWidth="2"
+        android:fillColor="@color/illus_fill"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M78,56 L84,78 M72,67 L91,67"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M30,78 L30,90 M78,78 L78,90 M14,90 L94,90"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M114,52 m-14,0 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2"
+        android:fillColor="@color/glass_surface" />
+    <path
+        android:pathData="M114,45 L118,53 L110,53 Z"
+        android:fillColor="@color/neuro_green" />
+    <path
+        android:pathData="M94,62 L100,58 M94,52 L100,52 M94,42 L100,46"
+        android:strokeColor="@color/illus_line"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M128,52 L146,52"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+</vector>
