@@ -19,9 +19,9 @@ import com.smartsolar.mobile.R;
  * Expected assets:
  * app/src/main/res/drawable-nodpi/house_solar_1.png
  * app/src/main/res/drawable-nodpi/house_solar_2.png
- * house_solar_3.png
- * house_solar_4.png
- * house_solar_5.png
+ * app/src/main/res/drawable-nodpi/house_solar_3.png
+ * app/src/main/res/drawable-nodpi/house_solar_4.png
+ * app/src/main/res/drawable-nodpi/house_solar_5.png
  */
 public final class SolarHouseArt {
 
@@ -45,5 +45,26 @@ public final class SolarHouseArt {
             default:
                 return R.drawable.house_solar_5;
         }
+    }
+
+    /**
+     * Best hero artwork for the prosumer home screen.
+     */
+    public static int prosumerHero() {
+        return R.drawable.house_solar_4;
+    }
+
+    /**
+     * Best hero artwork for the grid operator dashboard.
+     */
+    public static int operatorHero() {
+        return R.drawable.house_solar_3;
+    }
+
+    /**
+     * Profile cover background illustration.
+     */
+    public static int profileCover() {
+        return R.drawable.house_solar_5;
     }
 }
