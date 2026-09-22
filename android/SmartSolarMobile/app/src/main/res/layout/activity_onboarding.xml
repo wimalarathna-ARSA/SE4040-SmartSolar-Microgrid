@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Onboarding host: two static pages in a ViewFlipper with pager dots -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_canvas"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="40dp"
+    android:paddingBottom="24dp">
+
+    <ViewFlipper
+        android:id="@+id/onboarding_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <include layout="@layout/onboarding_page_one" />
+        <include layout="@layout/onboarding_page_two" />
+    </ViewFlipper>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp">
+
+        <View
+            android:id="@+id/onboarding_dot_1"
+            android:layout_width="24dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_onboarding_dot_selected"
+            android:layout_marginEnd="6dp" />
+
+        <View
+            android:id="@+id/onboarding_dot_2"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_onboarding_dot_unselected" />
+    </LinearLayout>
+</LinearLayout>
