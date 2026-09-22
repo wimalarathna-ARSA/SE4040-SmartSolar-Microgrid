@@ -1,6 +1,18 @@
+// ============================================================================
+// File: IntroductionSection.jsx
+// Author: IT22166210
+// Course: SE4040 - Enterprise Application Development
+// Description: Home page introduction section component.
+// Architecture: FAT Service Pattern (All business logic centralized in API)
+// ============================================================================
 import React from 'react';
 import MotionReveal from './MotionReveal';
 
+/**
+ * IntroductionSection
+ * Recreates the iconic Frequenz compact showcase card with the exact bottom-left emerald/cyan atmospheric
+ * lighting flare and top-right subtle wireframe constellation lines as seen in the reference screenshot.
+ */
 const IntroductionSection = () => {
   return (
     <section
@@ -39,6 +51,7 @@ const IntroductionSection = () => {
       </svg>
 
       <div className="container-fluid px-lg-5 px-3 position-relative" style={{ zIndex: 2 }}>
+        {/* Compact, Refined Light Frosted Card Container ("Square") */}
         <MotionReveal
           animation="scale-up"
           className="mx-auto text-dark position-relative shadow-2xl"
@@ -53,6 +66,7 @@ const IntroductionSection = () => {
         >
           {/* Top Half: Eyebrow, Main Headline & Narrative */}
           <div className="row g-4 align-items-start mb-4 pb-2">
+            {/* Left Column: Eyebrow + Large Bold Headline */}
             <div className="col-lg-6 col-md-12">
               <div
                 className="text-uppercase fw-bold mb-3"
@@ -77,6 +91,7 @@ const IntroductionSection = () => {
               </h2>
             </div>
 
+            {/* Right Column: Narrative Copy */}
             <div className="col-lg-6 col-md-12 ps-lg-4">
               <p
                 style={{
@@ -128,10 +143,13 @@ const IntroductionSection = () => {
             </div>
           </div>
 
-          {/* Bottom Half: 3 Columns - Manage, Store, Trade */}
+          {/* Bottom Half: 3 Compact Columns - Manage, Store, Trade */}
           <div className="row g-4 pt-3 border-top" style={{ borderColor: 'rgba(12, 2, 51, 0.12)' }}>
+            
+            {/* Column 1: Manage */}
             <div className="col-lg-4 col-md-12">
               <MotionReveal animation="fade-up" delay={0.1} className="d-flex flex-column h-100 pe-lg-2">
+                {/* Equalizer Icon with Cyan Accent */}
                 <div className="d-flex align-items-center gap-2 mb-2 pb-1">
                   <div className="d-flex align-items-end gap-1" style={{ height: '22px' }}>
                     <div style={{ width: '4px', height: '13px', backgroundColor: '#0c0233', borderRadius: '2px' }} />
@@ -158,8 +176,10 @@ const IntroductionSection = () => {
               </MotionReveal>
             </div>
 
+            {/* Column 2: Store */}
             <div className="col-lg-4 col-md-12">
               <MotionReveal animation="fade-up" delay={0.2} className="d-flex flex-column h-100 pe-lg-2">
+                {/* Ring / Battery Circle Icon with Cyan Accent */}
                 <div className="d-flex align-items-center gap-2 mb-2 pb-1">
                   <div
                     style={{
@@ -190,8 +210,10 @@ const IntroductionSection = () => {
               </MotionReveal>
             </div>
 
+            {/* Column 3: Trade */}
             <div className="col-lg-4 col-md-12">
               <MotionReveal animation="fade-up" delay={0.3} className="d-flex flex-column h-100">
+                {/* Node Square Icon with Cyan Accent */}
                 <div className="d-flex align-items-center gap-2 mb-2 pb-1">
                   <div
                     style={{
@@ -226,6 +248,7 @@ const IntroductionSection = () => {
                 </p>
               </MotionReveal>
             </div>
+
           </div>
         </MotionReveal>
       </div>
