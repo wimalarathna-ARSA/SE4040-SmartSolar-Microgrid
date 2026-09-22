@@ -25,47 +25,51 @@ const SolarMicrogrid3D = () => {
     const ambientLight = new THREE.AmbientLight('#1e293b', 1.2);
     scene.add(ambientLight);
 
-    // POWER TRANSMISSION PYLON
-    const pylonGroup = new THREE.Group();
-    pylonGroup.position.set(-12, 0, -10);
+    // LIVE 3D ENERGY FLOW PARTICLES
+    const particleCount = 180;
+    const particleGeom = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleSpeeds = new Float32Array(particleCount);
 
-    const towerMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.4, 1.6, 12, 4),
-      new THREE.MeshStandardMaterial({ color: '#64748b', wireframe: true })
-    );
-    towerMesh.position.y = 6;
-    pylonGroup.add(towerMesh);
-
-    const crossArm = new THREE.Mesh(
-      new THREE.BoxGeometry(6, 0.3, 0.3),
-      new THREE.MeshStandardMaterial({ color: '#94a3b8' })
-    );
-    crossArm.position.y = 10;
-    pylonGroup.add(crossArm);
-    scene.add(pylonGroup);
-
-    // GLOWING ENERGY CONDUIT LINES ON GROUND
-    const conduitMaterial = new THREE.MeshBasicMaterial({
-      color: '#06b6d4',
-      transparent: true,
-      opacity: 0.7,
-    });
-
-    function createConduit(x1, z1, x2, z2) {
-      const path = new THREE.LineCurve3(new THREE.Vector3(x1, 0.05, z1), new THREE.Vector3(x2, 0.05, z2));
-      const tubeGeom = new THREE.TubeGeometry(path, 20, 0.06, 8, false);
-      const tube = new THREE.Mesh(tubeGeom, conduitMaterial);
-      scene.add(tube);
+    for (let i = 0; i < particleCount; i++) {
+      particlePositions[i * 3 + 0] = (Math.random() - 0.5) * 16;
+      particlePositions[i * 3 + 1] = Math.random() * 4 + 0.1;
+      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 16;
+      particleSpeeds[i] = 0.03 + Math.random() * 0.06;
     }
 
-    createConduit(-1.5, -2.5, 7.5, 4.0);
-    createConduit(-1.5, 3.5, 7.5, 4.0);
-    createConduit(7.5, 4.0, 7.5, -1.0);
-    createConduit(7.5, 4.0, -12, -10);
+    particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    const particleMat = new THREE.PointsMaterial({
+      color: '#38bdf8',
+      size: 0.25,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+    });
+    const particleSystem = new THREE.Points(particleGeom, particleMat);
+    scene.add(particleSystem);
 
     let animationFrameId;
+    const startTime = performance.now();
+
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+      const time = (performance.now() - startTime) * 0.001;
+
+      const positions = particleGeom.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3 + 0] += (7.5 - positions[i * 3 + 0]) * particleSpeeds[i] * 0.4;
+        positions[i * 3 + 2] += (0.0 - positions[i * 3 + 2]) * particleSpeeds[i] * 0.4;
+        positions[i * 3 + 1] = Math.sin(time * 2 + i) * 0.5 + 1.2;
+
+        if (Math.abs(positions[i * 3 + 0] - 7.5) < 0.8) {
+          positions[i * 3 + 0] = (Math.random() - 0.5) * 14 - 2;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
+          positions[i * 3 + 1] = Math.random() * 2 + 1;
+        }
+      }
+      particleGeom.attributes.position.needsUpdate = true;
+
       renderer.render(scene, camera);
     };
     animate();
