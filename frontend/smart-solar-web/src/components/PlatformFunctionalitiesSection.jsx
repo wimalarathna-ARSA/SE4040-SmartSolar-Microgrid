@@ -181,6 +181,53 @@ const PlatformFunctionalitiesSection = () => {
         `,
       }}
     >
+          <div aria-hidden="true" className="position-absolute top-0 start-0 w-100 h-100" style={{ zIndex: 0 }}>
+        <img src="/images/solar-field-sunset.jpeg" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.14 }} />
+        <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'linear-gradient(180deg, #020202 0%, rgba(2,2,2,0.6) 30%, rgba(2,2,2,0.6) 70%, #020202 100%)' }} />
+      </div>
+      <div className="container-fluid px-lg-5 px-3 py-4 position-relative" style={{ zIndex: 1 }}>
+        {/* Section Header */}
+        <MotionReveal animation="fade-up" className="row g-4 align-items-start mb-5 pb-2">
+          {/* Left Column: Eyebrow + Large Bold Headline */}
+          <div className="col-lg-6 col-md-12 ps-lg-4">
+            <div
+              className="text-uppercase fw-bold mb-3"
+              style={{
+                color: 'rgba(255, 255, 255, 0.65)',
+                fontSize: '0.8rem',
+                letterSpacing: '0.14em',
+              }}
+            >
+              PLATFORM FUNCTIONALITIES
+            </div>
+            <h2
+              className="text-white fw-bold mb-0"
+              style={{
+                fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)',
+                lineHeight: '1.12',
+                letterSpacing: '-0.035em',
+              }}
+            >
+              The <span className="fw-bolder">one-stop platform</span>
+              <br />
+              for autonomous
+              <br />
+              energy management.
+            </h2>
+          </div>
+
+          {/* Right Column: Platform Description */}
+          <div className="col-lg-6 col-md-12 ps-lg-5 text-light text-opacity-80">
+            <p style={{ fontSize: '0.96rem', lineHeight: '1.65', marginBottom: '1rem', color: '#c9d4e2' }}>
+              Set up microgrid assets in minutes with our highly automated system. Monitor live solar yield, BESS battery storage banks, and prosumer slots in real time. Validate energy transactions with zero-trust HMAC-SHA256 cryptography and optimize electricity dispatch.
+            </p>
+            <p style={{ fontSize: '0.92rem', lineHeight: '1.6', marginBottom: '0', color: '#9baec4' }}>
+              These are just a few of the many functionalities of our enterprise platform. Hover over any tile below to explore details.
+            </p>
+          </div>
+        </MotionReveal>
+
+        
     </section>
   );
 };
