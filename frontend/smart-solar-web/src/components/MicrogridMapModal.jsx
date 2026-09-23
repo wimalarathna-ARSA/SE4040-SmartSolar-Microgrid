@@ -2,7 +2,8 @@
 // File: MicrogridMapModal.jsx
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Interactive Leaflet map with station search and navigation.
+// Description: Leaflet.js interactive map with station search, availability,
+//              legend and navigation controls.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -69,23 +70,27 @@ const createStationIcon = (station, isSelected = false) => {
     className: 'custom-station-pin',
     html: `
       <div style="
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: ${slotInfo.gradient};
-        border: 2.5px solid #ffffff;
-        color: #ffffff;
-        font-size: 18px;
-        cursor: pointer;
+        position:relative;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:40px;
+        height:40px;
+        border-radius:50%;
+        background:${slotInfo.gradient};
+        border:2.5px solid #ffffff;
+        color:#ffffff;
+        font-size:18px;
+        cursor:pointer;
         ${pulseEffect}
       ">
         <i
           class="bi bi-geo-alt-fill"
-          style="color:#ffffff;font-size:18px;"
+          style="
+            color:#ffffff;
+            font-size:18px;
+            filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+          "
         ></i>
 
         <div style="
@@ -182,15 +187,141 @@ const MicrogridMapModal = ({
 
       const slotInfo = getSlotAvailabilityInfo(station);
 
+      const total = Number(station.totalBatterySlots ?? 0);
+      const available = Number(station.availableBatterySlots ?? 0);
+
+      const slotPercent =
+        total > 0 ? (available / total) * 100 : 0;
+
       marker.bindPopup(`
-        <div style="font-family:Arial,sans-serif;min-width:250px;">
-          <strong>${station.name || 'Solar Station'}</strong>
-          <br />
-          <span>${station.location || 'Unknown location'}</span>
-          <br /><br />
-          <strong style="color:${slotInfo.color};">
-            ${slotInfo.shortLabel}
-          </strong>
+        <div style="
+          font-family:Arial,sans-serif;
+          min-width:260px;
+          max-width:320px;
+        ">
+          <div style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            margin-bottom:6px;
+          ">
+            <span style="
+              background:#0f172a;
+              color:#34d399;
+              font-family:monospace;
+              font-size:11px;
+              font-weight:700;
+              padding:2px 8px;
+              border-radius:50px;
+            ">
+              ${station.stationCode || 'HUB'}
+            </span>
+
+            <span style="
+              background:${slotInfo.color};
+              color:#ffffff;
+              font-size:10px;
+              font-weight:700;
+              padding:2px 8px;
+              border-radius:50px;
+            ">
+              ${slotInfo.shortLabel}
+            </span>
+          </div>
+
+          <h4 style="
+            margin:0 0 4px;
+            font-size:14px;
+            font-weight:800;
+            color:#0f172a;
+          ">
+            ${station.name || 'Solar Station'}
+          </h4>
+
+          <div style="
+            font-size:12px;
+            color:#475569;
+            margin-bottom:10px;
+          ">
+            <i
+              class="bi bi-geo-alt-fill"
+              style="color:${slotInfo.color};"
+            ></i>
+            ${station.location || 'Unknown location'}
+          </div>
+
+          <div style="
+            background:#f0fdf4;
+            border:1px solid #bbf7d0;
+            border-radius:10px;
+            padding:8px 10px;
+            margin-bottom:10px;
+          ">
+            <strong style="
+              color:#166534;
+              font-size:11px;
+            ">
+              <i class="bi bi-clock-history"></i>
+              OPERATIONAL SCHEDULE
+            </strong>
+
+            <div style="
+              font-size:12px;
+              font-weight:700;
+              color:#065f46;
+              margin-top:2px;
+            ">
+              ${station.operationalSchedule || 'Mon-Sun 06:00 - 22:00'}
+            </div>
+          </div>
+
+          <div style="
+            background:#f8fafc;
+            border:1px solid #e2e8f0;
+            border-radius:10px;
+            padding:8px 10px;
+          ">
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              font-size:11px;
+              font-weight:700;
+              margin-bottom:4px;
+            ">
+              <span>Battery Slot Status:</span>
+
+              <span style="color:${slotInfo.color};">
+                ${available} / ${total} Free
+              </span>
+            </div>
+
+            <div style="
+              width:100%;
+              height:7px;
+              background:#e2e8f0;
+              border-radius:50px;
+              overflow:hidden;
+            ">
+              <div style="
+                width:${slotPercent}%;
+                height:100%;
+                background:${slotInfo.color};
+              "></div>
+            </div>
+
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              font-size:10.5px;
+              color:#64748b;
+              margin-top:4px;
+            ">
+              <span>${slotInfo.label}</span>
+              <strong style="color:#0f172a;">
+                ${station.capacityKWh || 0} kWh
+              </strong>
+            </div>
+          </div>
         </div>
       `);
 
@@ -217,9 +348,7 @@ const MicrogridMapModal = ({
           const marker =
             markersMapRef.current[focusStation.id];
 
-          if (marker) {
-            marker.openPopup();
-          }
+          if (marker) marker.openPopup();
         }, 200);
       }
     } else if (markerGroup.length > 0) {
@@ -258,10 +387,21 @@ const MicrogridMapModal = ({
         const marker =
           markersMapRef.current[station.id];
 
-        if (marker) {
-          marker.openPopup();
-        }
+        if (marker) marker.openPopup();
       }, 1200);
+    }
+  };
+
+  const handleFitAll = () => {
+    const map = mapInstanceRef.current;
+
+    if (!map) return;
+
+    const markers = Object.values(markersMapRef.current);
+
+    if (markers.length > 0) {
+      const group = L.featureGroup(markers);
+      map.fitBounds(group.getBounds().pad(0.15));
     }
   };
 
@@ -269,6 +409,7 @@ const MicrogridMapModal = ({
     const name = String(station.name || '').toLowerCase();
     const location = String(station.location || '').toLowerCase();
     const code = String(station.stationCode || '').toLowerCase();
+
     const query = searchQuery.toLowerCase();
 
     return (
@@ -287,6 +428,7 @@ const MicrogridMapModal = ({
         inset: 0,
         backgroundColor: 'rgba(10,25,47,0.72)',
         backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -328,33 +470,56 @@ const MicrogridMapModal = ({
               style={{
                 fontSize: '0.78rem',
                 color: '#a7f3d0',
+                marginTop: '2px',
               }}
             >
-              Interactive GIS view of active solar nodes
+              Interactive GIS view of all active solar microgrid nodes
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
+          <div
             style={{
-              background: 'rgba(255,255,255,0.15)',
-              border: 'none',
-              color: '#ffffff',
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
             }}
           >
-            &times;
-          </button>
+            <span
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                padding: '5px 14px',
+                borderRadius: '50px',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+              }}
+            >
+              {stations.length} Hub Nodes Plotted
+            </span>
+
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none',
+                color: '#ffffff',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+              }}
+            >
+              &times;
+            </button>
+          </div>
         </div>
 
         <div
           style={{
             flex: 1,
             display: 'flex',
+            position: 'relative',
             overflow: 'hidden',
           }}
         >
@@ -368,11 +533,45 @@ const MicrogridMapModal = ({
 
           <div
             style={{
+              position: 'absolute',
+              bottom: '20px',
+              left: '20px',
+              zIndex: 500,
+              background: 'rgba(255,255,255,0.95)',
+              borderRadius: '16px',
+              padding: '10px 18px',
+              boxShadow: '0 8px 24px rgba(15,23,42,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              flexWrap: 'wrap',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+            }}
+          >
+            <strong>Slot Availability:</strong>
+
+            <span style={{ color: '#065f46' }}>
+              🟢 &gt; 50%
+            </span>
+
+            <span style={{ color: '#92400e' }}>
+              🟡 &lt; 50%
+            </span>
+
+            <span style={{ color: '#991b1b' }}>
+              🔴 Full
+            </span>
+          </div>
+
+          <div
+            style={{
               width: '340px',
               display: 'flex',
               flexDirection: 'column',
               background: '#ffffff',
               borderLeft: '1px solid #e2e8f0',
+              boxShadow: '-4px 0 20px rgba(0,0,0,0.05)',
             }}
           >
             <div
@@ -390,7 +589,7 @@ const MicrogridMapModal = ({
                 }
                 style={{
                   width: '100%',
-                  padding: '9px 12px',
+                  padding: '8px 12px',
                   borderRadius: '10px',
                   border: '1px solid #cbd5e1',
                   outline: 'none',
@@ -468,6 +667,7 @@ const MicrogridMapModal = ({
                         style={{
                           fontWeight: 700,
                           color: '#0f172a',
+                          fontSize: '0.88rem',
                         }}
                       >
                         {station.name}
@@ -482,10 +682,94 @@ const MicrogridMapModal = ({
                       >
                         {station.location}
                       </div>
+
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          padding: '5px 8px',
+                          background: '#ffffff',
+                          border: '1px solid #dcfce7',
+                          borderRadius: '8px',
+                          fontSize: '0.74rem',
+                          color: '#166534',
+                        }}
+                      >
+                        <i className="bi bi-clock me-1"></i>
+                        {station.operationalSchedule ||
+                          '06:00 – 22:00'}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          fontSize: '0.74rem',
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: slotInfo.color,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {station.availableBatterySlots ?? 0}
+                          {' / '}
+                          {station.totalBatterySlots ?? 0}
+                          {' '}slots free
+                        </span>
+
+                        <span
+                          style={{
+                            color: '#0284c7',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Locate →
+                        </span>
+                      </div>
                     </div>
                   );
                 })
               )}
+            </div>
+
+            <div
+              style={{
+                padding: '12px 16px',
+                borderTop: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleFitAll}
+                style={{
+                  background: 'none',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '50px',
+                  padding: '5px 12px',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  cursor: 'pointer',
+                }}
+              >
+                <i className="bi bi-arrows-fullscreen me-1"></i>
+                Fit All Nodes
+              </button>
+
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  color: '#94a3b8',
+                }}
+              >
+                Leaflet / OpenStreetMap
+              </span>
             </div>
           </div>
         </div>
