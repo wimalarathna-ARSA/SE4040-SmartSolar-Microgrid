@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: activity_login.xml
+     Description: Login Screen - Styled with Soft Light Glassmorphism UI
+     ============================================================================ -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_glass_canvas"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="28dp"
+        android:paddingVertical="36dp"
+        android:gravity="center_horizontal">
+
+        <!-- App logo badge -->
+        <FrameLayout
+            android:id="@+id/login_logo_badge"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_neuro_card"
+            android:padding="12dp">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_launcher_foreground"
+                android:contentDescription="SMΛRTΞS/ŌL∆R Logo" />
+        </FrameLayout>
+
+        <!-- Brand Typography -->
+        <LinearLayout
+            android:id="@+id/login_brand_block"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginBottom="28dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WELCOME BACK"
+                android:textSize="11sp"
+                android:letterSpacing="0.12"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/neuro_text_muted"
+                android:layout_gravity="center"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textSize="26sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/neuro_text_primary"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Energy Trading Platform"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/neuro_text_green"
+                android:layout_gravity="center"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Error Banner -->
+        <TextView
+            android:id="@+id/tv_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/neuro_danger"
+            android:background="@color/neuro_danger_bg"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"/>
+
+        <!-- Form Card Container -->
+        <LinearLayout
+            android:id="@+id/login_form_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_neuro_card"
+            android:padding="20dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sign in"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/neuro_text_primary"
+                android:layout_marginBottom="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enter your credentials to continue"
+                android:textSize="12sp"
+                android:textColor="@color/neuro_text_muted"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Email / NIC Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email or NIC Identifier"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxBackgroundColor="@color/neuro_input_bg"
+                app:boxStrokeColor="@color/neuro_green"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="1.5dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:hintTextColor="@color/neuro_text_green"
+                android:textColorHint="@color/neuro_text_muted"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_email_or_nic"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/neuro_text_primary"
+                    android:inputType="textEmailAddress"
+                    android:imeOptions="actionNext" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxBackgroundColor="@color/neuro_input_bg"
+                app:boxStrokeColor="@color/neuro_green"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="1.5dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:hintTextColor="@color/neuro_text_green"
+                android:textColorHint="@color/neuro_text_muted"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/neuro_text_secondary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/neuro_text_primary"
+                    android:inputType="textPassword"
+                    android:imeOptions="actionDone" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Progress Spinner -->
+        <com.smartsolar.mobile.ui.common.LoadingDotsView
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
+
+        <!-- Sign In Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="Sign In"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="@color/text_on_accent"
+            android:background="@drawable/bg_btn_primary"
+            app:backgroundTint="@null"
+            app:cornerRadius="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Forgot Password Link -->
+        <TextView
+            android:id="@+id/tv_forgot_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forgot Password?"
+            android:textColor="@color/neuro_text_green"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="13sp"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Register Link -->
+        <TextView
+            android:id="@+id/tv_register_link"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Prosumer? Register an account"
+            android:textColor="@color/neuro_text_green"
+            android:fontFamily="sans-serif-bold"
+            android:textSize="14sp"
+            android:layout_gravity="center"
+            android:padding="8dp"/>
+
+    </LinearLayout>
+</ScrollView>
