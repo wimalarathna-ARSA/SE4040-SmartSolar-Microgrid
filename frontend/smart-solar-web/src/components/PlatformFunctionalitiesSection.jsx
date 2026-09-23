@@ -227,7 +227,103 @@ const PlatformFunctionalitiesSection = () => {
           </div>
         </MotionReveal>
 
-        
+
+        {/* 8 Platform Functionality Cards Grid */}
+        <div className="row g-3 px-lg-4">
+          {tiles.map((tile, idx) => {
+            const isHovered = hoveredIdx === idx;
+
+            return (
+              <div key={tile.id} className="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                <MotionReveal animation="fade-up" delay={0.06 * idx}>
+                  <div
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    className="position-relative overflow-hidden cursor-pointer"
+                  style={{
+                    height: '240px',
+                    borderRadius: '8px',
+                    border: isHovered ? '1.5px solid #00ffce' : '1px solid rgba(255, 255, 255, 0.22)',
+                    backgroundColor: isHovered ? '#00ffce' : 'transparent',
+                    color: isHovered ? '#0c0233' : '#ffffff',
+                    padding: '24px 22px',
+                    transition: 'all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    boxShadow: isHovered
+                      ? '0 0 35px rgba(0, 255, 206, 0.65), 0 15px 30px rgba(0, 0, 0, 0.6)'
+                      : 'none',
+                    transform: isHovered ? 'translateY(-3px)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: isHovered ? 'flex-start' : 'space-between',
+                  }}
+                >
+                  {/* NON-HOVERED STATE: Top Icon + Bottom Cyan Title */}
+                  {!isHovered && (
+                    <>
+                      <div>
+                        {tile.icon}
+                      </div>
+                      <div>
+                        <h4
+                          className="fw-bold mb-0"
+                          style={{
+                            color: '#00ffce',
+                            fontSize: '1.18rem',
+                            letterSpacing: '-0.02em',
+                            lineHeight: '1.3',
+                          }}
+                        >
+                          {tile.title}
+                        </h4>
+                      </div>
+                    </>
+                  )}
+
+                  {/* HOVERED STATE: Solid #00ffce with Dark Navy Title at top + Feature Bullets */}
+                  {isHovered && (
+                    <div className="d-flex flex-column h-100 justify-content-between">
+                      <div>
+                        <h4
+                          className="fw-bold mb-2"
+                          style={{
+                            color: '#0c0233',
+                            fontSize: '1.16rem',
+                            letterSpacing: '-0.02em',
+                            lineHeight: '1.25',
+                          }}
+                        >
+                          {tile.title}
+                        </h4>
+
+                        <ul className="list-unstyled mb-0 d-flex flex-column gap-1">
+                          {tile.bullets.map((bullet, bIdx) => (
+                            <li
+                              key={bIdx}
+                              className="d-flex align-items-start"
+                              style={{
+                                color: '#0c0233',
+                                fontSize: '0.8rem',
+                                lineHeight: '1.38',
+                                fontWeight: '500',
+                              }}
+                            >
+                              <span className="me-1 fw-bold" style={{ color: '#0c0233', fontSize: '0.9rem', lineHeight: '1.2' }}>
+                                ›
+                              </span>
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </MotionReveal>
+            </div>
+          );
+          })}
+        </div>
+      </div>     
     </section>
   );
 };
