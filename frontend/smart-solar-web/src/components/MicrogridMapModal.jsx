@@ -2,11 +2,11 @@
 // File: MicrogridMapModal.jsx
 // Author: IT22106292
 // Course: SE4040 - Enterprise Application Development
-// Description: Leaflet map modal with station availability indicators.
+// Description: Interactive Leaflet map with station search and navigation.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -85,25 +85,20 @@ const createStationIcon = (station, isSelected = false) => {
       ">
         <i
           class="bi bi-geo-alt-fill"
-          style="
-            color: #ffffff;
-            font-size: 18px;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-          "
+          style="color:#ffffff;font-size:18px;"
         ></i>
 
         <div style="
-          position: absolute;
-          bottom: -6px;
-          right: -6px;
-          background: #0f172a;
-          color: ${slotInfo.color};
-          font-size: 9px;
-          font-weight: 800;
-          padding: 1px 5px;
-          border-radius: 10px;
-          border: 1.5px solid #ffffff;
-          line-height: 1.2;
+          position:absolute;
+          bottom:-6px;
+          right:-6px;
+          background:#0f172a;
+          color:${slotInfo.color};
+          font-size:9px;
+          font-weight:800;
+          padding:1px 5px;
+          border-radius:10px;
+          border:1.5px solid #ffffff;
         ">
           ${station.availableBatterySlots ?? 0}
         </div>
@@ -123,6 +118,17 @@ const MicrogridMapModal = ({
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const markersMapRef = useRef({});
+
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedStation(focusStation || null);
+      setSearchQuery('');
+    }
+  }, [isOpen, focusStation]);
 
   useEffect(() => {
     if (!isOpen || !mapContainerRef.current) return;
@@ -157,7 +163,9 @@ const MicrogridMapModal = ({
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    const markers = [];
+    markersMapRef.current = {};
+
+    const markerGroup = [];
 
     stations.forEach((station) => {
       const lat = parseFloat(station.latitude);
@@ -174,118 +182,26 @@ const MicrogridMapModal = ({
 
       const slotInfo = getSlotAvailabilityInfo(station);
 
-      const total = Number(station.totalBatterySlots ?? 0);
-      const available = Number(station.availableBatterySlots ?? 0);
-
-      const slotPercent =
-        total > 0 ? (available / total) * 100 : 0;
-
-      const popupHtml = `
-        <div style="
-          font-family: Arial, sans-serif;
-          min-width: 250px;
-          max-width: 320px;
-        ">
-          <div style="
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-          ">
-            <span style="
-              background: #0f172a;
-              color: #34d399;
-              font-family: monospace;
-              font-size: 11px;
-              font-weight: 700;
-              padding: 2px 8px;
-              border-radius: 50px;
-            ">
-              ${station.stationCode || 'HUB'}
-            </span>
-
-            <span style="
-              background: ${slotInfo.color};
-              color: #ffffff;
-              font-size: 10px;
-              font-weight: 700;
-              padding: 2px 8px;
-              border-radius: 50px;
-            ">
-              ${slotInfo.shortLabel}
-            </span>
-          </div>
-
-          <h4 style="
-            margin: 0 0 5px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #0f172a;
-          ">
-            ${station.name || 'Solar Station'}
-          </h4>
-
-          <div style="
-            font-size: 12px;
-            color: #475569;
-            margin-bottom: 10px;
-          ">
-            <i
-              class="bi bi-geo-alt-fill"
-              style="color: ${slotInfo.color};"
-            ></i>
-            ${station.location || 'Unknown location'}
-          </div>
-
-          <div style="
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 8px 10px;
-          ">
-            <div style="
-              display: flex;
-              justify-content: space-between;
-              font-size: 11px;
-              font-weight: 700;
-              margin-bottom: 4px;
-            ">
-              <span>Battery Slots</span>
-              <span style="color: ${slotInfo.color};">
-                ${available} / ${total}
-              </span>
-            </div>
-
-            <div style="
-              width: 100%;
-              height: 7px;
-              background: #e2e8f0;
-              border-radius: 50px;
-              overflow: hidden;
-            ">
-              <div style="
-                width: ${slotPercent}%;
-                height: 100%;
-                background: ${slotInfo.color};
-              "></div>
-            </div>
-
-            <div style="
-              font-size: 10px;
-              color: #64748b;
-              margin-top: 5px;
-            ">
-              ${slotInfo.label}
-            </div>
-          </div>
+      marker.bindPopup(`
+        <div style="font-family:Arial,sans-serif;min-width:250px;">
+          <strong>${station.name || 'Solar Station'}</strong>
+          <br />
+          <span>${station.location || 'Unknown location'}</span>
+          <br /><br />
+          <strong style="color:${slotInfo.color};">
+            ${slotInfo.shortLabel}
+          </strong>
         </div>
-      `;
+      `);
 
-      marker.bindPopup(popupHtml, {
-        maxWidth: 320,
+      marker.on('click', () => {
+        setSelectedStation(station);
       });
 
       marker.addTo(map);
-      markers.push(marker);
+
+      markersMapRef.current[station.id] = marker;
+      markerGroup.push(marker);
     });
 
     if (focusStation) {
@@ -297,10 +213,17 @@ const MicrogridMapModal = ({
           map.setView([lat, lng], 15, {
             animate: true,
           });
+
+          const marker =
+            markersMapRef.current[focusStation.id];
+
+          if (marker) {
+            marker.openPopup();
+          }
         }, 200);
       }
-    } else if (markers.length > 0) {
-      const group = L.featureGroup(markers);
+    } else if (markerGroup.length > 0) {
+      const group = L.featureGroup(markerGroup);
       map.fitBounds(group.getBounds().pad(0.15));
     }
 
@@ -316,6 +239,45 @@ const MicrogridMapModal = ({
     };
   }, [isOpen, stations, focusStation]);
 
+  const handleFlyToStation = (station) => {
+    setSelectedStation(station);
+
+    const map = mapInstanceRef.current;
+
+    if (!map) return;
+
+    const lat = parseFloat(station.latitude);
+    const lng = parseFloat(station.longitude);
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+      map.flyTo([lat, lng], 15, {
+        duration: 1.2,
+      });
+
+      setTimeout(() => {
+        const marker =
+          markersMapRef.current[station.id];
+
+        if (marker) {
+          marker.openPopup();
+        }
+      }, 1200);
+    }
+  };
+
+  const filteredStations = stations.filter((station) => {
+    const name = String(station.name || '').toLowerCase();
+    const location = String(station.location || '').toLowerCase();
+    const code = String(station.stationCode || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+
+    return (
+      name.includes(query) ||
+      location.includes(query) ||
+      code.includes(query)
+    );
+  });
+
   if (!isOpen) return null;
 
   return (
@@ -323,7 +285,7 @@ const MicrogridMapModal = ({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(10, 25, 47, 0.72)',
+        backgroundColor: 'rgba(10,25,47,0.72)',
         backdropFilter: 'blur(10px)',
         display: 'flex',
         alignItems: 'center',
@@ -350,7 +312,7 @@ const MicrogridMapModal = ({
           style={{
             padding: '18px 28px',
             background:
-              'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+              'linear-gradient(135deg,#064e3b 0%,#047857 100%)',
             color: '#ffffff',
             display: 'flex',
             justifyContent: 'space-between',
@@ -366,10 +328,9 @@ const MicrogridMapModal = ({
               style={{
                 fontSize: '0.78rem',
                 color: '#a7f3d0',
-                marginTop: '2px',
               }}
             >
-              Interactive GIS view of solar microgrid nodes
+              Interactive GIS view of active solar nodes
             </div>
           </div>
 
@@ -391,12 +352,143 @@ const MicrogridMapModal = ({
         </div>
 
         <div
-          ref={mapContainerRef}
           style={{
             flex: 1,
-            background: '#e2e8f0',
+            display: 'flex',
+            overflow: 'hidden',
           }}
-        />
+        >
+          <div
+            ref={mapContainerRef}
+            style={{
+              flex: 1,
+              background: '#e2e8f0',
+            }}
+          />
+
+          <div
+            style={{
+              width: '340px',
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#ffffff',
+              borderLeft: '1px solid #e2e8f0',
+            }}
+          >
+            <div
+              style={{
+                padding: '14px 16px',
+                borderBottom: '1px solid #e2e8f0',
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Search station or location..."
+                value={searchQuery}
+                onChange={(e) =>
+                  setSearchQuery(e.target.value)
+                }
+                style={{
+                  width: '100%',
+                  padding: '9px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '12px',
+              }}
+            >
+              {filteredStations.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '24px 12px',
+                    color: '#94a3b8',
+                  }}
+                >
+                  No stations match your search.
+                </div>
+              ) : (
+                filteredStations.map((station) => {
+                  const isSelected =
+                    selectedStation?.id === station.id;
+
+                  const slotInfo =
+                    getSlotAvailabilityInfo(station);
+
+                  return (
+                    <div
+                      key={station.id}
+                      onClick={() =>
+                        handleFlyToStation(station)
+                      }
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '14px',
+                        marginBottom: '8px',
+                        cursor: 'pointer',
+                        background: isSelected
+                          ? '#ecfdf5'
+                          : '#f8fafc',
+                        border: isSelected
+                          ? '1.5px solid #10b981'
+                          : '1px solid #e2e8f0',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '5px',
+                        }}
+                      >
+                        <strong>
+                          {station.stationCode}
+                        </strong>
+
+                        <span
+                          style={{
+                            color: slotInfo.color,
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {slotInfo.shortLabel}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          color: '#0f172a',
+                        }}
+                      >
+                        {station.name}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: '0.78rem',
+                          color: '#64748b',
+                          marginTop: '3px',
+                        }}
+                      >
+                        {station.location}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
