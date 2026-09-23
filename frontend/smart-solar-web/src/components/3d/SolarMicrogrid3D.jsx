@@ -3,6 +3,24 @@ import * as THREE from 'three';
 
 const SolarMicrogrid3D = () => {
   const mountRef = useRef(null);
+  const [autoRotate, setAutoRotate] = useState(true);
+
+  const autoRotateRef = useRef(autoRotate);
+  const controlsRef = useRef({
+    isDragging: false,
+    prevMouseX: 0,
+    prevMouseY: 0,
+    rotX: 0.35,
+    rotY: -0.45,
+    distance: 22,
+    targetRotX: 0.35,
+    targetRotY: -0.45,
+    targetDistance: 22,
+  });
+
+  useEffect(() => {
+    autoRotateRef.current = autoRotate;
+  }, [autoRotate]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -15,60 +33,61 @@ const SolarMicrogrid3D = () => {
     scene.background = new THREE.Color('#070e1a');
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(12, 10, 18);
-    camera.lookAt(0, 1, 0);
-
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(width, height);
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight('#1e293b', 1.2);
-    scene.add(ambientLight);
+    const ctrl = controlsRef.current;
 
-    // LIVE 3D ENERGY FLOW PARTICLES
-    const particleCount = 180;
-    const particleGeom = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleSpeeds = new Float32Array(particleCount);
+    const onMouseDown = (e) => {
+      ctrl.isDragging = true;
+      ctrl.prevMouseX = e.clientX;
+      ctrl.prevMouseY = e.clientY;
+    };
 
-    for (let i = 0; i < particleCount; i++) {
-      particlePositions[i * 3 + 0] = (Math.random() - 0.5) * 16;
-      particlePositions[i * 3 + 1] = Math.random() * 4 + 0.1;
-      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 16;
-      particleSpeeds[i] = 0.03 + Math.random() * 0.06;
-    }
+    const onMouseMove = (e) => {
+      if (ctrl.isDragging) {
+        const deltaX = e.clientX - ctrl.prevMouseX;
+        const deltaY = e.clientY - ctrl.prevMouseY;
 
-    particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    const particleMat = new THREE.PointsMaterial({
-      color: '#38bdf8',
-      size: 0.25,
-      transparent: true,
-      opacity: 0.85,
-      blending: THREE.AdditiveBlending,
-    });
-    const particleSystem = new THREE.Points(particleGeom, particleMat);
-    scene.add(particleSystem);
+        ctrl.targetRotY += deltaX * 0.006;
+        ctrl.targetRotX = Math.max(0.1, Math.min(Math.PI / 2.2, ctrl.targetRotX + deltaY * 0.005));
+
+        ctrl.prevMouseX = e.clientX;
+        ctrl.prevMouseY = e.clientY;
+      }
+    };
+
+    const onMouseUp = () => {
+      ctrl.isDragging = false;
+    };
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      ctrl.targetDistance = Math.max(8, Math.min(32, ctrl.targetDistance + e.deltaY * 0.02));
+    };
+
+    const domElement = renderer.domElement;
+    domElement.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    domElement.addEventListener('wheel', onWheel, { passive: false });
 
     let animationFrameId;
-    const startTime = performance.now();
-
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      const time = (performance.now() - startTime) * 0.001;
 
-      const positions = particleGeom.attributes.position.array;
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3 + 0] += (7.5 - positions[i * 3 + 0]) * particleSpeeds[i] * 0.4;
-        positions[i * 3 + 2] += (0.0 - positions[i * 3 + 2]) * particleSpeeds[i] * 0.4;
-        positions[i * 3 + 1] = Math.sin(time * 2 + i) * 0.5 + 1.2;
-
-        if (Math.abs(positions[i * 3 + 0] - 7.5) < 0.8) {
-          positions[i * 3 + 0] = (Math.random() - 0.5) * 14 - 2;
-          positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
-          positions[i * 3 + 1] = Math.random() * 2 + 1;
-        }
+      if (autoRotateRef.current && !ctrl.isDragging) {
+        ctrl.targetRotY += 0.002;
       }
-      particleGeom.attributes.position.needsUpdate = true;
+      ctrl.rotX += (ctrl.targetRotX - ctrl.rotX) * 0.08;
+      ctrl.rotY += (ctrl.targetRotY - ctrl.rotY) * 0.08;
+      ctrl.distance += (ctrl.targetDistance - ctrl.distance) * 0.08;
+
+      camera.position.x = ctrl.distance * Math.sin(ctrl.rotY) * Math.cos(ctrl.rotX);
+      camera.position.y = ctrl.distance * Math.sin(ctrl.rotX);
+      camera.position.z = ctrl.distance * Math.cos(ctrl.rotY) * Math.cos(ctrl.rotX);
+      camera.lookAt(0, 1.2, 0);
 
       renderer.render(scene, camera);
     };
@@ -76,6 +95,10 @@ const SolarMicrogrid3D = () => {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      domElement.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      domElement.removeEventListener('wheel', onWheel);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
