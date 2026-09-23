@@ -42,8 +42,8 @@ namespace SmartSolarApi.Services
             var enableSsl = bool.TryParse(_config["EmailSettings:EnableSsl"], out var ssl) && ssl;
 
             _logger.LogInformation("==================================================================");
-            _logger.LogInformation("[GMAIL OTP VERIFICATION] Preparing OTP for {Email} ({Name})", recipientEmail, recipientName);
-            _logger.LogInformation("OTP CODE: {Otp} (Strictly valid for 5 minutes)", otp);
+            _logger.LogInformation("📧 [GMAIL OTP VERIFICATION] Preparing OTP for {Email} ({Name})", recipientEmail, recipientName);
+            _logger.LogInformation("🔑 OTP CODE: {Otp} (Strictly valid for 5 minutes)", otp);
             _logger.LogInformation("==================================================================");
 
             senderPassword = senderPassword?.Replace(" ", "").Trim();
@@ -63,7 +63,7 @@ namespace SmartSolarApi.Services
                     Credentials = new NetworkCredential(senderEmail.Trim(), senderPassword),
                     EnableSsl = enableSsl,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
-                    Timeout = 15000
+                    Timeout = 15000 // 15s timeout
                 };
 
                 var fromAddress = new MailAddress(senderEmail, senderName);
@@ -77,20 +77,12 @@ namespace SmartSolarApi.Services
                 };
 
                 await client.SendMailAsync(message);
-
-                _logger.LogInformation(
-                    "Successfully delivered password reset OTP email to {Email}",
-                    recipientEmail);
-
+                _logger.LogInformation("Successfully delivered password reset OTP email to {Email}", recipientEmail);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Failed to send OTP email to {Email} via SMTP. Using console fallback.",
-                    recipientEmail);
-
+                _logger.LogError(ex, "Failed to send OTP email to {Email} via SMTP. Using console fallback.", recipientEmail);
                 // Return true so user testing is not blocked if internet/SMTP fails
                 return true;
             }
@@ -122,19 +114,18 @@ namespace SmartSolarApi.Services
     <div class=""title"">Password Reset Verification</div>
     <p>Hello <strong>{WebUtility.HtmlEncode(recipientName)}</strong>,</p>
     <p>We received a request to reset your password for the SØLΛR-X Energy Trading Platform. Please use the following 6-digit verification code:</p>
-
+    
     <div class=""otp-box"">
       <div style=""font-size: 11px; text-transform: uppercase; color: #a7f3d0; font-weight: 700; margin-bottom: 6px;"">One-Time Verification Code</div>
       <div class=""otp-code"">{otp}</div>
     </div>
 
     <div class=""warning"">
-      <strong>Important:</strong> This verification code expires strictly in <strong>5 minutes</strong>. If you did not request this password reset, please ignore this email or notify your system administrator.
+      ⏱ <strong>Important:</strong> This verification code expires strictly in <strong>5 minutes</strong>. If you did not request this password reset, please ignore this email or notify your system administrator.
     </div>
 
     <div class=""footer"">
-      &copy; 2026 SØLΛR-X Smart Solar Microgrid Trading Platform.<br/>
-      Automated system message. Please do not reply directly.
+      &copy; 2026 SØLΛR-X Smart Solar Microgrid Trading Platform.<br/>Automated system message. Please do not reply directly.
     </div>
   </div>
 </body>
