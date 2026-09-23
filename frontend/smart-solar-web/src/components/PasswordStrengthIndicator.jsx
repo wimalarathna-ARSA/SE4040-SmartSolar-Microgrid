@@ -2,7 +2,7 @@
 // File: PasswordStrengthIndicator.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Reusable live password strength indicator component.
+// Description: Live visual password strength meter with progress bar.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -42,6 +42,26 @@ const PasswordStrengthIndicator = ({ password = '' }) => {
         <span style={{ fontSize: '0.75rem' }}>
           {percent}%
         </span>
+      </div>
+
+      <div
+        style={{
+          width: '100%',
+          height: '6px',
+          background: '#e2e8f0',
+          borderRadius: '999px',
+          overflow: 'hidden',
+          marginBottom: '10px',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${percent}%`,
+            background: color,
+            transition: 'width 0.3s ease, background 0.3s ease',
+          }}
+        />
       </div>
     </div>
   );
