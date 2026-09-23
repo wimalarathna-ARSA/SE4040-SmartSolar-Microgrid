@@ -2,20 +2,22 @@
 // File: Card3D.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Reusable 3D perspective tilt container with cursor interaction.
+// Description: Reusable 3D perspective tilt container with cursor specular glare effects.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
 import React, { useRef, useState } from 'react';
 
 /**
- * Card3D: Wraps children with a realistic 3D perspective tilt effect.
+ * Card3D: Wraps children with a realistic 3D perspective tilt effect,
+ * dynamic specular cursor glare, and depth elevation.
  */
 const Card3D = ({
   children,
   className = '',
   style = {},
   maxTilt = 10,
+  glare = true,
   perspective = 1000,
   scale = 1.02,
   ...props
@@ -26,6 +28,12 @@ const Card3D = ({
     rotateX: 0,
     rotateY: 0,
     scale: 1,
+  });
+
+  const [glarePos, setGlarePos] = useState({
+    x: 50,
+    y: 50,
+    opacity: 0,
   });
 
   const [isHovered, setIsHovered] = useState(false);
@@ -49,6 +57,17 @@ const Card3D = ({
       rotateY: Number(rotateY.toFixed(2)),
       scale,
     });
+
+    if (glare) {
+      const glareX = (x / rect.width) * 100;
+      const glareY = (y / rect.height) * 100;
+
+      setGlarePos({
+        x: glareX,
+        y: glareY,
+        opacity: 0.25,
+      });
+    }
   };
 
   const handleMouseEnter = () => {
@@ -63,6 +82,11 @@ const Card3D = ({
       rotateY: 0,
       scale: 1,
     });
+
+    setGlarePos((prev) => ({
+      ...prev,
+      opacity: 0,
+    }));
   };
 
   return (
@@ -90,6 +114,22 @@ const Card3D = ({
         className={`card-3d ${className}`}
         {...props}
       >
+        {glare && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: 'inherit',
+              pointerEvents: 'none',
+              zIndex: 3,
+              background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255, 255, 255, ${glarePos.opacity}), transparent 60%)`,
+              transition: isHovered
+                ? 'opacity 0.15s ease-out'
+                : 'opacity 0.4s ease-out',
+            }}
+          />
+        )}
+
         {children}
       </div>
     </div>
