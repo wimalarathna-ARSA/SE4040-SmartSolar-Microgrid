@@ -1,21 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../services/api';
 import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import BackofficePageHero from '../../components/BackofficePageHero';
 
 const ReservationManagement = () => {
   const [reservations, setReservations] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const fetchReservations = async () => {
+    setLoading(true);
+    try {
+      const params = {};
+      if (statusFilter) params.status = statusFilter;
+      if (searchTerm) params.search = searchTerm;
+
+      const res = await api.get('/reservations', { params });
+      setReservations(res.data);
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'danger', text: 'Error fetching reservation data.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReservations();
+  }, [statusFilter]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-  };
-
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('');
+    fetchReservations();
   };
 
   return (
@@ -41,6 +60,12 @@ const ReservationManagement = () => {
           breadcrumb={['Reservations']}
         />
 
+        {message.text && (
+          <div style={{ background: message.type === 'danger' ? '#fef2f2' : '#f0fdf4', padding: '14px', borderRadius: '12px', marginBottom: '20px' }}>
+            {message.text}
+          </div>
+        )}
+
         <div
           style={{
             background: 'rgba(255, 255, 255, 0.85)',
@@ -53,110 +78,37 @@ const ReservationManagement = () => {
         >
           <form onSubmit={handleSearchSubmit} className="row g-3 align-items-center">
             <div className="col-lg-5 col-md-12">
-              <div style={{ position: 'relative' }}>
-                <i className="bi bi-search" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
-                <input
-                  type="text"
-                  placeholder="Search by code, prosumer, or station..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '11px 18px 11px 44px',
-                    borderRadius: '50px',
-                    background: '#ffffff',
-                    border: '1px solid rgba(148, 163, 184, 0.35)',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                  }}
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Search by code, prosumer, or station..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ width: '100%', padding: '11px 18px', borderRadius: '50px', border: '1px solid #cbd5e1' }}
+              />
             </div>
-
             <div className="col-lg-4 col-md-6">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 20px',
-                  borderRadius: '50px',
-                  background: '#ffffff',
-                  border: '1px solid rgba(148, 163, 184, 0.35)',
-                  fontSize: '0.88rem',
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                style={{ width: '100%', padding: '11px 20px', borderRadius: '50px', border: '1px solid #cbd5e1' }}
               >
                 <option value="">All Reservation Statuses</option>
-                <option value="Approved">Approved (Ready with QR)</option>
-                <option value="Pending">Pending Approval</option>
-                <option value="Completed">Completed (Finalized by Operator)</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
             </div>
-
             <div className="col-lg-3 col-md-6 d-flex gap-2">
-              <button
-                type="submit"
-                style={{
-                  flex: 1,
-                  background: 'linear-gradient(135deg, #0070f3 0%, #0051b3 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '50px',
-                  padding: '11px 20px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Apply Filter
-              </button>
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#475569',
-                  border: '1px solid rgba(148, 163, 184, 0.4)',
-                  borderRadius: '50px',
-                  padding: '11px 20px',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Reset
+              <button type="submit" style={{ flex: 1, padding: '11px', borderRadius: '50px', background: '#0070f3', color: '#fff', border: 'none' }}>
+                Filter
               </button>
             </div>
           </form>
         </div>
 
         <div style={{ marginTop: '36px', textAlign: 'center' }}>
-          <Link
-            to="/backoffice"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: '#ffffff',
-              textDecoration: 'none',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(12px)',
-              padding: '10px 24px',
-              borderRadius: '50px',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-            }}
-          >
-            <i className="bi bi-arrow-left"></i>
-            <span>Back to Administration Console</span>
-          </Link>
+          <Link to="/backoffice" style={{ color: '#fff', textDecoration: 'none' }}>Back to Administration Console</Link>
         </div>
       </div>
     </div>
