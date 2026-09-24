@@ -10,12 +10,15 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * ScrollProgressBar
- * Tracks the user's scroll position through the page.
+ * Tracks scroll progress using requestAnimationFrame
+ * for smoother browser performance.
  */
 const ScrollProgressBar = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
+    let ticking = false;
+
     const updateScrollProgress = () => {
       const scrollPx =
         document.documentElement.scrollTop || document.body.scrollTop;
@@ -28,16 +31,24 @@ const ScrollProgressBar = () => {
         winHeightPx > 0 ? (scrollPx / winHeightPx) * 100 : 0;
 
       setScrollProgress(Math.min(100, Math.max(0, scrolled)));
+      ticking = false;
     };
 
-    window.addEventListener('scroll', updateScrollProgress, {
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrollProgress);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, {
       passive: true,
     });
 
     updateScrollProgress();
 
     return () => {
-      window.removeEventListener('scroll', updateScrollProgress);
+      window.removeEventListener('scroll', onScroll);
     };
   }, []);
 
