@@ -304,7 +304,28 @@ const BackofficeDashboard = () => {
             </div>
           </div>
         </div>
-
+        {/* SECTION TITLE: Management Modules */}
+        <div className="d-flex align-items-center mb-4 mt-2">
+          <h2
+            style={{
+              fontSize: '1.15rem',
+              fontWeight: 700,
+              color: '#0f172a',
+              margin: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Management Modules
+          </h2>
+          <div
+            style={{
+              flexGrow: 1,
+              height: '1px',
+              backgroundColor: 'rgba(15, 23, 42, 0.15)',
+              marginLeft: '20px',
+            }}
+          />
+        </div>
           
 
         {/* BOTTOM STATUS BAR */}
