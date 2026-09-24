@@ -10,8 +10,7 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * ScrollProgressBar
- * Tracks scroll progress using requestAnimationFrame
- * for smoother browser performance.
+ * A neon cyan/emerald progress bar that tracks page scroll progress.
  */
 const ScrollProgressBar = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -70,7 +69,12 @@ const ScrollProgressBar = () => {
         style={{
           width: `${scrollProgress}%`,
           height: '100%',
-          backgroundColor: '#00ffce',
+          background:
+            'linear-gradient(90deg, #00ffce 0%, #10b981 50%, #38bdf8 85%, #a855f7 100%)',
+          boxShadow:
+            '0 0 12px rgba(0, 255, 206, 0.8), 0 0 20px rgba(0, 255, 206, 0.4)',
+          transition: 'width 0.1s linear',
+          position: 'relative',
         }}
       />
     </div>
