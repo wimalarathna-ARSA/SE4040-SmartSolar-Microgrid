@@ -60,55 +60,71 @@ const ReservationManagement = () => {
           breadcrumb={['Reservations']}
         />
 
-        {message.text && (
-          <div style={{ background: message.type === 'danger' ? '#fef2f2' : '#f0fdf4', padding: '14px', borderRadius: '12px', marginBottom: '20px' }}>
-            {message.text}
-          </div>
-        )}
-
         <div
           style={{
             background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '24px',
+            backdropFilter: 'blur(24px)',
+            borderRadius: '28px',
             border: '1px solid rgba(255, 255, 255, 0.95)',
-            padding: '20px 28px',
-            marginBottom: '28px',
+            boxShadow: '0 16px 40px -8px rgba(10, 35, 70, 0.12)',
+            overflow: 'hidden',
           }}
         >
-          <form onSubmit={handleSearchSubmit} className="row g-3 align-items-center">
-            <div className="col-lg-5 col-md-12">
-              <input
-                type="text"
-                placeholder="Search by code, prosumer, or station..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', padding: '11px 18px', borderRadius: '50px', border: '1px solid #cbd5e1' }}
-              />
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{ width: '100%', padding: '11px 20px', borderRadius: '50px', border: '1px solid #cbd5e1' }}
-              >
-                <option value="">All Reservation Statuses</option>
-                <option value="Approved">Approved</option>
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div className="col-lg-3 col-md-6 d-flex gap-2">
-              <button type="submit" style={{ flex: 1, padding: '11px', borderRadius: '50px', background: '#0070f3', color: '#fff', border: 'none' }}>
-                Filter
-              </button>
-            </div>
-          </form>
+          <div style={{ padding: '24px 32px 20px', display: 'flex', justifyContent: 'space-between' }}>
+            <h2 style={{ fontSize: '1.18rem', fontWeight: 700, margin: 0 }}>Power Trading Booking Records</h2>
+            <span style={{ background: '#0284c7', color: '#fff', borderRadius: '50px', padding: '6px 18px', fontSize: '0.78rem', fontWeight: 700 }}>
+              {reservations.length} Active Bookings
+            </span>
+          </div>
+
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#e3edf6' }}>
+                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700 }}>BOOKING CODE</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>PROSUMER (NIC)</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>STATION HUB</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>SCHEDULED SLOT</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>DURATION & ENERGY</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>TOTAL VALUE</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>TYPE</th>
+                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700 }}>STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b' }}>
+                      Loading energy reservation records...
+                    </td>
+                  </tr>
+                ) : reservations.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b' }}>
+                      No matching energy reservations found.
+                    </td>
+                  </tr>
+                ) : (
+                  reservations.map((r, idx) => (
+                    <tr key={r.id || idx} style={{ background: idx % 2 === 0 ? '#ebf4fa' : '#f8fafc' }}>
+                      <td style={{ padding: '18px 28px' }}>{r.reservationCode}</td>
+                      <td style={{ padding: '18px 20px' }}>{r.prosumerName} ({r.prosumerNic})</td>
+                      <td style={{ padding: '18px 20px' }}>{r.stationName}</td>
+                      <td style={{ padding: '18px 20px' }}>{new Date(r.scheduledDateTime).toLocaleString()}</td>
+                      <td style={{ padding: '18px 20px' }}>{r.energyAmountKWh} kWh ({r.durationHours} hrs)</td>
+                      <td style={{ padding: '18px 20px' }}>Rs. {r.totalCost ? r.totalCost.toFixed(2) : '0.00'}</td>
+                      <td style={{ padding: '18px 20px' }}>{r.reservationType}</td>
+                      <td style={{ padding: '18px 20px' }}>{r.status}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div style={{ marginTop: '36px', textAlign: 'center' }}>
-          <Link to="/backoffice" style={{ color: '#fff', textDecoration: 'none' }}>Back to Administration Console</Link>
+          <Link to="/backoffice" style={{ color: '#ffffff', textDecoration: 'none' }}>Back to Administration Console</Link>
         </div>
       </div>
     </div>
