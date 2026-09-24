@@ -327,6 +327,427 @@ const BackofficeDashboard = () => {
           />
         </div>
           
+          
+        {/* 4 LARGE MANAGEMENT MODULE CARDS WITH GLOWING ICONS */}
+        <div className="row g-4 mb-4">
+          
+          {/* Card 1: User Management */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.72)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '36px 28px 28px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 16px 36px -8px rgba(10, 35, 70, 0.12)',
+                transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 20px 42px -6px rgba(10, 35, 70, 0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 16px 36px -8px rgba(10, 35, 70, 0.12)';
+              }}
+            >
+              <div>
+                {/* Icon box with soft diffuse blue glow */}
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '18px',
+                    background: 'rgba(219, 234, 254, 0.95)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#2563eb',
+                    fontSize: '1.65rem',
+                    marginBottom: '24px',
+                    boxShadow: '0 0 32px 8px rgba(59, 130, 246, 0.38)',
+                  }}
+                >
+                  <i className="bi bi-shield-check"></i>
+                </div>
+
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  User Management
+                </h3>
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: '#64748b',
+                    marginBottom: '16px',
+                  }}
+                >
+                  STAFF ADMINISTRATION
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '0.88rem',
+                    color: '#334155',
+                    lineHeight: 1.62,
+                    marginBottom: '28px',
+                  }}
+                >
+                  Create and manage administrative users with two distinct roles: Backoffice and Grid Operator.
+                </p>
+              </div>
+
+              <Link
+                to="/backoffice/staff"
+                style={{
+                  background: '#1d72f2',
+                  color: '#ffffff',
+                  borderRadius: '14px',
+                  padding: '13px 22px',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 4px 16px rgba(29, 114, 242, 0.35)',
+                }}
+              >
+                <span>Manage Staff Users</span>
+                <i className="bi bi-arrow-right fs-6"></i>
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2: Prosumer Control */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.72)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '36px 28px 28px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 16px 36px -8px rgba(10, 35, 70, 0.12)',
+                transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 20px 42px -6px rgba(10, 35, 70, 0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 16px 36px -8px rgba(10, 35, 70, 0.12)';
+              }}
+            >
+              <div>
+                {/* Icon box with soft diffuse cyan glow */}
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '18px',
+                    background: 'rgba(207, 250, 254, 0.95)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0891b2',
+                    fontSize: '1.65rem',
+                    marginBottom: '24px',
+                    boxShadow: '0 0 32px 8px rgba(6, 182, 212, 0.38)',
+                  }}
+                >
+                  <i className="bi bi-person-circle"></i>
+                </div>
+
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  Prosumer Control
+                </h3>
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: '#64748b',
+                    marginBottom: '16px',
+                  }}
+                >
+                  NIC-BASED REGISTRY
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '0.88rem',
+                    color: '#334155',
+                    lineHeight: 1.62,
+                    marginBottom: '28px',
+                  }}
+                >
+                  View pending activations, activate, deactivate, or reactivate prosumer profiles using National Identity Card (NIC).
+                </p>
+              </div>
+
+              <Link
+                to="/backoffice/prosumers"
+                style={{
+                  background: '#0099ad',
+                  color: '#ffffff',
+                  borderRadius: '14px',
+                  padding: '13px 22px',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 4px 16px rgba(0, 153, 173, 0.35)',
+                }}
+              >
+                <span>Manage Prosumers</span>
+                <i className="bi bi-arrow-right fs-6"></i>
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Microgrid Nodes */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.72)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '36px 28px 28px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 16px 36px -8px rgba(10, 35, 70, 0.12)',
+                transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 20px 42px -6px rgba(10, 35, 70, 0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 16px 36px -8px rgba(10, 35, 70, 0.12)';
+              }}
+            >
+              <div>
+                {/* Icon box with soft diffuse green glow */}
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '18px',
+                    background: 'rgba(220, 252, 231, 0.95)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#16a34a',
+                    fontSize: '1.65rem',
+                    marginBottom: '24px',
+                    boxShadow: '0 0 32px 8px rgba(34, 197, 94, 0.38)',
+                  }}
+                >
+                  <i className="bi bi-broadcast-pin"></i>
+                </div>
+
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  Microgrid Nodes
+                </h3>
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: '#64748b',
+                    marginBottom: '16px',
+                  }}
+                >
+                  SOLAR HUBS & SPECS
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '0.88rem',
+                    color: '#334155',
+                    lineHeight: 1.62,
+                    marginBottom: '28px',
+                  }}
+                >
+                  Create solar hubs with GPS coordinates, capacity specs (kW/h), and battery storage slots. Deactivation is protected against active reservations.
+                </p>
+              </div>
+
+              <Link
+                to="/backoffice/stations"
+                style={{
+                  background: '#22c55e',
+                  color: '#ffffff',
+                  borderRadius: '14px',
+                  padding: '13px 22px',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 4px 16px rgba(34, 197, 94, 0.35)',
+                }}
+              >
+                <span>Configure Hubs</span>
+                <i className="bi bi-arrow-right fs-6"></i>
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 4: Energy Reservations */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.72)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '36px 28px 28px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 16px 36px -8px rgba(10, 35, 70, 0.12)',
+                transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 20px 42px -6px rgba(10, 35, 70, 0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 16px 36px -8px rgba(10, 35, 70, 0.12)';
+              }}
+            >
+              <div>
+                {/* Icon box with soft diffuse orange glow */}
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '18px',
+                    background: 'rgba(255, 237, 213, 0.95)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ea580c',
+                    fontSize: '1.65rem',
+                    marginBottom: '24px',
+                    boxShadow: '0 0 32px 8px rgba(249, 115, 22, 0.38)',
+                  }}
+                >
+                  <i className="bi bi-calendar2-check"></i>
+                </div>
+
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  Energy Reservations
+                </h3>
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: '#64748b',
+                    marginBottom: '16px',
+                  }}
+                >
+                  POWER TRADING OVERSIGHT
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '0.88rem',
+                    color: '#334155',
+                    lineHeight: 1.62,
+                    marginBottom: '28px',
+                  }}
+                >
+                  Monitor power trading bookings across stations, enforcing 7-day advance reservation and 12-hour cancellation notice rules.
+                </p>
+              </div>
+
+              <Link
+                to="/backoffice/reservations"
+                style={{
+                  background: '#f97316',
+                  color: '#ffffff',
+                  borderRadius: '14px',
+                  padding: '13px 22px',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                }}
+              >
+                <span>View Reservations</span>
+                <i className="bi bi-arrow-right fs-6"></i>
+              </Link>
+            </div>
+          </div>
+
+        </div>
 
         {/* BOTTOM STATUS BAR */}
         <div className="d-flex justify-content-between align-items-center pt-3 text-white text-opacity-75" style={{ fontSize: '0.78rem' }}>
