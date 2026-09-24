@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import BackofficePageHero from '../../components/BackofficePageHero';
 
 const ReservationManagement = () => {
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
+
   return (
     <div
       style={{
@@ -27,6 +35,58 @@ const ReservationManagement = () => {
           breadcrumb={['Reservations']}
         />
 
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.95)',
+            padding: '20px 28px',
+            marginBottom: '28px',
+          }}
+        >
+          <form onSubmit={handleSearchSubmit} className="row g-3 align-items-center">
+            <div className="col-lg-8 col-md-12">
+              <div style={{ position: 'relative' }}>
+                <i className="bi bi-search" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
+                <input
+                  type="text"
+                  placeholder="Search by code, prosumer, or station..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '11px 18px 11px 44px',
+                    borderRadius: '50px',
+                    background: '#ffffff',
+                    border: '1px solid rgba(148, 163, 184, 0.35)',
+                    fontSize: '0.88rem',
+                    color: '#0f172a',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
+            <div className="col-lg-4 col-md-12 d-flex gap-2">
+              <button
+                type="submit"
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, #0070f3 0%, #0051b3 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '50px',
+                  padding: '11px 20px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Search
+              </button>
+            </div>
+          </form>
+        </div>
+
         <div style={{ marginTop: '36px', textAlign: 'center' }}>
           <Link
             to="/backoffice"
@@ -43,7 +103,6 @@ const ReservationManagement = () => {
               padding: '10px 24px',
               borderRadius: '50px',
               border: '1px solid rgba(255, 255, 255, 0.35)',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
             }}
           >
             <i className="bi bi-arrow-left"></i>
