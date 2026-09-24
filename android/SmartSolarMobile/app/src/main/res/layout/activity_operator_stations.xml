@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: activity_operator_stations.xml
+     Description: Grid Operator Station Fleet - Styled with Soft Light Glassmorphism UI
+     ============================================================================ -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_canvas"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="24dp">
+
+    <FrameLayout
+        android:id="@+id/btn_back_header"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_neuro_icon_circle"
+        android:layout_marginBottom="12dp"
+        android:clickable="true"
+        android:focusable="true">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_line_back_arrow"
+            android:contentDescription="Back" />
+    </FrameLayout>
+
+    <!-- Header Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp"
+        android:paddingHorizontal="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GRID FLEET TELEMETRY"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.1"
+            android:textColor="@color/neuro_text_muted"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Solar Station Fleet"
+            android:textSize="24sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="@color/neuro_text_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Monitor active microgrid hubs &amp; configure battery slot capacities."
+            android:textSize="12sp"
+            android:textColor="@color/neuro_text_secondary"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <com.smartsolar.mobile.ui.common.LoadingDotsView
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"        android:visibility="gone"
+        android:layout_margin="12dp" />
+
+    <!-- Empty State View -->
+    <LinearLayout
+        android:id="@+id/card_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/bg_neuro_card"
+        android:padding="32dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No microgrid stations found."
+            android:textColor="@color/neuro_text_muted"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="14sp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Stations RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_stations"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="24dp"
+        android:overScrollMode="never" />
+</LinearLayout>
