@@ -2,7 +2,7 @@
 // File: UserDetails.cs
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Model representing user accounts including Backoffice,
+// Description: Model representing user accounts including Backoffice, 
 //              Grid Operator, and Solar Prosumer. Prosumers use NIC as primary key.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
@@ -82,18 +82,15 @@ namespace SmartSolarApi.Models
         [BsonElement("emailUpdateReviewNotes")]
         public string? EmailUpdateReviewNotes { get; set; }
 
-        // History of timestamps when email updates were performed
-        // Used for 24h rate limiting: maximum 3
+        // History of timestamps when email updates were performed (used for 24h rate limiting: max 3)
         [BsonElement("emailUpdateHistory")]
         public List<DateTime> EmailUpdateHistory { get; set; } = new List<DateTime>();
 
-        // GPS Latitude of the prosumer's solar panel installation site
-        // Used for nearby nodes lookup
+        // GPS Latitude of the prosumer's solar panel installation site (used for nearby nodes lookup)
         [BsonElement("installationLatitude")]
         public double? InstallationLatitude { get; set; }
 
-        // GPS Longitude of the prosumer's solar panel installation site
-        // Used for nearby nodes lookup
+        // GPS Longitude of the prosumer's solar panel installation site (used for nearby nodes lookup)
         [BsonElement("installationLongitude")]
         public double? InstallationLongitude { get; set; }
 
@@ -101,13 +98,11 @@ namespace SmartSolarApi.Models
         [BsonElement("passwordResetOtp")]
         public string? PasswordResetOtp { get; set; }
 
-        // Timestamp when password reset OTP expires
-        // Strictly 5 minutes from generation
+        // Timestamp when password reset OTP expires (strictly 5 minutes from generation)
         [BsonElement("passwordResetOtpExpiry")]
         public DateTime? PasswordResetOtpExpiry { get; set; }
 
-        // Flag indicating that OTP was successfully verified
-        // within the 5-minute window
+        // Flag indicating that OTP was successfully verified within the 5-minute window
         [BsonElement("passwordResetVerified")]
         public bool PasswordResetVerified { get; set; } = false;
 
