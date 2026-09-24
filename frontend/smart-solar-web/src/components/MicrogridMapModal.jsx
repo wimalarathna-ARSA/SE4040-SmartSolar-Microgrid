@@ -5,7 +5,6 @@
 // Description: Leaflet.js interactive map modal rendering all active stations from GPS coordinates.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
@@ -60,6 +59,7 @@ export const getSlotAvailabilityInfo = (station) => {
     };
   }
 
+  // available > 0 && available <= total / 2
   return {
     status: 'low',
     color: '#f59e0b',
@@ -103,7 +103,6 @@ const createStationIcon = (station, isSelected = false) => {
         ${pulseEffect}
       ">
         <i class="bi bi-geo-alt-fill" style="color: #ffffff; font-size: 18px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));"></i>
-
         ${
           station.availableBatterySlots !== undefined
             ? `
@@ -143,8 +142,7 @@ const MicrogridMapModal = ({
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const markersMapRef = useRef({});
-
+  const markersMapRef = useRef({}); // stationId -> L.marker
   const [selectedStation, setSelectedStation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -168,8 +166,7 @@ const MicrogridMapModal = ({
 
     const defaultCenter = focusStation
       ? [focusStation.latitude || 6.9271, focusStation.longitude || 79.8612]
-      : [7.8731, 80.7718];
-
+      : [7.8731, 80.7718]; // Center of Sri Lanka
     const defaultZoom = focusStation ? 14 : 8;
 
     const map = L.map(mapContainerRef.current, {
@@ -177,7 +174,6 @@ const MicrogridMapModal = ({
       zoom: defaultZoom,
       zoomControl: false,
     });
-
     mapInstanceRef.current = map;
 
     // Add zoom control to top-right
@@ -197,30 +193,23 @@ const MicrogridMapModal = ({
     stations.forEach((s) => {
       const lat = parseFloat(s.latitude);
       const lng = parseFloat(s.longitude);
-
       if (isNaN(lat) || isNaN(lng)) return;
 
       const isFocused = focusStation && focusStation.id === s.id;
-
       const marker = L.marker([lat, lng], {
         icon: createStationIcon(s, isFocused),
       });
 
       // Build rich popup HTML content
       const slotInfo = getSlotAvailabilityInfo(s);
-
       const slotPercent =
-        s.totalBatterySlots > 0
-          ? (s.availableBatterySlots / s.totalBatterySlots) * 100
-          : 0;
-
+        s.totalBatterySlots > 0 ? (s.availableBatterySlots / s.totalBatterySlots) * 100 : 0;
       const popupHtml = `
         <div style="font-family: 'Inter', sans-serif; min-width: 260px; max-width: 320px; padding: 2px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
             <span style="background: #0f172a; color: #34d399; font-family: monospace; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 50px;">
               ${s.stationCode || 'HUB'}
             </span>
-
             <span style="background: ${slotInfo.color}; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 50px;">
               ${slotInfo.shortLabel}
             </span>
@@ -240,7 +229,6 @@ const MicrogridMapModal = ({
               <i class="bi bi-clock-history"></i>
               <span>OPERATIONAL SCHEDULE</span>
             </div>
-
             <div style="font-size: 12px; font-weight: 700; color: #065f46;">
               ${s.operationalSchedule || 'Mon-Sun 06:00 - 22:00'}
             </div>
@@ -249,58 +237,32 @@ const MicrogridMapModal = ({
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">
               <span>Battery Slot Status:</span>
-
-              <span style="color: ${slotInfo.color}; font-weight: 800;">
-                ${s.availableBatterySlots} / ${s.totalBatterySlots} Free
-              </span>
+              <span style="color: ${slotInfo.color}; font-weight: 800;">${s.availableBatterySlots} / ${s.totalBatterySlots} Free</span>
             </div>
-
             <div style="width: 100%; height: 7px; background: #e2e8f0; border-radius: 50px; overflow: hidden; margin-bottom: 4px;">
               <div style="width: ${slotPercent}%; height: 100%; background: ${slotInfo.color}; border-radius: 50px;"></div>
             </div>
-
             <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #64748b; margin-top: 4px;">
               <span>${slotInfo.label}</span>
-
-              <strong style="color: #0f172a;">
-                ${s.capacityKWh || 0} kWh
-              </strong>
+              <strong style="color: #0f172a;">${s.capacityKWh || 0} kWh</strong>
             </div>
           </div>
 
           <div style="display: flex; gap: 6px; margin-top: 8px;">
-            <a
-              href="/operator/slots?stationId=${s.id}"
-              style="
-                flex: 1;
-                text-align: center;
-                background: ${slotInfo.color};
-                color: #ffffff;
-                text-decoration: none;
-                font-size: 11px;
-                font-weight: 700;
-                padding: 6px 10px;
-                border-radius: 6px;
-                display: inline-block;
-              "
-            >
-              <i class="bi bi-sliders me-1"></i>
-              Manage Slots
+            <a href="/operator/slots?stationId=${s.id}" style="flex: 1; text-align: center; background: ${slotInfo.color}; color: #ffffff; text-decoration: none; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 6px; display: inline-block;">
+              <i class="bi bi-sliders me-1"></i>Manage Slots
             </a>
           </div>
         </div>
       `;
 
-      marker.bindPopup(popupHtml, {
-        maxWidth: 320,
-      });
+      marker.bindPopup(popupHtml, { maxWidth: 320 });
 
       marker.on('click', () => {
         setSelectedStation(s);
       });
 
       marker.addTo(map);
-
       markersMapRef.current[s.id] = marker;
       markerGroup.push(marker);
     });
@@ -309,21 +271,17 @@ const MicrogridMapModal = ({
     if (focusStation) {
       const lat = parseFloat(focusStation.latitude);
       const lng = parseFloat(focusStation.longitude);
-
       if (!isNaN(lat) && !isNaN(lng)) {
         setTimeout(() => {
-          map.setView([lat, lng], 15, {
-            animate: true,
-          });
-
+          map.setView([lat, lng], 15, { animate: true });
           const m = markersMapRef.current[focusStation.id];
-
           if (m) {
             m.openPopup();
           }
         }, 200);
       }
     } else if (markerGroup.length > 0) {
+      // Fit all markers in view
       const group = L.featureGroup(markerGroup);
       map.fitBounds(group.getBounds().pad(0.15));
     }
@@ -344,22 +302,15 @@ const MicrogridMapModal = ({
   // Navigate directly to a specific station on the map
   const handleFlyToStation = (station) => {
     setSelectedStation(station);
-
     const map = mapInstanceRef.current;
-
     if (!map) return;
 
     const lat = parseFloat(station.latitude);
     const lng = parseFloat(station.longitude);
-
     if (!isNaN(lat) && !isNaN(lng)) {
-      map.flyTo([lat, lng], 15, {
-        duration: 1.2,
-      });
-
+      map.flyTo([lat, lng], 15, { duration: 1.2 });
       setTimeout(() => {
         const m = markersMapRef.current[station.id];
-
         if (m) {
           m.openPopup();
         }
@@ -370,15 +321,9 @@ const MicrogridMapModal = ({
   // Filter stations in the side panel search
   const filteredStations = stations.filter(
     (s) =>
-      String(s.name || '')
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      String(s.location || '')
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      String(s.stationCode || '')
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.stationCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!isOpen) return null;
@@ -418,7 +363,7 @@ const MicrogridMapModal = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
+        {/* ── Modal Header ── */}
         <div
           style={{
             padding: '18px 28px',
@@ -426,8 +371,7 @@ const MicrogridMapModal = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background:
-              'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+            background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
             color: '#ffffff',
           }}
         >
@@ -447,7 +391,6 @@ const MicrogridMapModal = ({
             >
               <i className="bi bi-map-fill"></i>
             </div>
-
             <div>
               <h3
                 style={{
@@ -460,14 +403,7 @@ const MicrogridMapModal = ({
               >
                 Solar Microgrid Nodes Geospatial Map
               </h3>
-
-              <div
-                style={{
-                  fontSize: '0.78rem',
-                  color: '#a7f3d0',
-                  marginTop: '2px',
-                }}
-              >
+              <div style={{ fontSize: '0.78rem', color: '#a7f3d0', marginTop: '2px' }}>
                 Interactive GIS view of all active solar microgrid nodes and battery storage hubs
               </div>
             </div>
@@ -486,9 +422,7 @@ const MicrogridMapModal = ({
             >
               {stations.length} Hub Nodes Plotted
             </span>
-
             <button
-              type="button"
               onClick={onClose}
               style={{
                 background: 'rgba(255, 255, 255, 0.15)',
@@ -502,6 +436,7 @@ const MicrogridMapModal = ({
                 justifyContent: 'center',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
+                transition: 'all 0.15s ease',
               }}
               title="Close Map"
             >
@@ -510,15 +445,8 @@ const MicrogridMapModal = ({
           </div>
         </div>
 
-        {/* Modal Body */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
+        {/* ── Modal Body: Map + Sidebar ── */}
+        <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
           {/* Map Container */}
           <div
             ref={mapContainerRef}
@@ -552,72 +480,25 @@ const MicrogridMapModal = ({
               fontWeight: 700,
             }}
           >
-            <span
-              style={{
-                color: '#0f172a',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
+            <span style={{ color: '#0f172a', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <i className="bi bi-geo-alt-fill text-primary"></i>
               <span>Slot Availability:</span>
             </span>
-
             <div className="d-flex align-items-center gap-1">
-              <span
-                style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: '#10b981',
-                  display: 'inline-block',
-                  boxShadow: '0 0 6px rgba(16, 185, 129, 0.6)',
-                }}
-              ></span>
-
-              <span style={{ color: '#065f46' }}>
-                &gt; 50% Slots (Green)
-              </span>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', boxShadow: '0 0 6px rgba(16, 185, 129, 0.6)' }}></span>
+              <span style={{ color: '#065f46' }}>&gt; 50% Slots (Green)</span>
             </div>
-
             <div className="d-flex align-items-center gap-1">
-              <span
-                style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: '#f59e0b',
-                  display: 'inline-block',
-                  boxShadow: '0 0 6px rgba(245, 158, 11, 0.6)',
-                }}
-              ></span>
-
-              <span style={{ color: '#92400e' }}>
-                &lt; 50% Slots (Yellow)
-              </span>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block', boxShadow: '0 0 6px rgba(245, 158, 11, 0.6)' }}></span>
+              <span style={{ color: '#92400e' }}>&lt; 50% Slots (Yellow)</span>
             </div>
-
             <div className="d-flex align-items-center gap-1">
-              <span
-                style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ef4444',
-                  display: 'inline-block',
-                  boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)',
-                }}
-              ></span>
-
-              <span style={{ color: '#991b1b' }}>
-                0 Slots / Full (Red)
-              </span>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block', boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)' }}></span>
+              <span style={{ color: '#991b1b' }}>0 Slots / Full (Red)</span>
             </div>
           </div>
 
-          {/* Right Sidebar */}
+          {/* Right Sidebar: Hubs List & Quick Navigation */}
           <div
             style={{
               width: '340px',
@@ -631,12 +512,7 @@ const MicrogridMapModal = ({
             }}
           >
             {/* Sidebar Search Bar */}
-            <div
-              style={{
-                padding: '14px 16px',
-                borderBottom: '1px solid #e2e8f0',
-              }}
-            >
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid #e2e8f0' }}>
               <div style={{ position: 'relative' }}>
                 <i
                   className="bi bi-search"
@@ -648,14 +524,11 @@ const MicrogridMapModal = ({
                     fontSize: '0.85rem',
                   }}
                 ></i>
-
                 <input
                   type="text"
                   placeholder="Search station or location..."
                   value={searchQuery}
-                  onChange={(e) =>
-                    setSearchQuery(e.target.value)
-                  }
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '8px 12px 8px 34px',
@@ -669,32 +542,15 @@ const MicrogridMapModal = ({
             </div>
 
             {/* Hubs Scrollable List */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '12px',
-              }}
-            >
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
               {filteredStations.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    padding: '24px 12px',
-                    color: '#94a3b8',
-                    fontSize: '0.84rem',
-                  }}
-                >
+                <div style={{ textAlign: 'center', padding: '24px 12px', color: '#94a3b8', fontSize: '0.84rem' }}>
                   No stations match your search.
                 </div>
               ) : (
                 filteredStations.map((s) => {
-                  const isSelected =
-                    selectedStation?.id === s.id;
-
-                  const slotInfo =
-                    getSlotAvailabilityInfo(s);
-
+                  const isSelected = selectedStation?.id === s.id;
+                  const slotInfo = getSlotAvailabilityInfo(s);
                   return (
                     <div
                       key={s.id}
@@ -704,33 +560,19 @@ const MicrogridMapModal = ({
                         borderRadius: '14px',
                         marginBottom: '8px',
                         cursor: 'pointer',
-                        background: isSelected
-                          ? '#ecfdf5'
-                          : '#f8fafc',
-                        border: isSelected
-                          ? '1.5px solid #10b981'
-                          : '1px solid #e2e8f0',
-                        boxShadow: isSelected
-                          ? '0 4px 12px rgba(16, 185, 129, 0.15)'
-                          : 'none',
+                        background: isSelected ? '#ecfdf5' : '#f8fafc',
+                        border: isSelected ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+                        boxShadow: isSelected ? '0 4px 12px rgba(16, 185, 129, 0.15)' : 'none',
                         transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background =
-                            '#f1f5f9';
-                        }
+                        if (!isSelected) e.currentTarget.style.background = '#f1f5f9';
                       }}
                       onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.background =
-                            '#f8fafc';
-                        }
+                        if (!isSelected) e.currentTarget.style.background = '#f8fafc';
                       }}
                     >
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                      >
+                      <div className="d-flex justify-content-between align-items-center mb-1">
                         <span
                           style={{
                             background: '#0f172a',
@@ -744,7 +586,6 @@ const MicrogridMapModal = ({
                         >
                           {s.stationCode}
                         </span>
-
                         <span
                           style={{
                             fontSize: '0.7rem',
@@ -760,35 +601,12 @@ const MicrogridMapModal = ({
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          fontWeight: 700,
-                          color: '#0f172a',
-                          fontSize: '0.88rem',
-                          marginBottom: '2px',
-                        }}
-                      >
+                      <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.88rem', marginBottom: '2px' }}>
                         {s.name}
                       </div>
 
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: '#64748b',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          marginBottom: '6px',
-                        }}
-                      >
-                        <i
-                          className="bi bi-geo-alt-fill"
-                          style={{
-                            color: slotInfo.color,
-                            fontSize: '0.9rem',
-                          }}
-                        ></i>
-
+                      <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+                        <i className="bi bi-geo-alt-fill" style={{ color: slotInfo.color, fontSize: '0.9rem' }}></i>
                         <span>{s.location}</span>
                       </div>
 
@@ -808,11 +626,7 @@ const MicrogridMapModal = ({
                         }}
                       >
                         <i className="bi bi-clock"></i>
-
-                        <span>
-                          {s.operationalSchedule ||
-                            '06:00 – 22:00'}
-                        </span>
+                        <span>{s.operationalSchedule || '06:00 – 22:00'}</span>
                       </div>
 
                       <div
@@ -824,45 +638,13 @@ const MicrogridMapModal = ({
                           fontSize: '0.74rem',
                         }}
                       >
-                        <span
-                          style={{
-                            color: slotInfo.color,
-                            fontWeight: 700,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: '8px',
-                              height: '8px',
-                              borderRadius: '50%',
-                              backgroundColor:
-                                slotInfo.color,
-                              display: 'inline-block',
-                            }}
-                          ></span>
-
-                          {s.availableBatterySlots} /{' '}
-                          {s.totalBatterySlots} slots free
+                        <span style={{ color: slotInfo.color, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: slotInfo.color, display: 'inline-block' }}></span>
+                          {s.availableBatterySlots} / {s.totalBatterySlots} slots free
                         </span>
-
-                        <span
-                          style={{
-                            color: '#0284c7',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '2px',
-                          }}
-                        >
+                        <span style={{ color: '#0284c7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
                           <span>Locate on Map</span>
-
-                          <i
-                            className="bi bi-arrow-right-short"
-                            style={{ fontSize: '1rem' }}
-                          ></i>
+                          <i className="bi bi-arrow-right-short" style={{ fontSize: '1rem' }}></i>
                         </span>
                       </div>
                     </div>
@@ -883,23 +665,13 @@ const MicrogridMapModal = ({
               }}
             >
               <button
-                type="button"
                 onClick={() => {
                   const map = mapInstanceRef.current;
-
                   if (!map) return;
-
-                  const markers = Object.values(
-                    markersMapRef.current
-                  );
-
+                  const markers = Object.values(markersMapRef.current);
                   if (markers.length > 0) {
-                    const group =
-                      L.featureGroup(markers);
-
-                    map.fitBounds(
-                      group.getBounds().pad(0.15)
-                    );
+                    const group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.15));
                   }
                 }}
                 style={{
@@ -913,18 +685,9 @@ const MicrogridMapModal = ({
                   cursor: 'pointer',
                 }}
               >
-                <i className="bi bi-arrows-fullscreen me-1"></i>
-                Fit All Nodes
+                <i className="bi bi-arrows-fullscreen me-1"></i> Fit All Nodes
               </button>
-
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  color: '#94a3b8',
-                }}
-              >
-                Leaflet / OpenStreetMap
-              </span>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Leaflet / OpenStreetMap</span>
             </div>
           </div>
         </div>
