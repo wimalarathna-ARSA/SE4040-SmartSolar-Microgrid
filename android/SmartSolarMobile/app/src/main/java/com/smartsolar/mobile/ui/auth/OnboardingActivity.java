@@ -38,14 +38,12 @@ public class OnboardingActivity extends AppCompatActivity {
         // Screen 1 actions
         View btnNext = findViewById(R.id.btn_onboarding_next);
         if (btnNext != null) btnNext.setOnClickListener(v -> showPage(1));
-
         View btnSkip = findViewById(R.id.btn_onboarding_skip);
         if (btnSkip != null) btnSkip.setOnClickListener(v -> finishOnboarding());
 
         // Screen 2 actions
         View btnBack = findViewById(R.id.btn_onboarding_back);
         if (btnBack != null) btnBack.setOnClickListener(v -> showPage(0));
-
         View btnGetStarted = findViewById(R.id.btn_onboarding_get_started);
         if (btnGetStarted != null) btnGetStarted.setOnClickListener(v -> finishOnboarding());
 
@@ -56,22 +54,15 @@ public class OnboardingActivity extends AppCompatActivity {
     private void showPage(int page) {
         // Apply directional slide animation and display the requested onboarding page
         if (flipper == null || flipper.getDisplayedChild() == page) return;
-
         try {
             if (page > flipper.getDisplayedChild()) {
-                flipper.setInAnimation(
-                        AnimationUtils.loadAnimation(this, R.anim.slide_in_right));
-                flipper.setOutAnimation(
-                        AnimationUtils.loadAnimation(this, R.anim.slide_out_left));
+                flipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_in_right));
+                flipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out_left));
             } else {
-                flipper.setInAnimation(
-                        AnimationUtils.loadAnimation(this, R.anim.slide_in_left));
-                flipper.setOutAnimation(
-                        AnimationUtils.loadAnimation(this, R.anim.slide_out_right));
+                flipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_in_left));
+                flipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out_right));
             }
-        } catch (Exception ignored) {
-        }
-
+        } catch (Exception ignored) {}
         flipper.setDisplayedChild(page);
         updateDots(page);
     }
@@ -80,39 +71,25 @@ public class OnboardingActivity extends AppCompatActivity {
     private void finishOnboarding() {
         // Persist onboarding completion flag and navigate to Login with cleared back stack
         OnboardingPrefs.setCompleted(this, true);
-
         Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK |
-                Intent.FLAG_ACTIVITY_CLEAR_TASK
-        );
-
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
 
     private void updateDots(int page) {
-        // Toggle dot indicator drawable states to reflect the current onboarding page
-        if (dot1 != null) {
-            dot1.setBackgroundResource(
-                    page == 0
-                            ? R.drawable.bg_onboarding_dot_selected
-                            : R.drawable.bg_onboarding_dot_unselected
-            );
-        }
-
-        if (dot2 != null) {
-            dot2.setBackgroundResource(
-                    page == 1
-                            ? R.drawable.bg_onboarding_dot_selected
-                            : R.drawable.bg_onboarding_dot_unselected
-            );
-        }
+        // Toggle dot indicator drawable states to reflect the currently displayed onboarding page
+        if (dot1 != null) dot1.setBackgroundResource(page == 0
+                ? R.drawable.bg_onboarding_dot_selected
+                : R.drawable.bg_onboarding_dot_unselected);
+        if (dot2 != null) dot2.setBackgroundResource(page == 1
+                ? R.drawable.bg_onboarding_dot_selected
+                : R.drawable.bg_onboarding_dot_unselected);
     }
 
     @Override
     public void onBackPressed() {
-        // Return to the previous onboarding page when currently viewing page 2
+        // Intercept back press: go to previous page if on page 2, otherwise let system handle
         if (flipper != null && flipper.getDisplayedChild() == 1) {
             showPage(0);
         } else {
