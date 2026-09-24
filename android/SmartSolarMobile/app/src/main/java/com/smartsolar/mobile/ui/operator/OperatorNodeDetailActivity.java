@@ -330,3 +330,4 @@ public class OperatorNodeDetailActivity extends AppCompatActivity {
     @Override public void onResume() { super.onResume(); if (mapView != null) mapView.onResume(); }
     @Override public void onPause() { super.onPause(); if (mapView != null) mapView.onPause(); }
 }
+
