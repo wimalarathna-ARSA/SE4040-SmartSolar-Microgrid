@@ -13,6 +13,11 @@ const ReservationManagement = () => {
     e.preventDefault();
   };
 
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
+  };
+
   return (
     <div
       style={{
@@ -110,6 +115,22 @@ const ReservationManagement = () => {
                 }}
               >
                 Apply Filter
+              </button>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  color: '#475569',
+                  border: '1px solid rgba(148, 163, 184, 0.4)',
+                  borderRadius: '50px',
+                  padding: '11px 20px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Reset
               </button>
             </div>
           </form>
