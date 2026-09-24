@@ -10,7 +10,7 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * ScrollProgressBar
- * A neon cyan/emerald progress bar that tracks page scroll progress.
+ * A neon cyan/emerald progress bar with a glowing leading indicator.
  */
 const ScrollProgressBar = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -76,7 +76,23 @@ const ScrollProgressBar = () => {
           transition: 'width 0.1s linear',
           position: 'relative',
         }}
-      />
+      >
+        <div
+          style={{
+            position: 'absolute',
+            right: '-4px',
+            top: '-3px',
+            width: '10px',
+            height: '10px',
+            borderRadius: '50%',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 0 8px #00ffce, 0 0 16px #00ffce',
+            opacity:
+              scrollProgress > 1 && scrollProgress < 99 ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+          }}
+        />
+      </div>
     </div>
   );
 };
