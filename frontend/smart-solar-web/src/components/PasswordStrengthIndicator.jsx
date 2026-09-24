@@ -2,30 +2,26 @@
 // File: PasswordStrengthIndicator.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Live password strength meter with progress bar and checklist.
+// Description: Reusable live password strength meter component with progress bar and checklist.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
+// ============================================================================
+// ============================================================================
+// File: PasswordStrengthIndicator.jsx
+// Description: Live visual password strength meter with checklist.
 // ============================================================================
 
 import React from 'react';
 import { evaluatePassword } from '../utils/passwordValidator';
 
-const PasswordStrengthIndicator = ({
-  password = '',
-  isDark = false
-}) => {
+const PasswordStrengthIndicator = ({ password = '', isDark = false }) => {
   if (!password) return null;
 
-  const { criteria, strengthLabel, color, percent } =
-    evaluatePassword(password);
+  const { criteria, strengthLabel, color, percent } = evaluatePassword(password);
 
   const textColor = isDark ? '#e2e8f0' : '#334155';
   const mutedText = isDark ? '#94a3b8' : '#64748b';
-  const boxBg = isDark
-    ? 'rgba(255, 255, 255, 0.05)'
-    : 'rgba(241, 245, 249, 0.85)';
-  const boxBorder = isDark
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(226, 232, 240, 0.9)';
+  const boxBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(241, 245, 249, 0.85)';
+  const boxBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(226, 232, 240, 0.9)';
 
   return (
     <div
@@ -39,33 +35,19 @@ const PasswordStrengthIndicator = ({
         fontSize: '0.82rem',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '6px',
-        }}
-      >
+      {/* Strength Bar & Label */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
         <span style={{ fontWeight: 600, color: textColor }}>
-          Strength:{' '}
-          <span style={{ color: color, fontWeight: 800 }}>
-            {strengthLabel}
-          </span>
+          Strength: <span style={{ color: color, fontWeight: 800 }}>{strengthLabel}</span>
         </span>
-
-        <span style={{ fontSize: '0.75rem', color: mutedText }}>
-          {percent}%
-        </span>
+        <span style={{ fontSize: '0.75rem', color: mutedText }}>{percent}%</span>
       </div>
 
       <div
         style={{
           width: '100%',
           height: '6px',
-          background: isDark
-            ? 'rgba(255,255,255,0.1)'
-            : '#e2e8f0',
+          background: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
           borderRadius: '999px',
           overflow: 'hidden',
           marginBottom: '10px',
@@ -81,14 +63,8 @@ const PasswordStrengthIndicator = ({
         />
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns:
-            'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: '4px',
-        }}
-      >
+      {/* Criteria Checklist */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '4px' }}>
         {criteria.map((c) => (
           <div
             key={c.id}
