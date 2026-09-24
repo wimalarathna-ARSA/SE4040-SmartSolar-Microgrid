@@ -16,10 +16,7 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
     <div
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        inset: 0,
         backgroundColor: 'rgba(10, 25, 47, 0.72)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
@@ -45,11 +42,10 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
+        {/* Header */}
         <div
           style={{
             padding: '22px 28px',
-            borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -65,7 +61,6 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
                 height: '42px',
                 borderRadius: '12px',
                 background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -81,7 +76,6 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
                   margin: 0,
                   fontSize: '1.15rem',
                   fontWeight: 800,
-                  letterSpacing: '-0.015em',
                   color: '#ffffff',
                 }}
               >
@@ -109,21 +103,17 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
               width: '34px',
               height: '34px',
               borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               cursor: 'pointer',
               fontSize: '1.2rem',
             }}
-            title="Close"
           >
             &times;
           </button>
         </div>
 
-        {/* Modal Content */}
+        {/* Content */}
         <div style={{ padding: '24px 28px' }}>
-          {/* Station Identification Card */}
+          {/* Station Card */}
           <div
             style={{
               background: '#f8fafc',
@@ -204,18 +194,6 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
               >
                 <i className="bi bi-geo-alt-fill text-success"></i>
                 <span>{station.location}</span>
-
-                {station.latitude && station.longitude && (
-                  <span
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#94a3b8',
-                    }}
-                  >
-                    ({station.latitude.toFixed(4)},{' '}
-                    {station.longitude.toFixed(4)})
-                  </span>
-                )}
               </div>
             </div>
 
@@ -233,16 +211,215 @@ const NodeScheduleModal = ({ isOpen, onClose, station, onViewOnMap }) => {
                   fontSize: '0.78rem',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
                 }}
               >
                 <i className="bi bi-geo-alt"></i>
                 <span>Locate on Map</span>
               </button>
             )}
+          </div>
+
+          {/* Timetable */}
+          <div
+            style={{
+              background:
+                'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+              border: '1.5px solid #6ee7b7',
+              borderRadius: '18px',
+              padding: '18px 22px',
+              marginBottom: '20px',
+            }}
+          >
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <i className="bi bi-clock-fill text-success"></i>
+
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: '#065f46',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Published Operational Timetable
+              </span>
+            </div>
+
+            <div
+              style={{
+                fontSize: '1.45rem',
+                fontWeight: 900,
+                color: '#064e3b',
+              }}
+            >
+              {station.operationalSchedule ||
+                'Mon-Sun 06:00 – 22:00 Daily'}
+            </div>
+
+            <div
+              style={{
+                fontSize: '0.8rem',
+                color: '#047857',
+                marginTop: '4px',
+              }}
+            >
+              Physical battery swaps, energy drop-offs, and prosumer bay
+              access are authorized during these hours.
+            </div>
+          </div>
+
+          {/* Telemetry */}
+          <div className="row g-3 mb-4">
+            <div className="col-md-6">
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  padding: '14px 16px',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Battery Bay Occupancy
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    fontWeight: 800,
+                    color: '#059669',
+                  }}
+                >
+                  {station.availableBatterySlots} /{' '}
+                  {station.totalBatterySlots} Slots
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#64748b',
+                    marginTop: '2px',
+                  }}
+                >
+                  Managed live by Grid Operators
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  padding: '14px 16px',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Storage Capacity
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    fontWeight: 800,
+                    color: '#0f172a',
+                  }}
+                >
+                  {station.capacityKWh}{' '}
+                  <span
+                    style={{
+                      fontSize: '0.85rem',
+                      color: '#64748b',
+                    }}
+                  >
+                    kWh
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#64748b',
+                    marginTop: '2px',
+                  }}
+                >
+                  Peak grid storage capability
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Operator Bay Guidelines */}
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              padding: '16px 20px',
+              marginBottom: '10px',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                marginBottom: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <i className="bi bi-shield-check text-success"></i>
+              <span>Operator Bay Guidelines &amp; Protocol</span>
+            </div>
+
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: '20px',
+                fontSize: '0.8rem',
+                color: '#334155',
+                lineHeight: 1.6,
+              }}
+            >
+              <li>
+                <strong>QR Authentication:</strong> Scan and authenticate the
+                prosumer's secure QR code prior to physical battery bay
+                release.
+              </li>
+
+              <li>
+                <strong>Slot Synchronization:</strong> Immediately adjust slot
+                availability upon battery swap completion to maintain system
+                inventory accuracy.
+              </li>
+
+              <li>
+                <strong>12-Hour Notice Policy:</strong> Booking modifications
+                or cancellations require at least 12 hours' notice prior to
+                slot start time.
+              </li>
+            </ul>
           </div>
         </div>
 
