@@ -10,7 +10,8 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * ScrollProgressBar
- * A neon cyan/emerald progress bar with a glowing leading indicator.
+ * A sleek, high-precision neon cyan/emerald progress bar pinned to the top
+ * of the browser window that tracks scroll progress through the homepage.
  */
 const ScrollProgressBar = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -20,16 +21,22 @@ const ScrollProgressBar = () => {
 
     const updateScrollProgress = () => {
       const scrollPx =
-        document.documentElement.scrollTop || document.body.scrollTop;
+        document.documentElement.scrollTop ||
+        document.body.scrollTop;
 
       const winHeightPx =
         document.documentElement.scrollHeight -
         document.documentElement.clientHeight;
 
       const scrolled =
-        winHeightPx > 0 ? (scrollPx / winHeightPx) * 100 : 0;
+        winHeightPx > 0
+          ? (scrollPx / winHeightPx) * 100
+          : 0;
 
-      setScrollProgress(Math.min(100, Math.max(0, scrolled)));
+      setScrollProgress(
+        Math.min(100, Math.max(0, scrolled))
+      );
+
       ticking = false;
     };
 
@@ -46,9 +53,8 @@ const ScrollProgressBar = () => {
 
     updateScrollProgress();
 
-    return () => {
+    return () =>
       window.removeEventListener('scroll', onScroll);
-    };
   }, []);
 
   return (
@@ -77,6 +83,7 @@ const ScrollProgressBar = () => {
           position: 'relative',
         }}
       >
+        {/* Leading glowing spark particle */}
         <div
           style={{
             position: 'absolute',
@@ -86,9 +93,12 @@ const ScrollProgressBar = () => {
             height: '10px',
             borderRadius: '50%',
             backgroundColor: '#ffffff',
-            boxShadow: '0 0 8px #00ffce, 0 0 16px #00ffce',
+            boxShadow:
+              '0 0 8px #00ffce, 0 0 16px #00ffce',
             opacity:
-              scrollProgress > 1 && scrollProgress < 99 ? 1 : 0,
+              scrollProgress > 1 && scrollProgress < 99
+                ? 1
+                : 0,
             transition: 'opacity 0.2s ease',
           }}
         />
