@@ -192,7 +192,120 @@ const BackofficeDashboard = () => {
               </div>
             </div>
           </div>
-          </div> 
+
+         {/* 2. APPROVED FUTURE */}
+          <div className="col-lg-3 col-md-6 col-sm-6">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.76)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                borderRadius: '18px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '18px 20px',
+                minHeight: '118px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 10px 25px -4px rgba(7, 43, 82, 0.1)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <img src="/images/house_2.png" alt="" aria-hidden="true" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ position: 'absolute', right: '-12px', bottom: '-12px', width: '110px', height: '110px', objectFit: 'contain', opacity: 0.18, pointerEvents: 'none', zIndex: 0 }} />
+              <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase' }}>
+                  APPROVED FUTURE
+                </span>
+              </div>
+              <div style={{ fontSize: '2.3rem', fontWeight: 800, color: '#16a34a', lineHeight: 1, margin: '8px 0 3px' }}>
+                {stats.countOfApprovedFutureReservations || 2}
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 500 }}>
+                Within 7 Days
+              </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. PROSUMERS */}
+          <div className="col-lg-3 col-md-6 col-sm-6">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.76)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                borderRadius: '18px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '18px 20px',
+                minHeight: '118px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 10px 25px -4px rgba(7, 43, 82, 0.1)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <img src="/images/house_3.png" alt="" aria-hidden="true" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ position: 'absolute', right: '-12px', bottom: '-12px', width: '110px', height: '110px', objectFit: 'contain', opacity: 0.18, pointerEvents: 'none', zIndex: 0 }} />
+              <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase' }}>
+                  PROSUMERS
+                </span>
+              </div>
+              <div style={{ fontSize: '2.3rem', fontWeight: 800, color: '#0284c7', lineHeight: 1, margin: '8px 0 3px' }}>
+                {stats.totalProsumersCount || 5}
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 500 }}>
+                Registered by NIC
+              </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. COMPLETED */}
+          <div className="col-lg-3 col-md-6 col-sm-6">
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.76)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                borderRadius: '18px',
+                border: '1px solid rgba(255, 255, 255, 0.85)',
+                padding: '18px 20px',
+                minHeight: '118px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 10px 25px -4px rgba(7, 43, 82, 0.1)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <img src="/images/house_4.png" alt="" aria-hidden="true" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ position: 'absolute', right: '-12px', bottom: '-12px', width: '110px', height: '110px', objectFit: 'contain', opacity: 0.18, pointerEvents: 'none', zIndex: 0 }} />
+              <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase' }}>
+                  COMPLETED
+                </span>
+              </div>
+              <div style={{ fontSize: '2.3rem', fontWeight: 800, color: '#16a34a', lineHeight: 1, margin: '8px 0 3px' }}>
+                {stats.completedReservationsCount || 1}
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 500 }}>
+                Finalized Trades
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+          
 
         {/* BOTTOM STATUS BAR */}
         <div className="d-flex justify-content-between align-items-center pt-3 text-white text-opacity-75" style={{ fontSize: '0.78rem' }}>
