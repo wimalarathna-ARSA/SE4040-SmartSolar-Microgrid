@@ -7,6 +7,7 @@ const ReservationManagement = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -46,7 +47,7 @@ const ReservationManagement = () => {
           }}
         >
           <form onSubmit={handleSearchSubmit} className="row g-3 align-items-center">
-            <div className="col-lg-8 col-md-12">
+            <div className="col-lg-5 col-md-12">
               <div style={{ position: 'relative' }}>
                 <i className="bi bi-search" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
                 <input
@@ -67,7 +68,33 @@ const ReservationManagement = () => {
                 />
               </div>
             </div>
-            <div className="col-lg-4 col-md-12 d-flex gap-2">
+
+            <div className="col-lg-4 col-md-6">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '11px 20px',
+                  borderRadius: '50px',
+                  background: '#ffffff',
+                  border: '1px solid rgba(148, 163, 184, 0.35)',
+                  fontSize: '0.88rem',
+                  color: '#0f172a',
+                  outline: 'none',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="">All Reservation Statuses</option>
+                <option value="Approved">Approved (Ready with QR)</option>
+                <option value="Pending">Pending Approval</option>
+                <option value="Completed">Completed (Finalized by Operator)</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div className="col-lg-3 col-md-6 d-flex gap-2">
               <button
                 type="submit"
                 style={{
@@ -77,11 +104,12 @@ const ReservationManagement = () => {
                   border: 'none',
                   borderRadius: '50px',
                   padding: '11px 20px',
+                  fontSize: '0.85rem',
                   fontWeight: 700,
                   cursor: 'pointer',
                 }}
               >
-                Search
+                Apply Filter
               </button>
             </div>
           </form>
