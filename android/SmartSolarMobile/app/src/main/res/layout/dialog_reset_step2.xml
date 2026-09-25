@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- dialog_reset_step2.xml – Step 2: 5-min countdown + OTP entry -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_neuro_card">
+
+    <!-- Icon + Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_neuro_icon_circle"
+            android:layout_marginBottom="12dp">
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_line_mail"
+                android:contentDescription="Verification code" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter Verification Code"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="@color/neuro_text_primary"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 2 of 3 — Enter the 6-digit OTP"
+            android:textSize="12sp"
+            android:textColor="@color/neuro_text_muted"
+            android:layout_gravity="center"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+
+    <!-- Countdown Timer Badge -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_neuro_card"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Code valid for:"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/neuro_text_secondary"/>
+
+        <TextView
+            android:id="@+id/tv_otp_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="05:00"
+            android:textSize="18sp"
+            android:fontFamily="monospace"
+            android:textColor="@color/neuro_green"/>
+    </LinearLayout>
+
+    <!-- Sent-to message -->
+    <TextView
+        android:id="@+id/tv_otp_sent_to"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Code sent to your email"
+        android:textSize="12sp"
+        android:textColor="@color/neuro_text_muted"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Error Banner -->
+    <TextView
+        android:id="@+id/tv_reset_error2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/neuro_danger"
+        android:background="@color/neuro_danger_bg"
+        android:padding="10dp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"/>
+
+    <!-- OTP Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="6-Digit Code"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:boxBackgroundColor="@color/neuro_input_bg"
+        app:boxStrokeColor="@color/neuro_green"
+        app:boxCornerRadiusTopStart="14dp"
+        app:boxCornerRadiusTopEnd="14dp"
+        app:boxCornerRadiusBottomStart="14dp"
+        app:boxCornerRadiusBottomEnd="14dp"
+        app:hintTextColor="@color/neuro_text_green"
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_reset_otp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/neuro_text_primary"
+            android:inputType="number"
+            android:maxLength="6"
+            android:gravity="center"
+            android:textSize="24sp"
+            android:letterSpacing="0.5"
+            android:imeOptions="actionDone"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Verify Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_reset_verify_otp"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Verify Code &amp; Continue"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-bold"
+        android:textColor="@color/text_on_accent"
+        android:background="@drawable/bg_btn_primary"
+        app:backgroundTint="@null"
+        app:cornerRadius="16dp"
+        android:textAllCaps="false"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Resend OTP link -->
+    <TextView
+        android:id="@+id/btn_resend_otp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Didn't receive code? Resend OTP"
+        android:textColor="@color/neuro_text_green"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="13sp"
+        android:layout_gravity="center"
+        android:padding="10dp"/>
+
+    <!-- Progress Spinner -->
+    <com.smartsolar.mobile.ui.common.LoadingDotsView
+        android:id="@+id/pb_reset2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"        android:layout_marginTop="8dp"
+        android:visibility="gone"/>
+
+</LinearLayout>
