@@ -2,7 +2,7 @@
 // File: ProtectedRoute.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Route guard component enforcing authenticated access.
+// Description: Route guard component enforcing authenticated access with loading handling.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -11,7 +11,17 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-50">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
