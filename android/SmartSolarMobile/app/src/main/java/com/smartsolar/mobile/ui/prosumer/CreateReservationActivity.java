@@ -6,6 +6,10 @@ import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.SessionManager;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateReservationActivity extends AppCompatActivity {
 
@@ -16,6 +20,8 @@ public class CreateReservationActivity extends AppCompatActivity {
     private GridLayout gridSlots;
     private View progressBar;
     private SessionManager sessionManager;
+    private List<JSONObject> stationList = new ArrayList<>();
+    private String preSelectedStationId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +29,7 @@ public class CreateReservationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_reservation);
 
         sessionManager = new SessionManager(this);
+        preSelectedStationId = getIntent().getStringExtra("selected_station_id");
 
         spinnerStation  = findViewById(R.id.spinner_station);
         spinnerType     = findViewById(R.id.spinner_type);
@@ -38,5 +45,33 @@ public class CreateReservationActivity extends AppCompatActivity {
         progressBar     = findViewById(R.id.progress_bar);
 
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
+    }
+
+    private void setupStationSpinner(JSONArray array) {
+        stationList.clear();
+        List<String> stationNames = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            try {
+                JSONObject s = array.getJSONObject(i);
+                stationList.add(s);
+                stationNames.add(s.getString("name") + " (" + s.optInt("availableBatterySlots") + " slots free)");
+            } catch (Exception ignored) {}
+        }
+        
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, stationNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerStation.setAdapter(adapter);
+
+        if (preSelectedStationId != null) {
+            for (int i = 0; i < stationList.size(); i++) {
+                try {
+                    if (preSelectedStationId.equals(stationList.get(i).getString("id"))) {
+                        spinnerStation.setSelection(i);
+                        break;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
     }
 }
