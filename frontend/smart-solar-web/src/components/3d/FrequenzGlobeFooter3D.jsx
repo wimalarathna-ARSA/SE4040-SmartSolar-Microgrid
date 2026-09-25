@@ -2,7 +2,7 @@
 // File: FrequenzGlobeFooter3D.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Three.js foundation for the SmartSolar footer globe visualization.
+// Description: Three.js interactive 3D glowing wireframe globe for website footer CTA.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -11,8 +11,8 @@ import * as THREE from 'three';
 
 /**
  * FrequenzGlobeFooter3D
- * Creates the Three.js scene, camera, and transparent WebGL renderer
- * used by the footer globe visualization.
+ * Creates a centered 3D glowing wireframe globe with cyan nodes
+ * and interconnecting energy lines for the website footer.
  */
 const FrequenzGlobeFooter3D = () => {
   const mountRef = useRef(null);
@@ -49,20 +49,160 @@ const FrequenzGlobeFooter3D = () => {
 
     container.appendChild(renderer.domElement);
 
-    // Basic animation loop
-    let animationFrameId;
+    // Globe Group
+    const globeGroup = new THREE.Group();
+    globeGroup.position.set(0, -0.2, 0);
+    scene.add(globeGroup);
 
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      renderer.render(scene, camera);
+    // Geodesic sphere geometry
+    const radius = 5.6;
+
+    const baseGeometry = new THREE.IcosahedronGeometry(
+      radius,
+      2
+    );
+
+    // Glowing cyan wireframe
+    const wireframeGeometry = new THREE.WireframeGeometry(
+      baseGeometry
+    );
+
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color: 0x00ffce,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+      linewidth: 1,
+    });
+
+    const lineSegments = new THREE.LineSegments(
+      wireframeGeometry,
+      lineMaterial
+    );
+
+    globeGroup.add(lineSegments);
+
+    // Create procedural glowing node texture
+    const createGlowTexture = () => {
+      const canvas = document.createElement('canvas');
+
+      canvas.width = 128;
+      canvas.height = 128;
+
+      const ctx = canvas.getContext('2d');
+
+      const grad = ctx.createRadialGradient(
+        64,
+        64,
+        0,
+        64,
+        64,
+        64
+      );
+
+      grad.addColorStop(
+        0,
+        'rgba(0, 255, 206, 1)'
+      );
+
+      grad.addColorStop(
+        0.3,
+        'rgba(0, 255, 206, 0.85)'
+      );
+
+      grad.addColorStop(
+        0.6,
+        'rgba(0, 255, 206, 0.25)'
+      );
+
+      grad.addColorStop(
+        1,
+        'rgba(0, 255, 206, 0)'
+      );
+
+      ctx.fillStyle = grad;
+
+      ctx.beginPath();
+
+      ctx.arc(
+        64,
+        64,
+        64,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fill();
+
+      return new THREE.CanvasTexture(canvas);
     };
 
-    animate();
+    const dotTexture = createGlowTexture();
+
+    // Standard globe vertices
+    const pointsMaterial = new THREE.PointsMaterial({
+      color: 0x00ffce,
+      size: 0.35,
+      map: dotTexture,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const points = new THREE.Points(
+      baseGeometry,
+      pointsMaterial
+    );
+
+    globeGroup.add(points);
+
+    // Accent hub nodes
+    const positions =
+      baseGeometry.attributes.position.array;
+
+    const hubPositions = [];
+
+    for (let i = 0; i < positions.length; i += 12) {
+      hubPositions.push(
+        positions[i],
+        positions[i + 1],
+        positions[i + 2]
+      );
+    }
+
+    const hubGeometry = new THREE.BufferGeometry();
+
+    hubGeometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(
+        hubPositions,
+        3
+      )
+    );
+
+    const hubMaterial = new THREE.PointsMaterial({
+      color: 0x00ffce,
+      size: 0.72,
+      map: dotTexture,
+      transparent: true,
+      opacity: 1,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const hubPoints = new THREE.Points(
+      hubGeometry,
+      hubMaterial
+    );
+
+    globeGroup.add(hubPoints);
+
+    // Render scene
+    renderer.render(scene, camera);
 
     // Cleanup
     return () => {
-      cancelAnimationFrame(animationFrameId);
-
       if (
         container &&
         renderer.domElement &&
@@ -71,6 +211,12 @@ const FrequenzGlobeFooter3D = () => {
         container.removeChild(renderer.domElement);
       }
 
+      baseGeometry.dispose();
+      wireframeGeometry.dispose();
+      lineMaterial.dispose();
+      pointsMaterial.dispose();
+      hubGeometry.dispose();
+      hubMaterial();
       renderer.dispose();
     };
   }, []);
