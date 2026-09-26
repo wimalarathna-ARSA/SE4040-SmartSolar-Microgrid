@@ -17,9 +17,7 @@ const Footer = () => {
       className="position-relative text-light"
       style={{ backgroundColor: '#020202' }}
     >
-      {/* =========================================================================
-          1. UPPER CTA SECTION
-          ========================================================================= */}
+      {/* Upper CTA Section */}
 
       <section
         className="position-relative overflow-hidden py-5 d-flex align-items-center justify-content-center"
@@ -98,6 +96,132 @@ const Footer = () => {
           </div>
         </div>
       </section>
+
+      {/* Company and Careers */}
+
+      <div className="container py-5">
+        <div className="row g-5 justify-content-between align-items-start">
+          <div className="col-lg-5 col-md-6">
+            <div className="d-flex align-items-center gap-2 mb-4">
+              <img
+                src="/solarx-logo.png"
+                alt="SØLΛR-X"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  objectFit: 'contain',
+                }}
+              />
+
+              <h3
+                className="text-white fw-bold mb-0"
+                style={{
+                  fontSize: '1.9rem',
+                  letterSpacing: '-0.025em',
+                }}
+              >
+                SØLΛR<span style={{ color: '#00ffce' }}>-X</span>
+              </h3>
+            </div>
+
+            <div
+              className="text-secondary small mb-4"
+              style={{
+                lineHeight: '1.65',
+                fontSize: '0.88rem',
+              }}
+            >
+              SØLΛR-X Energy Platform PLC
+              <br />
+              Union Place, Colombo 02
+              <br />
+              00200 Colombo, Sri Lanka
+            </div>
+
+            <div className="mb-4">
+              <div
+                className="text-white fw-bold small mb-1"
+                style={{ fontSize: '0.9rem' }}
+              >
+                +94 11 7 555 874
+              </div>
+
+              <a
+                href="mailto:info@solarx.energy"
+                className="text-white fw-bold text-decoration-none small"
+                style={{ fontSize: '0.9rem' }}
+              >
+                info@solarx.energy
+              </a>
+            </div>
+
+            <div>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="d-inline-flex align-items-center justify-content-center text-white text-decoration-none rounded-1"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.2s ease',
+                }}
+                title="LinkedIn"
+              >
+                <i
+                  className="bi bi-linkedin"
+                  style={{ fontSize: '0.9rem' }}
+                ></i>
+              </a>
+            </div>
+          </div>
+
+          <div className="col-lg-5 col-md-6">
+            <h3
+              className="fw-bold mb-3"
+              style={{
+                color: '#00ffce',
+                fontSize: '1.85rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Careers
+            </h3>
+
+            <p
+              className="text-light text-opacity-80 small mb-4"
+              style={{
+                maxWidth: '400px',
+                lineHeight: '1.6',
+                fontSize: '0.92rem',
+              }}
+            >
+              Be part of our team leading the charge in national power management and decentralized solar microgrids.
+            </p>
+
+            <div>
+              <a
+                href="mailto:careers@solarx.energy"
+                className="d-inline-flex align-items-center gap-2 fw-semibold"
+                style={{
+                  border: '1.5px solid #00ffce',
+                  color: '#00ffce',
+                  backgroundColor: 'transparent',
+                  padding: '10px 22px',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '0.95rem',
+                  transition: 'all 0.25s ease',
+                }}
+              >
+                <span>↗</span> View open positions
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 };
