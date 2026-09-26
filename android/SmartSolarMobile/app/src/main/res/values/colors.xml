@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: colors.xml
+     Description: SmartSolar Professional Palette — structured light theme.
+                  Muted slate + desaturated teal. No neon / highlight fills.
+                  Cards are white on a calm gray canvas; status is conveyed
+                  with restrained sage / sand / slate tints and dark ink text.
+     ============================================================================ -->
+<resources>
+    <!-- Calm canvas -->
+    <color name="solar_bg">#EDF1F5</color>
+    <color name="solar_dark">#F7F9FB</color>
+    <color name="solar_nav_bg">#FFFFFF</color>
+    <color name="solar_nav_indicator">#E2E8F0</color>
+
+    <!-- Cards & sections — white on calm gray -->
+    <color name="solar_card">#FFFFFF</color>
+    <color name="solar_card_inner">#F6F8FA</color>
+    <color name="solar_card_stroke">#E2E8F0</color>
+    <color name="solar_card_stroke_highlight">#FFFFFF</color>
+
+    <!-- Brand — muted deep slate teal, solid fills, white labels -->
+    <color name="solar_primary">#2F5D62</color>
+    <color name="solar_primary_dark">#24474B</color>
+    <color name="solar_primary_subtle">#142F5D62</color>
+    <color name="solar_btn_text">#FFFFFF</color>
+
+    <!-- Secondary accents — restrained slate -->
+    <color name="solar_secondary">#3E5C76</color>
+    <color name="solar_secondary_subtle">#143E5C76</color>
+    <color name="solar_accent">#6B7280</color>
+    <color name="solar_accent_subtle">#146B7280</color>
+    <color name="solar_accent_cyan">#3E5C76</color>
+    <color name="solar_danger">#9E3B3B</color>
+    <color name="solar_danger_bg">#F2E1E1</color>
+
+    <!-- Typography — slate hierarchy -->
+    <color name="solar_text_primary">#1E293B</color>
+    <color name="solar_text_secondary">#475569</color>
+    <color name="solar_text_muted">#94A3B8</color>
+    <color name="solar_text_accent">#2F5D62</color>
+
+    <!-- Base Utilities -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Form Inputs -->
+    <color name="solar_input_bg">#FFFFFF</color>
+    <color name="solar_input_stroke">#D8DEE6</color>
+
+    <!-- =====================================================================
+         Professional status & surface tokens (Prosumer / Operator)
+         ===================================================================== -->
+    <color name="neuro_bg">#EDF1F5</color>
+    <color name="neuro_surface">#F7F9FB</color>
+    <!-- Hairlines / dividers -->
+    <color name="neuro_shadow_dark">#D8DEE6</color>
+    <color name="neuro_shadow_light">#E2E8F0</color>
+    <!-- Brand: muted slate teal -->
+    <color name="neuro_green">#2F5D62</color>
+    <color name="neuro_green_dark">#24474B</color>
+    <color name="neuro_green_bg">#E3EDE6</color>
+    <!-- Pending: restrained sand -->
+    <color name="neuro_amber">#7A6514</color>
+    <color name="neuro_amber_bg">#EFE8D2</color>
+    <!-- Info / approved: slate blue -->
+    <color name="neuro_blue">#3E5C76</color>
+    <color name="neuro_blue_bg">#E2E8F0</color>
+    <!-- Typography -->
+    <color name="neuro_text_primary">#1E293B</color>
+    <color name="neuro_text_secondary">#475569</color>
+    <color name="neuro_text_muted">#94A3B8</color>
+    <color name="neuro_text_green">#2F6B4F</color>
+    <!-- Tab -->
+    <color name="neuro_tab_selected_bg">#E8EDF2</color>
+    <color name="neuro_tab_text_selected">#2F5D62</color>
+    <color name="neuro_tab_text_unselected">#94A3B8</color>
+    <!-- Status dot: muted forest = active / healthy -->
+    <color name="neuro_status_active">#2F6B4F</color>
+    <!-- Bottom nav -->
+    <color name="neuro_nav_bg">#FFFFFF</color>
+    <color name="neuro_nav_selected">#2F5D62</color>
+    <color name="neuro_nav_unselected">#94A3B8</color>
+    <!-- Danger & Alert: muted brick -->
+    <color name="neuro_danger">#9E3B3B</color>
+    <color name="neuro_danger_bg">#F2E1E1</color>
+    <color name="neuro_danger_dark">#7C2E2E</color>
+    <!-- Forms & Inputs -->
+    <color name="neuro_input_bg">#FFFFFF</color>
+    <color name="neuro_input_stroke">#D8DEE6</color>
+    <color name="neuro_card_stroke">#E2E8F0</color>
+    <color name="neuro_card_inner">#F6F8FA</color>
+
+    <!-- =====================================================================
+         Card & section surfaces — white + light slate
+         ===================================================================== -->
+    <color name="glass_fill_start">#FFFFFF</color>
+    <color name="glass_fill_center">#FFFFFF</color>
+    <color name="glass_fill_end">#F6F8FA</color>
+    <color name="glass_fill_soft">#F6F8FA</color>
+    <color name="glass_fill_solid">#FFFFFF</color>
+    <color name="glass_stroke">#E2E8F0</color>
+    <color name="glass_stroke_soft">#E8EDF2</color>
+    <color name="glass_stroke_bright">#FFFFFF</color>
+    <color name="glass_surface">#FFFFFF</color>
+    <color name="glass_divider">#E8EDF2</color>
+    <color name="glass_mint">#E3EDE6</color>
+    <color name="glass_mint_stroke">#C4D4CB</color>
+    <color name="glass_lavender">#E2E8F0</color>
+    <color name="glass_peach">#EFE8D2</color>
+
+    <!-- Button label inks — white on solid brand/danger -->
+    <color name="text_on_accent">#FFFFFF</color>
+    <color name="text_on_violet">#334155</color>
+    <color name="text_on_danger">#FFFFFF</color>
+    <color name="glow_cyan">#142F5D62</color>
+
+    <!-- =====================================================================
+         Adaptive surface tokens — light values here, dark values in
+         values-night/colors.xml. Drawables reference these (never hardcode)
+         so the whole UI follows the selected theme.
+         ===================================================================== -->
+    <color name="surface_variant">#F1F5F9</color>
+    <color name="surface_selected">#E8EDF2</color>
+    <color name="border_strong">#CBD5E1</color>
+    <color name="canvas_top">#F7F9FB</color>
+    <color name="canvas_bottom">#EDF1F5</color>
+    <color name="illus_line">#94A3B8</color>
+    <color name="illus_line_soft">#CBD5E1</color>
+    <color name="illus_fill">#F1F5F9</color>
+</resources>
