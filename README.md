@@ -12,7 +12,7 @@
 <p align="center">
   <img src="frontend/smart-solar-web/public/solarx-logo.png" alt="SØLΛR-X website logo" width="220" />
 </p>
-<p align="center"><sub>SØLΛR-X website logo</sub></p>
+<p align="center"><sub>SØLΛR-X</sub></p>
 
 ---
 
