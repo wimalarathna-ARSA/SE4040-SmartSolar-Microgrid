@@ -1,6 +1,7 @@
 package com.smartsolar.mobile.ui.prosumer;
 
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -9,9 +10,11 @@ import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.SessionManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class CreateReservationActivity extends AppCompatActivity {
 
@@ -48,10 +51,10 @@ public class CreateReservationActivity extends AppCompatActivity {
         progressBar     = findViewById(R.id.progress_bar);
 
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
-        btnPickDate.setOnClickListener(v -> showDatePicker());
+        btnPickDate.setOnClickListener(v -> showDateTimePicker());
     }
 
-    private void showDatePicker() {
+    private void showDateTimePicker() {
         Calendar now = Calendar.getInstance();
         Calendar maxDate = Calendar.getInstance();
         maxDate.add(Calendar.DAY_OF_YEAR, 7);
@@ -65,7 +68,16 @@ public class CreateReservationActivity extends AppCompatActivity {
                 tvError.setVisibility(View.VISIBLE);
                 return;
             }
-            selectedDateTime = selected;
+
+            new TimePickerDialog(this, (timeView, hour, minute) -> {
+                selected.set(Calendar.HOUR_OF_DAY, hour);
+                selected.set(Calendar.MINUTE, minute);
+                selectedDateTime = selected;
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
+                tvSelectedDateTime.setText("Scheduled: " + sdf.format(selected.getTime()));
+                tvError.setVisibility(View.GONE);
+            }, 14, 0, true).show();
+
         }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
 
         datePicker.getDatePicker().setMinDate(now.getTimeInMillis());
