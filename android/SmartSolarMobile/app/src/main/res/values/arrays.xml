@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="booking_status_filter">
+        <item>All Statuses</item>
+        <item>Pending</item>
+        <item>Approved</item>
+        <item>Completed</item>
+        <item>Cancelled</item>
+    </string-array>
+    <string-array name="reservation_types">
+        <item>Drop-Off (Sell Energy)</item>
+        <item>Charging (Buy Energy)</item>
+    </string-array>
+</resources>
