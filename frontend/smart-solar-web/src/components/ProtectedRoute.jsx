@@ -5,7 +5,6 @@
 // Description: Route guard component enforcing authenticated and role-based access control.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -37,9 +36,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             Your current role (<strong>{user?.role}</strong>) is not authorized to access this administration page.
           </p>
           <hr />
-          <p className="mb-0">
-            Please switch to an authorized staff account or return to Home.
-          </p>
+          <p className="mb-0">Please switch to an authorized staff account or return to Home.</p>
         </div>
       </div>
     );
