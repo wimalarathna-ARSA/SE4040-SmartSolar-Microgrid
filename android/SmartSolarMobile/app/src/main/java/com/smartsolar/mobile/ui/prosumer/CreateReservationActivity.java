@@ -10,7 +10,9 @@ import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.smartsolar.mobile.R;
+import com.smartsolar.mobile.api.ApiClient;
 import com.smartsolar.mobile.data.SessionManager;
+import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
@@ -29,6 +31,7 @@ public class CreateReservationActivity extends AppCompatActivity {
     private Calendar selectedDateTime = null;
     private String preSelectedStationId;
     private int selectedSlotNumber = -1;
+    private boolean isFirstLoad = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +61,60 @@ public class CreateReservationActivity extends AppCompatActivity {
             @Override public void onNothingSelected(AdapterView<?> p) {}
         });
 
+        loadStations();
         btnPickDate.setOnClickListener(v -> showDateTimePicker());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!isFirstLoad) {
+            loadStations();
+        }
+        isFirstLoad = false;
+    }
+
+    private void loadStations() {
+        progressBar.setVisibility(View.VISIBLE);
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this, "stations?status=Active").get().build();
+                Response response = ApiClient.getClient().newCall(request).execute();
+                String body = response.body().string();
+                JSONArray array = new JSONArray(body);
+                stationList.clear();
+                List<String> stationNames = new ArrayList<>();
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject s = array.getJSONObject(i);
+                    stationList.add(s);
+                    stationNames.add(s.getString("name") + " (" + s.optInt("availableBatterySlots") + " slots free)");
+                }
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                            android.R.layout.simple_spinner_item, stationNames);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerStation.setAdapter(adapter);
+
+                    if (preSelectedStationId != null) {
+                        for (int i = 0; i < stationList.size(); i++) {
+                            try {
+                                if (preSelectedStationId.equals(stationList.get(i).getString("id"))) {
+                                    spinnerStation.setSelection(i);
+                                    break;
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    tvError.setText("Failed to load stations. Check network.");
+                    tvError.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
     }
 
     private void updateSlotGrid(int stationIndex) {
