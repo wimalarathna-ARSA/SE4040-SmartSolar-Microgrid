@@ -9,6 +9,11 @@
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-47A248)](https://www.mongodb.com/)
 [![IIS](https://img.shields.io/badge/Hosted-IIS%20AspNetCoreModuleV2-lightgrey)](https://iis.net/)
 
+<p align="center">
+  <img src="frontend/smart-solar-web/public/solarx-logo.png" alt="SØLΛR-X website logo" width="220" />
+</p>
+<p align="center"><sub>SØLΛR-X website logo</sub></p>
+
 ---
 
 ## 🔗 Project Links
@@ -225,7 +230,6 @@ npm run dev
 - **Operator:** `OperatorDashboard.jsx`, `BookingsMonitor.jsx`, `StationSlots.jsx`, `QrVerification.jsx`, `EnergyTransferHistory.jsx`.
 - **Auth:** `Login.jsx` (demo creds + OTP reset), `AuthContext.jsx`, `ProtectedRoute.jsx` (JWT role routing).
 - **UX:** Bootstrap 5 + Tailwind, Leaflet `MicrogridMapModal.jsx` + `LocationPickerModal.jsx`, Three.js (`SolarMicrogrid3D`, `FrequenzGlobeFooter3D`, `EnergyYieldCalculator3D`), `NodeScheduleModal.jsx`.
-
 ---
 
 ## 📱 4. Mobile App – Pure Native Android (Java)
@@ -299,11 +303,6 @@ Open `android/SmartSolarMobile` in Android Studio → Run.
 
 ---
 
-## ✅ Verification Notes
 
-- All controller routes, DTOs, services, React pages, and Android activities listed above were verified against the codebase.
-- To re-verify: search `Controllers/*.cs` for `[Http…]`, `frontend/smart-solar-web/src/**/*.jsx`, and `android/**/ *.java`.
-
----
 
 <p align="center">☀️ <b>Smart Solar Microgrid</b> — SE4040 EAD · <a href="https://github.com/wimalarathna-ARSA/SE4040-SmartSolar-Microgrid.git">GitHub</a> · <a href="https://1drv.ms/v/c/ffd009c5057ecdb2/IQCfRuxT4GUkSLsJiPHZf5SwAeCiGelkh_hZQOgsbpuDrMg?e=IbNnEV">Demo Video</a></p>
