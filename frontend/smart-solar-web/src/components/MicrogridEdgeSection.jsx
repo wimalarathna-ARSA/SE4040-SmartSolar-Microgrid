@@ -78,6 +78,7 @@ const LocationPickerModal = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const normalizedInit =
     typeof initialLocation === 'string'
@@ -130,7 +131,74 @@ const LocationPickerModal = ({
     }
   }, [isOpen, initialLocation]);
 
-  // Search places using OpenStreetMap Nominatim
+  // Reverse geocode coordinates to an address
+  const reverseGeocode = async (lat, lng) => {
+    setIsGeocoding(true);
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'Accept-Language': 'en',
+          },
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+
+        if (data && data.display_name) {
+          const addr = data.address || {};
+
+          const mainPart =
+            addr.road ||
+            addr.suburb ||
+            addr.neighbourhood ||
+            addr.industrial ||
+            addr.commercial ||
+            addr.village ||
+            addr.city_district ||
+            '';
+
+          const cityPart =
+            addr.city ||
+            addr.town ||
+            addr.municipality ||
+            addr.state_district ||
+            addr.county ||
+            '';
+
+          const provincePart = addr.state || '';
+
+          let cleanStr = [
+            mainPart,
+            cityPart,
+            provincePart,
+          ]
+            .filter(Boolean)
+            .join(', ');
+
+          if (!cleanStr) {
+            cleanStr = data.display_name
+              .split(',')
+              .slice(0, 3)
+              .join(',')
+              .trim();
+          }
+
+          setResolvedAddress(
+            cleanStr || data.display_name
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('Reverse geocoding error:', err);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
 
@@ -157,7 +225,6 @@ const LocationPickerModal = ({
         data = await res.json();
       }
 
-      // Global fallback
       if (!data || data.length === 0) {
         const fallbackRes = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
@@ -183,7 +250,11 @@ const LocationPickerModal = ({
     }
   };
 
-  const moveToLocation = (lat, lng, addressName = null) => {
+  const moveToLocation = (
+    lat,
+    lng,
+    addressName = null
+  ) => {
     const latNum = parseFloat(lat);
     const lngNum = parseFloat(lng);
 
@@ -201,11 +272,16 @@ const LocationPickerModal = ({
     }
 
     if (markerRef.current) {
-      markerRef.current.setLatLng([latNum, lngNum]);
+      markerRef.current.setLatLng([
+        latNum,
+        lngNum,
+      ]);
     }
 
     if (addressName) {
       setResolvedAddress(addressName);
+    } else {
+      reverseGeocode(latNum, lngNum);
     }
   };
 
@@ -226,7 +302,9 @@ const LocationPickerModal = ({
     );
 
     setSearchResults([]);
-    setSearchQuery(label || result.display_name);
+    setSearchQuery(
+      label || result.display_name
+    );
   };
 
   useEffect(() => {
@@ -235,19 +313,28 @@ const LocationPickerModal = ({
     const timer = setTimeout(() => {
       if (!mapContainerRef.current) return;
 
-      const initialLat = currentCoords.latitude || 6.9271;
-      const initialLng = currentCoords.longitude || 79.8612;
+      const initialLat =
+        currentCoords.latitude || 6.9271;
+
+      const initialLng =
+        currentCoords.longitude || 79.8612;
 
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
 
-      const map = L.map(mapContainerRef.current, {
-        center: [initialLat, initialLng],
-        zoom: 14,
-        zoomControl: false,
-      });
+      const map = L.map(
+        mapContainerRef.current,
+        {
+          center: [
+            initialLat,
+            initialLng,
+          ],
+          zoom: 14,
+          zoomControl: false,
+        }
+      );
 
       L.control.zoom({
         position: 'bottomright',
@@ -263,42 +350,62 @@ const LocationPickerModal = ({
       ).addTo(map);
 
       const marker = L.marker(
-        [initialLat, initialLng],
+        [
+          initialLat,
+          initialLng,
+        ],
         {
           icon: solarHubIcon,
           draggable: true,
-          title: 'Solar Microgrid Hub Location',
+          title:
+            'Solar Microgrid Hub Location',
         }
       ).addTo(map);
 
       marker.bindPopup(`
-        <div style="font-family: inherit; font-size: 12px;">
-          <strong style="color: #16a34a;">
+        <div style="font-family: inherit; font-size: 12px; line-height: 1.4;">
+          <strong style="color: #16a34a; display: block; font-size: 13px;">
             Solar Hub Site
           </strong>
-          <br />
           <span>Drag this marker to pin exact solar node.</span>
         </div>
       `);
 
       marker.on('dragend', (e) => {
-        const { lat, lng } = e.target.getLatLng();
+        const { lat, lng } =
+          e.target.getLatLng();
 
         setCurrentCoords({
-          latitude: parseFloat(lat.toFixed(6)),
-          longitude: parseFloat(lng.toFixed(6)),
+          latitude: parseFloat(
+            lat.toFixed(6)
+          ),
+          longitude: parseFloat(
+            lng.toFixed(6)
+          ),
         });
+
+        reverseGeocode(lat, lng);
       });
 
       map.on('click', (e) => {
-        const { lat, lng } = e.latlng;
+        const { lat, lng } =
+          e.latlng;
 
-        marker.setLatLng([lat, lng]);
+        marker.setLatLng([
+          lat,
+          lng,
+        ]);
 
         setCurrentCoords({
-          latitude: parseFloat(lat.toFixed(6)),
-          longitude: parseFloat(lng.toFixed(6)),
+          latitude: parseFloat(
+            lat.toFixed(6)
+          ),
+          longitude: parseFloat(
+            lng.toFixed(6)
+          ),
         });
+
+        reverseGeocode(lat, lng);
       });
 
       mapInstanceRef.current = map;
@@ -327,8 +434,12 @@ const LocationPickerModal = ({
       location:
         resolvedAddress.trim() ||
         `GPS (${currentCoords.latitude.toFixed(4)}, ${currentCoords.longitude.toFixed(4)})`,
-      latitude: parseFloat(currentCoords.latitude.toFixed(6)),
-      longitude: parseFloat(currentCoords.longitude.toFixed(6)),
+      latitude: parseFloat(
+        currentCoords.latitude.toFixed(6)
+      ),
+      longitude: parseFloat(
+        currentCoords.longitude.toFixed(6)
+      ),
     });
 
     onClose();
@@ -341,8 +452,11 @@ const LocationPickerModal = ({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(7, 16, 32, 0.75)',
+        backgroundColor:
+          'rgba(7, 16, 32, 0.75)',
         backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter:
+          'blur(10px)',
         zIndex: zIndex || 10000,
         display: 'flex',
         alignItems: 'center',
@@ -353,7 +467,11 @@ const LocationPickerModal = ({
     >
       <div
         style={{
-          background: 'rgba(255, 255, 255, 0.96)',
+          background:
+            'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter:
+            'blur(24px)',
           borderRadius: '24px',
           width: '100%',
           maxWidth: '920px',
@@ -362,14 +480,18 @@ const LocationPickerModal = ({
           flexDirection: 'column',
           overflow: 'hidden',
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) =>
+          e.stopPropagation()
+        }
       >
         <div
           style={{
             padding: '20px 28px',
-            borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
+            borderBottom:
+              '1px solid rgba(15, 23, 42, 0.08)',
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent:
+              'space-between',
             alignItems: 'center',
           }}
         >
@@ -383,8 +505,10 @@ const LocationPickerModal = ({
                   'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent:
+                  'center',
                 color: '#ffffff',
+                fontSize: '1.25rem',
               }}
             >
               <i className="bi bi-geo-alt-fill"></i>
@@ -406,10 +530,11 @@ const LocationPickerModal = ({
                 style={{
                   fontSize: '0.8rem',
                   color: '#64748b',
-                  margin: '2px 0 0',
+                  margin:
+                    '2px 0 0',
                 }}
               >
-                Search any location, click or drag the pin to set coordinates.
+                Search any location, click or drag the pin to set the exact solar station node coordinates.
               </p>
             </div>
           </div>
@@ -418,7 +543,8 @@ const LocationPickerModal = ({
             type="button"
             onClick={onClose}
             style={{
-              background: 'rgba(15, 23, 42, 0.05)',
+              background:
+                'rgba(15, 23, 42, 0.05)',
               border: 'none',
               borderRadius: '50%',
               width: '36px',
@@ -434,49 +560,65 @@ const LocationPickerModal = ({
 
         <div
           style={{
-            padding: '16px 28px 12px',
-            backgroundColor: '#f8fafc',
+            padding:
+              '16px 28px 12px',
+            backgroundColor:
+              '#f8fafc',
           }}
         >
           <form
             onSubmit={handleSearch}
-            style={{ position: 'relative' }}
+            style={{
+              position:
+                'relative',
+            }}
           >
             <div className="d-flex gap-2">
               <div
                 style={{
-                  position: 'relative',
+                  position:
+                    'relative',
                   flex: 1,
                 }}
               >
                 <i
                   className="bi bi-search"
                   style={{
-                    position: 'absolute',
+                    position:
+                      'absolute',
                     left: '16px',
                     top: '50%',
-                    transform: 'translateY(-50%)',
+                    transform:
+                      'translateY(-50%)',
                     color: '#94a3b8',
                   }}
                 ></i>
 
                 <input
                   type="text"
-                  placeholder="Search city, town, landmark or street..."
+                  placeholder="Search city, town, landmark, street..."
                   value={searchQuery}
                   onChange={(e) =>
-                    setSearchQuery(e.target.value)
+                    setSearchQuery(
+                      e.target.value
+                    )
                   }
                   style={{
                     width: '100%',
-                    padding: '11px 40px 11px 42px',
-                    borderRadius: '12px',
+                    padding:
+                      '11px 40px 11px 42px',
+                    borderRadius:
+                      '12px',
                     border:
                       '1.5px solid rgba(2, 132, 199, 0.25)',
-                    background: '#ffffff',
-                    fontSize: '0.9rem',
-                    color: '#0f172a',
-                    outline: 'none',
+                    background:
+                      '#ffffff',
+                    fontSize:
+                      '0.9rem',
+                    color:
+                      '#0f172a',
+                    outline:
+                      'none',
                   }}
                 />
 
@@ -484,18 +626,27 @@ const LocationPickerModal = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setSearchQuery('');
-                      setSearchResults([]);
+                      setSearchQuery(
+                        ''
+                      );
+                      setSearchResults(
+                        []
+                      );
                     }}
                     style={{
-                      position: 'absolute',
+                      position:
+                        'absolute',
                       right: '12px',
                       top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
+                      transform:
+                        'translateY(-50%)',
+                      background:
+                        'none',
                       border: 'none',
-                      color: '#94a3b8',
-                      cursor: 'pointer',
+                      color:
+                        '#94a3b8',
+                      cursor:
+                        'pointer',
                     }}
                   >
                     <i className="bi bi-x-circle-fill"></i>
@@ -505,186 +656,278 @@ const LocationPickerModal = ({
 
               <button
                 type="submit"
-                disabled={isSearching}
+                disabled={
+                  isSearching
+                }
                 style={{
                   background:
                     'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  color: '#ffffff',
+                  color:
+                    '#ffffff',
                   border: 'none',
-                  borderRadius: '12px',
-                  padding: '11px 22px',
-                  fontSize: '0.88rem',
+                  borderRadius:
+                    '12px',
+                  padding:
+                    '11px 22px',
+                  fontSize:
+                    '0.88rem',
                   fontWeight: 600,
-                  cursor: isSearching
-                    ? 'not-allowed'
-                    : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
+                  cursor:
+                    isSearching
+                      ? 'not-allowed'
+                      : 'pointer',
+                  display:
+                    'flex',
+                  alignItems:
+                    'center',
                   gap: '8px',
                 }}
               >
                 {isSearching ? (
                   <>
                     <span className="spinner-border spinner-border-sm"></span>
-                    <span>Searching...</span>
+                    <span>
+                      Searching...
+                    </span>
                   </>
                 ) : (
                   <>
                     <i className="bi bi-search"></i>
-                    <span>Find Place</span>
+                    <span>
+                      Find Place
+                    </span>
                   </>
                 )}
               </button>
             </div>
 
-            {searchResults.length > 0 && (
+            {searchResults.length >
+              0 && (
               <div
                 style={{
-                  position: 'absolute',
+                  position:
+                    'absolute',
                   top: '100%',
                   left: 0,
                   right: 0,
-                  marginTop: '6px',
-                  backgroundColor: '#ffffff',
-                  borderRadius: '14px',
+                  marginTop:
+                    '6px',
+                  backgroundColor:
+                    '#ffffff',
+                  borderRadius:
+                    '14px',
                   border:
                     '1px solid rgba(15, 23, 42, 0.12)',
                   boxShadow:
                     '0 12px 32px rgba(0, 20, 50, 0.15)',
                   zIndex: 2000,
-                  maxHeight: '230px',
-                  overflowY: 'auto',
+                  maxHeight:
+                    '230px',
+                  overflowY:
+                    'auto',
                 }}
               >
                 <div
                   style={{
-                    padding: '8px 14px',
-                    fontSize: '0.74rem',
+                    padding:
+                      '8px 14px',
+                    fontSize:
+                      '0.74rem',
                     fontWeight: 700,
-                    color: '#64748b',
-                    textTransform: 'uppercase',
-                    background: '#f1f5f9',
+                    color:
+                      '#64748b',
+                    textTransform:
+                      'uppercase',
+                    background:
+                      '#f1f5f9',
                   }}
                 >
-                  Matching Locations ({searchResults.length})
+                  Matching Locations (
+                  {searchResults.length}
+                  )
                 </div>
 
-                {searchResults.map((item, idx) => (
-                  <div
-                    key={item.place_id || idx}
-                    onClick={() =>
-                      handleSelectResult(item)
-                    }
-                    style={{
-                      padding: '10px 16px',
-                      cursor: 'pointer',
-                      borderBottom:
-                        idx === searchResults.length - 1
-                          ? 'none'
-                          : '1px solid #f1f5f9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                    }}
-                  >
-                    <i
-                      className="bi bi-geo-alt-fill text-danger"
-                      style={{ fontSize: '1.1rem' }}
-                    ></i>
-
+                {searchResults.map(
+                  (
+                    item,
+                    idx
+                  ) => (
                     <div
+                      key={
+                        item.place_id ||
+                        idx
+                      }
+                      onClick={() =>
+                        handleSelectResult(
+                          item
+                        )
+                      }
                       style={{
-                        flex: 1,
-                        minWidth: 0,
+                        padding:
+                          '10px 16px',
+                        cursor:
+                          'pointer',
+                        borderBottom:
+                          idx ===
+                          searchResults.length -
+                            1
+                            ? 'none'
+                            : '1px solid #f1f5f9',
+                        display:
+                          'flex',
+                        alignItems:
+                          'center',
+                        gap: '12px',
                       }}
                     >
-                      <div
+                      <i
+                        className="bi bi-geo-alt-fill text-danger"
                         style={{
-                          fontSize: '0.86rem',
-                          fontWeight: 600,
-                          color: '#0f172a',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          fontSize:
+                            '1.1rem',
                         }}
-                      >
-                        {item.display_name.split(',')[0]}
-                      </div>
+                      ></i>
 
                       <div
                         style={{
-                          fontSize: '0.75rem',
-                          color: '#64748b',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          flex: 1,
+                          minWidth: 0,
                         }}
                       >
-                        {item.display_name}
+                        <div
+                          style={{
+                            fontSize:
+                              '0.86rem',
+                            fontWeight:
+                              600,
+                            color:
+                              '#0f172a',
+                            whiteSpace:
+                              'nowrap',
+                            overflow:
+                              'hidden',
+                            textOverflow:
+                              'ellipsis',
+                          }}
+                        >
+                          {
+                            item.display_name.split(
+                              ','
+                            )[0]
+                          }
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize:
+                              '0.75rem',
+                            color:
+                              '#64748b',
+                            whiteSpace:
+                              'nowrap',
+                            overflow:
+                              'hidden',
+                            textOverflow:
+                              'ellipsis',
+                          }}
+                        >
+                          {
+                            item.display_name
+                          }
+                        </div>
                       </div>
+
+                      <span className="badge bg-light text-secondary border small">
+                        {parseFloat(
+                          item.lat
+                        ).toFixed(
+                          3
+                        )}
+                        ,{' '}
+                        {parseFloat(
+                          item.lon
+                        ).toFixed(
+                          3
+                        )}
+                      </span>
                     </div>
-
-                    <span className="badge bg-light text-secondary border small">
-                      {parseFloat(item.lat).toFixed(3)},{' '}
-                      {parseFloat(item.lon).toFixed(3)}
-                    </span>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             )}
           </form>
 
           <div
             className="d-flex align-items-center gap-2 mt-2 flex-wrap"
-            style={{ fontSize: '0.78rem' }}
+            style={{
+              fontSize:
+                '0.78rem',
+            }}
           >
             <span
               style={{
-                color: '#64748b',
+                color:
+                  '#64748b',
                 fontWeight: 600,
               }}
             >
               Quick Zones:
             </span>
 
-            {SRI_LANKA_PRESETS.map((preset) => (
-              <button
-                key={preset.name}
-                type="button"
-                onClick={() =>
-                  moveToLocation(
-                    preset.lat,
-                    preset.lng,
+            {SRI_LANKA_PRESETS.map(
+              (preset) => (
+                <button
+                  key={
                     preset.name
-                  )
-                }
-                style={{
-                  background: '#ffffff',
-                  border:
-                    '1px solid rgba(15, 23, 42, 0.12)',
-                  borderRadius: '20px',
-                  padding: '3px 10px',
-                  fontSize: '0.75rem',
-                  color: '#334155',
-                  cursor: 'pointer',
-                }}
-              >
-                {preset.label}
-              </button>
-            ))}
+                  }
+                  type="button"
+                  onClick={() =>
+                    moveToLocation(
+                      preset.lat,
+                      preset.lng,
+                      preset.name
+                    )
+                  }
+                  style={{
+                    background:
+                      '#ffffff',
+                    border:
+                      '1px solid rgba(15, 23, 42, 0.12)',
+                    borderRadius:
+                      '20px',
+                    padding:
+                      '3px 10px',
+                    fontSize:
+                      '0.75rem',
+                    color:
+                      '#334155',
+                    cursor:
+                      'pointer',
+                  }}
+                >
+                  {
+                    preset.label
+                  }
+                </button>
+              )
+            )}
           </div>
         </div>
 
         <div
           style={{
-            position: 'relative',
+            position:
+              'relative',
             width: '100%',
             height: '420px',
-            background: '#e2e8f0',
+            background:
+              '#e2e8f0',
           }}
         >
           <div
-            ref={mapContainerRef}
+            ref={
+              mapContainerRef
+            }
             style={{
               width: '100%',
               height: '100%',
@@ -693,71 +936,139 @@ const LocationPickerModal = ({
 
           <div
             style={{
-              position: 'absolute',
+              position:
+                'absolute',
               top: '12px',
               left: '14px',
               zIndex: 500,
-              backgroundColor: 'rgba(15, 23, 42, 0.82)',
-              color: '#ffffff',
-              borderRadius: '20px',
-              padding: '6px 14px',
-              fontSize: '0.75rem',
+              backgroundColor:
+                'rgba(15, 23, 42, 0.82)',
+              color:
+                '#ffffff',
+              borderRadius:
+                '20px',
+              padding:
+                '6px 14px',
+              fontSize:
+                '0.75rem',
               fontWeight: 600,
             }}
           >
             <i className="bi bi-hand-index-thumb text-warning"></i>{' '}
             Click anywhere or drag green marker
           </div>
+
+          {isGeocoding && (
+            <div
+              style={{
+                position:
+                  'absolute',
+                top: '12px',
+                right: '14px',
+                zIndex: 500,
+                backgroundColor:
+                  'rgba(255, 255, 255, 0.92)',
+                borderRadius:
+                  '20px',
+                padding:
+                  '6px 14px',
+                fontSize:
+                  '0.75rem',
+                color:
+                  '#0284c7',
+                fontWeight: 600,
+                display:
+                  'flex',
+                alignItems:
+                  'center',
+                gap: '6px',
+              }}
+            >
+              <div className="spinner-border spinner-border-sm text-primary"></div>
+              <span>
+                Detecting address...
+              </span>
+            </div>
+          )}
         </div>
 
         <div
           style={{
-            padding: '18px 28px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
+            padding:
+              '18px 28px',
+            display:
+              'flex',
+            alignItems:
+              'center',
+            justifyContent:
+              'space-between',
+            flexWrap:
+              'wrap',
             gap: '16px',
           }}
         >
-          <div style={{ flex: '1 1 360px' }}>
+          <div
+            style={{
+              flex:
+                '1 1 360px',
+            }}
+          >
             <div className="d-flex align-items-center gap-2 mb-1">
               <span
                 style={{
-                  fontSize: '0.74rem',
+                  fontSize:
+                    '0.74rem',
                   fontWeight: 700,
-                  color: '#64748b',
+                  color:
+                    '#64748b',
                 }}
               >
-                Selected Location:
+                Selected Hub Location / Address:
               </span>
 
               <span
                 style={{
-                  background: 'rgba(22, 163, 74, 0.12)',
-                  color: '#16a34a',
-                  borderRadius: '50px',
-                  padding: '2px 10px',
-                  fontSize: '0.72rem',
+                  background:
+                    'rgba(22, 163, 74, 0.12)',
+                  color:
+                    '#16a34a',
+                  borderRadius:
+                    '50px',
+                  padding:
+                    '2px 10px',
+                  fontSize:
+                    '0.72rem',
                   fontWeight: 700,
                 }}
               >
-                {currentCoords.latitude.toFixed(4)},{' '}
-                {currentCoords.longitude.toFixed(4)}
+                <i className="bi bi-crosshair me-1"></i>
+                {currentCoords.latitude.toFixed(
+                  4
+                )}
+                ,{' '}
+                {currentCoords.longitude.toFixed(
+                  4
+                )}
               </span>
             </div>
 
             <input
               type="text"
-              value={resolvedAddress}
+              value={
+                resolvedAddress
+              }
               onChange={(e) =>
-                setResolvedAddress(e.target.value)
+                setResolvedAddress(
+                  e.target.value
+                )
               }
               placeholder="Address / Area Name"
               style={{
                 width: '100%',
-                padding: '8px 12px',
-                borderRadius: '8px',
+                padding:
+                  '8px 12px',
+                borderRadius:
+                  '8px',
                 border:
                   '1px solid rgba(15, 23, 42, 0.15)',
               }}
@@ -769,12 +1080,18 @@ const LocationPickerModal = ({
               type="button"
               onClick={onClose}
               style={{
-                background: 'rgba(15, 23, 42, 0.06)',
-                color: '#475569',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '10px 20px',
-                cursor: 'pointer',
+                background:
+                  'rgba(15, 23, 42, 0.06)',
+                color:
+                  '#475569',
+                border:
+                  'none',
+                borderRadius:
+                  '50px',
+                padding:
+                  '10px 20px',
+                cursor:
+                  'pointer',
               }}
             >
               Cancel
@@ -782,15 +1099,22 @@ const LocationPickerModal = ({
 
             <button
               type="button"
-              onClick={handleApply}
+              onClick={
+                handleApply
+              }
               style={{
                 background:
                   'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '10px 24px',
-                cursor: 'pointer',
+                color:
+                  '#ffffff',
+                border:
+                  'none',
+                borderRadius:
+                  '50px',
+                padding:
+                  '10px 24px',
+                cursor:
+                  'pointer',
               }}
             >
               <i className="bi bi-check2-circle me-1"></i>
