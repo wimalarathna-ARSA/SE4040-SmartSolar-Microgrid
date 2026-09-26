@@ -63,6 +63,7 @@ public class CreateReservationActivity extends AppCompatActivity {
 
         loadStations();
         btnPickDate.setOnClickListener(v -> showDateTimePicker());
+        btnSubmit.setOnClickListener(v -> submitReservation());
     }
 
     @Override
@@ -115,6 +116,37 @@ public class CreateReservationActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private void showDateTimePicker() {
+        Calendar now = Calendar.getInstance();
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.add(Calendar.DAY_OF_YEAR, 7);
+
+        DatePickerDialog datePicker = new DatePickerDialog(this, (view, year, month, day) -> {
+            Calendar selected = Calendar.getInstance();
+            selected.set(year, month, day);
+
+            if (selected.after(maxDate)) {
+                tvError.setText("Bookings cannot be scheduled beyond 7 days from today (7-Day Rule).");
+                tvError.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            new TimePickerDialog(this, (timeView, hour, minute) -> {
+                selected.set(Calendar.HOUR_OF_DAY, hour);
+                selected.set(Calendar.MINUTE, minute);
+                selectedDateTime = selected;
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
+                tvSelectedDateTime.setText("Scheduled: " + sdf.format(selected.getTime()));
+                tvError.setVisibility(View.GONE);
+            }, 14, 0, true).show();
+
+        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+
+        datePicker.getDatePicker().setMinDate(now.getTimeInMillis());
+        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+        datePicker.show();
     }
 
     private void updateSlotGrid(int stationIndex) {
@@ -198,34 +230,54 @@ public class CreateReservationActivity extends AppCompatActivity {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
-    private void showDateTimePicker() {
-        Calendar now = Calendar.getInstance();
-        Calendar maxDate = Calendar.getInstance();
-        maxDate.add(Calendar.DAY_OF_YEAR, 7);
+    private void submitReservation() {
+        if (stationList.isEmpty()) { tvError.setText("No stations available."); tvError.setVisibility(View.VISIBLE); return; }
+        if (selectedDateTime == null) { tvError.setText("Please select a date and time."); tvError.setVisibility(View.VISIBLE); return; }
+        if (selectedSlotNumber == -1) { tvError.setText("Please select an available battery slot."); tvError.setVisibility(View.VISIBLE); return; }
 
-        DatePickerDialog datePicker = new DatePickerDialog(this, (view, year, month, day) -> {
-            Calendar selected = Calendar.getInstance();
-            selected.set(year, month, day);
+        String energyStr = etEnergyKwh.getText().toString().trim();
+        String durationStr = etDuration.getText().toString().trim();
+        if (energyStr.isEmpty()) { tvError.setText("Please enter energy amount in kWh."); tvError.setVisibility(View.VISIBLE); return; }
 
-            if (selected.after(maxDate)) {
-                tvError.setText("Bookings cannot be scheduled beyond 7 days from today (7-Day Rule).");
-                tvError.setVisibility(View.VISIBLE);
-                return;
-            }
+        int stationIdx = spinnerStation.getSelectedItemPosition();
+        String stationId;
+        try {
+            stationId = stationList.get(stationIdx).getString("id");
+        } catch (Exception e) { return; }
 
-            new TimePickerDialog(this, (timeView, hour, minute) -> {
-                selected.set(Calendar.HOUR_OF_DAY, hour);
-                selected.set(Calendar.MINUTE, minute);
-                selectedDateTime = selected;
-                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
-                tvSelectedDateTime.setText("Scheduled: " + sdf.format(selected.getTime()));
-                tvError.setVisibility(View.GONE);
-            }, 14, 0, true).show();
+        String type = spinnerType.getSelectedItem().toString().equals("Drop-Off (Sell Energy)") ? "DropOff" : "Charging";
+        int duration = durationStr.isEmpty() ? 1 : Integer.parseInt(durationStr);
 
-        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String isoDateTime = isoFormat.format(selectedDateTime.getTime());
 
-        datePicker.getDatePicker().setMinDate(now.getTimeInMillis());
-        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
-        datePicker.show();
+        performReservationSubmission(stationId, type, duration, energyStr, isoDateTime);
+    }
+
+    private void performReservationSubmission(String stationId, String type, int duration, String energyStr, String isoDateTime) {
+        progressBar.setVisibility(View.VISIBLE);
+        btnSubmit.setEnabled(false);
+        tvError.setVisibility(View.GONE);
+
+        String nic = sessionManager.getNic();
+
+        new Thread(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("stationId", stationId);
+                body.put("slotNumber", selectedSlotNumber);
+                body.put("scheduledDateTime", isoDateTime);
+                body.put("durationHours", duration);
+                body.put("energyAmountKWh", Double.parseDouble(energyStr));
+                body.put("reservationType", type);
+
+                Request request = ApiClient.buildAuthRequest(this,
+                        "reservations?prosumerNic=" + nic)
+                        .post(ApiClient.jsonBody(body)).build();
+
+                ApiClient.getClient().newCall(request).execute();
+            } catch (Exception ignored) {}
+        }).start();
     }
 }
