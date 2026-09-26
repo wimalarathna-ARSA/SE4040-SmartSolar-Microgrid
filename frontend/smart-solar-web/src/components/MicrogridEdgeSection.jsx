@@ -10,7 +10,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet's default icon path issues in bundled React/Vite environments
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -23,7 +22,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Custom glowing pin icon for Solar Microgrid hubs
 const solarHubIcon = L.divIcon({
   className: 'solar-hub-map-marker',
   html: `
@@ -51,6 +49,18 @@ const solarHubIcon = L.divIcon({
   popupAnchor: [0, -20],
 });
 
+// Sri Lanka regional presets
+const SRI_LANKA_PRESETS = [
+  { name: 'Colombo Central', lat: 6.9271, lng: 79.8612, label: 'Colombo' },
+  { name: 'Kandy Highland', lat: 7.2906, lng: 80.6337, label: 'Kandy' },
+  { name: 'Galle Coastal', lat: 6.0535, lng: 80.2210, label: 'Galle' },
+  { name: 'Jaffna Peninsula', lat: 9.6615, lng: 80.0255, label: 'Jaffna' },
+  { name: 'Negombo Coastal', lat: 7.2008, lng: 79.8737, label: 'Negombo' },
+  { name: 'Trincomalee Bay', lat: 8.5874, lng: 81.2152, label: 'Trincomalee' },
+  { name: 'Hambantota Solar Zone', lat: 6.1429, lng: 81.1212, label: 'Hambantota' },
+  { name: 'Kurunegala Grid', lat: 7.4863, lng: 80.3623, label: 'Kurunegala' },
+];
+
 const LocationPickerModal = ({
   isOpen,
   onClose,
@@ -65,6 +75,9 @@ const LocationPickerModal = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   const normalizedInit =
     typeof initialLocation === 'string'
@@ -88,7 +101,6 @@ const LocationPickerModal = ({
     normalizedInit.address || ''
   );
 
-  // Reset location whenever modal opens
   useEffect(() => {
     if (isOpen) {
       const init =
@@ -113,10 +125,39 @@ const LocationPickerModal = ({
       });
 
       setResolvedAddress(init.address || '');
+      setSearchQuery('');
+      setSearchResults([]);
     }
   }, [isOpen, initialLocation]);
 
-  // Initialize Leaflet map
+  // Move map and marker
+  const moveToLocation = (lat, lng, addressName = null) => {
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
+
+    setCurrentCoords({
+      latitude: latNum,
+      longitude: lngNum,
+    });
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(
+        [latNum, lngNum],
+        15,
+        { duration: 1.2 }
+      );
+    }
+
+    if (markerRef.current) {
+      markerRef.current.setLatLng([latNum, lngNum]);
+    }
+
+    if (addressName) {
+      setResolvedAddress(addressName);
+    }
+  };
+
+  // Initialize map
   useEffect(() => {
     if (!isOpen) return;
 
@@ -161,9 +202,10 @@ const LocationPickerModal = ({
 
       marker.bindPopup(`
         <div style="font-family: inherit; font-size: 12px; line-height: 1.4;">
-          <strong style="color: #16a34a; display: block; font-size: 13px;">
+          <strong style="color: #16a34a;">
             Solar Hub Site
           </strong>
+          <br />
           <span>Drag this marker to pin exact solar node.</span>
         </div>
       `);
@@ -230,7 +272,6 @@ const LocationPickerModal = ({
         inset: 0,
         backgroundColor: 'rgba(7, 16, 32, 0.75)',
         backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
         zIndex: zIndex || 10000,
         display: 'flex',
         alignItems: 'center',
@@ -249,8 +290,6 @@ const LocationPickerModal = ({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          fontFamily:
-            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -275,7 +314,6 @@ const LocationPickerModal = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#ffffff',
-                fontSize: '1.25rem',
               }}
             >
               <i className="bi bi-geo-alt-fill"></i>
@@ -290,7 +328,7 @@ const LocationPickerModal = ({
                   margin: 0,
                 }}
               >
-                Interactive Microgrid Map
+                Interactive Microgrid Map &amp; Place Search
               </h3>
 
               <p
@@ -300,7 +338,7 @@ const LocationPickerModal = ({
                   margin: '2px 0 0',
                 }}
               >
-                Click or drag the pin to select the solar station location.
+                Search or select a regional zone.
               </p>
             </div>
           </div>
@@ -325,6 +363,53 @@ const LocationPickerModal = ({
 
         <div
           style={{
+            padding: '16px 28px 12px',
+            backgroundColor: '#f8fafc',
+          }}
+        >
+          <div
+            className="d-flex align-items-center gap-2 flex-wrap"
+            style={{ fontSize: '0.78rem' }}
+          >
+            <span
+              style={{
+                color: '#64748b',
+                fontWeight: 600,
+              }}
+            >
+              Quick Zones:
+            </span>
+
+            {SRI_LANKA_PRESETS.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() =>
+                  moveToLocation(
+                    preset.lat,
+                    preset.lng,
+                    preset.name
+                  )
+                }
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid rgba(15, 23, 42, 0.12)',
+                  borderRadius: '20px',
+                  padding: '3px 10px',
+                  fontSize: '0.75rem',
+                  color: '#334155',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{
             position: 'relative',
             width: '100%',
             height: '420px',
@@ -336,7 +421,6 @@ const LocationPickerModal = ({
             style={{
               width: '100%',
               height: '100%',
-              zIndex: 1,
             }}
           />
 
@@ -355,14 +439,13 @@ const LocationPickerModal = ({
             }}
           >
             <i className="bi bi-hand-index-thumb text-warning"></i>{' '}
-            Click anywhere or drag green marker
+            Click or drag green marker
           </div>
         </div>
 
         <div
           style={{
             padding: '18px 28px',
-            backgroundColor: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -392,7 +475,6 @@ const LocationPickerModal = ({
                   fontWeight: 700,
                 }}
               >
-                <i className="bi bi-crosshair me-1"></i>
                 {currentCoords.latitude.toFixed(4)},{' '}
                 {currentCoords.longitude.toFixed(4)}
               </span>
@@ -408,16 +490,11 @@ const LocationPickerModal = ({
                 padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid rgba(15, 23, 42, 0.15)',
-                fontSize: '0.88rem',
-                color: '#0f172a',
-                fontWeight: 600,
-                outline: 'none',
-                background: '#f8fafc',
               }}
             />
           </div>
 
-          <div className="d-flex align-items-center gap-2 ms-auto">
+          <div className="d-flex align-items-center gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -427,8 +504,6 @@ const LocationPickerModal = ({
                 border: 'none',
                 borderRadius: '50px',
                 padding: '10px 20px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
@@ -445,8 +520,6 @@ const LocationPickerModal = ({
                 border: 'none',
                 borderRadius: '50px',
                 padding: '10px 24px',
-                fontSize: '0.88rem',
-                fontWeight: 700,
                 cursor: 'pointer',
               }}
             >
