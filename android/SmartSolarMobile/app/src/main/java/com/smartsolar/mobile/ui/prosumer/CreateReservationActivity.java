@@ -1,5 +1,6 @@
 package com.smartsolar.mobile.ui.prosumer;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -9,6 +10,7 @@ import com.smartsolar.mobile.data.SessionManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class CreateReservationActivity extends AppCompatActivity {
@@ -21,6 +23,7 @@ public class CreateReservationActivity extends AppCompatActivity {
     private View progressBar;
     private SessionManager sessionManager;
     private List<JSONObject> stationList = new ArrayList<>();
+    private Calendar selectedDateTime = null;
     private String preSelectedStationId;
 
     @Override
@@ -45,6 +48,29 @@ public class CreateReservationActivity extends AppCompatActivity {
         progressBar     = findViewById(R.id.progress_bar);
 
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
+        btnPickDate.setOnClickListener(v -> showDatePicker());
+    }
+
+    private void showDatePicker() {
+        Calendar now = Calendar.getInstance();
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.add(Calendar.DAY_OF_YEAR, 7);
+
+        DatePickerDialog datePicker = new DatePickerDialog(this, (view, year, month, day) -> {
+            Calendar selected = Calendar.getInstance();
+            selected.set(year, month, day);
+
+            if (selected.after(maxDate)) {
+                tvError.setText("Bookings cannot be scheduled beyond 7 days from today (7-Day Rule).");
+                tvError.setVisibility(View.VISIBLE);
+                return;
+            }
+            selectedDateTime = selected;
+        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+
+        datePicker.getDatePicker().setMinDate(now.getTimeInMillis());
+        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+        datePicker.show();
     }
 
     private void setupStationSpinner(JSONArray array) {
