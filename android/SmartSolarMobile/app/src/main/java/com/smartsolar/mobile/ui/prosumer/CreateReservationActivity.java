@@ -1,12 +1,24 @@
+// ============================================================================
+// File: CreateReservationActivity.java
+// Author: IT22166210
+// Course: SE4040 - Enterprise Application Development
+// Description: Prosumer energy slot booking screen. Fetches stations from API,
+//              enforces 7-day forward booking window client-side (API also enforces),
+//              shows Summary Page after successful booking with QR code data.
+// Architecture: FAT Service Pattern - 7-day rule enforced by C# Web API
+// ============================================================================
 package com.smartsolar.mobile.ui.prosumer;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -19,6 +31,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/** Booking screen enforcing 7-day advance reservation rule. */
 public class CreateReservationActivity extends AppCompatActivity {
 
     private Spinner spinnerStation, spinnerType;
@@ -32,10 +45,14 @@ public class CreateReservationActivity extends AppCompatActivity {
     private Calendar selectedDateTime = null;
     private String preSelectedStationId;
     private int selectedSlotNumber = -1;
+
     private boolean isFirstLoad = true;
 
+    /** Initializes form and loads available stations from C# Web API. */
+    // Fetches station list and sets up date/time pickers
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Initialise session, bind form views, wire station selection, date picker, and submit button
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_reservation);
 
@@ -56,27 +73,41 @@ public class CreateReservationActivity extends AppCompatActivity {
         progressBar     = findViewById(R.id.progress_bar);
 
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
-
+        
         spinnerStation.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> p, View v, int i, long id) { updateSlotGrid(i); }
             @Override public void onNothingSelected(AdapterView<?> p) {}
         });
 
+        // Load stations from API for station picker
         loadStations();
+
+        // Date and Time picker for reservation scheduling
         btnPickDate.setOnClickListener(v -> showDateTimePicker());
+
+        // Submit booking to C# Web API
         btnSubmit.setOnClickListener(v -> submitReservation());
     }
 
+    /**
+     * Refresh station list on resume so slot grid always shows live counts
+     * from the server (handles case where user navigates back after a booking).
+     */
     @Override
     protected void onResume() {
+        // Reload fleet stations from API on resume to ensure battery slot availability is up to date
         super.onResume();
         if (!isFirstLoad) {
+            // Reload stations to get updated AvailableBatterySlots from API
             loadStations();
         }
         isFirstLoad = false;
     }
 
+    /** Loads active solar stations from C# Web API and populates spinner. */
+    // Calls GET /api/stations?status=Active and fills station spinner adapter
     private void loadStations() {
+        // GET /api/stations?status=Active and populate the station spinner adapter
         progressBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
             try {
@@ -98,6 +129,7 @@ public class CreateReservationActivity extends AppCompatActivity {
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerStation.setAdapter(adapter);
 
+                    // Auto-select if passed from map
                     if (preSelectedStationId != null) {
                         for (int i = 0; i < stationList.size(); i++) {
                             try {
@@ -119,15 +151,19 @@ public class CreateReservationActivity extends AppCompatActivity {
         }).start();
     }
 
+    /** Shows chained DatePickerDialog then TimePickerDialog for slot scheduling. */
+    // Validates that selected date is within 7-day window
     private void showDateTimePicker() {
+        // Display chained DatePickerDialog and TimePickerDialog enforcing the 7-day advance booking constraint
         Calendar now = Calendar.getInstance();
         Calendar maxDate = Calendar.getInstance();
-        maxDate.add(Calendar.DAY_OF_YEAR, 7);
+        maxDate.add(Calendar.DAY_OF_YEAR, 7); // 7-day rule boundary
 
         DatePickerDialog datePicker = new DatePickerDialog(this, (view, year, month, day) -> {
             Calendar selected = Calendar.getInstance();
             selected.set(year, month, day);
 
+            // Client-side 7-day rule pre-check (API also enforces this)
             if (selected.after(maxDate)) {
                 tvError.setText("Bookings cannot be scheduled beyond 7 days from today (7-Day Rule).");
                 tvError.setVisibility(View.VISIBLE);
@@ -146,11 +182,12 @@ public class CreateReservationActivity extends AppCompatActivity {
         }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
 
         datePicker.getDatePicker().setMinDate(now.getTimeInMillis());
-        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis()); // Enforces 7-day UI constraint
         datePicker.show();
     }
 
     private void updateSlotGrid(int stationIndex) {
+        // Dynamically construct battery slot grid buttons indicating free and reserved slots
         if (stationIndex < 0 || stationIndex >= stationList.size()) return;
         gridSlots.removeAllViews();
         selectedSlotNumber = -1;
@@ -212,6 +249,8 @@ public class CreateReservationActivity extends AppCompatActivity {
     }
 
     private void selectSlot(int num, TextView view) {
+        // Select a specific available slot number, update view styling and feedback hint
+        // Reset previous selection on all available slots
         for (int i = 0; i < gridSlots.getChildCount(); i++) {
             View child = gridSlots.getChildAt(i);
             if (child.isEnabled()) {
@@ -228,10 +267,14 @@ public class CreateReservationActivity extends AppCompatActivity {
     }
 
     private int dpToPx(int dp) {
+        // Helper to convert density-independent pixels to physical screen pixels
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
+    /** Submits reservation to C# Web API and shows summary page with QR code on success. */
+    // Posts to POST /api/reservations?prosumerNic=... and navigates to BookingDetailActivity on success
     private void submitReservation() {
+        // Validate inputs, format ISO 8601 UTC timestamp, and present booking confirmation dialog
         if (stationList.isEmpty()) { tvError.setText("No stations available."); tvError.setVisibility(View.VISIBLE); return; }
         if (selectedDateTime == null) { tvError.setText("Please select a date and time."); tvError.setVisibility(View.VISIBLE); return; }
         if (selectedSlotNumber == -1) { tvError.setText("Please select an available battery slot."); tvError.setVisibility(View.VISIBLE); return; }
@@ -250,10 +293,12 @@ public class CreateReservationActivity extends AppCompatActivity {
         String type = spinnerType.getSelectedItem().toString().equals("Drop-Off (Sell Energy)") ? "DropOff" : "Charging";
         int duration = durationStr.isEmpty() ? 1 : Integer.parseInt(durationStr);
 
+        // Format DateTime as ISO 8601 for C# API
         SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
         isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String isoDateTime = isoFormat.format(selectedDateTime.getTime());
 
+        // Display Confirmation Dialog
         SimpleDateFormat displayFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
         String details = "\n\nStation: " + stationName + "\n" +
                      "Slot: #" + selectedSlotNumber + "\n" +
@@ -272,6 +317,7 @@ public class CreateReservationActivity extends AppCompatActivity {
     }
 
     private void performReservationSubmission(String stationId, String type, int duration, String energyStr, String isoDateTime) {
+        // POST new reservation payload to /api/reservations and navigate to summary page with QR code
         progressBar.setVisibility(View.VISIBLE);
         btnSubmit.setEnabled(false);
         tvError.setVisibility(View.GONE);
@@ -296,12 +342,23 @@ public class CreateReservationActivity extends AppCompatActivity {
                 String responseBody = response.body().string();
                 JSONObject json = new JSONObject(responseBody);
 
-                if (!response.isSuccessful()) {
+                if (response.isSuccessful()) {
+                    // Navigate to Booking Detail (Summary Page) with QR code
+                    String reservationId = json.optString("id");
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Intent intent = new Intent(this, BookingDetailActivity.class);
+                        intent.putExtra("reservation_id", reservationId);
+                        intent.putExtra("show_summary", true);
+                        startActivity(intent);
+                        finish();
+                    });
+                } else {
                     String msg = json.optString("message", "Booking failed.");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnSubmit.setEnabled(true);
-                        tvError.setText(msg);
+                        tvError.setText(msg); // Shows API error (e.g. 7-day rule violation)
                         tvError.setVisibility(View.VISIBLE);
                     });
                 }
