@@ -2,7 +2,7 @@
 // File: FrequenzGlobeFooter3D.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Three.js interactive 3D glowing wireframe globe for website footer CTA.
+// Description: Animated Three.js glowing wireframe globe with responsive behavior.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 
@@ -11,8 +11,8 @@ import * as THREE from 'three';
 
 /**
  * FrequenzGlobeFooter3D
- * Creates a centered 3D glowing wireframe globe with cyan nodes
- * and interconnecting energy lines for the website footer.
+ * Creates a centered 3D glowing wireframe globe with pulsing cyan nodes
+ * and continuous rotation for the website footer CTA.
  */
 const FrequenzGlobeFooter3D = () => {
   const mountRef = useRef(null);
@@ -44,17 +44,21 @@ const FrequenzGlobeFooter3D = () => {
     });
 
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 2)
+    );
     renderer.setClearColor(0x000000, 0);
 
     container.appendChild(renderer.domElement);
 
-    // Globe Group
+    // Globe group
     const globeGroup = new THREE.Group();
+
     globeGroup.position.set(0, -0.2, 0);
+
     scene.add(globeGroup);
 
-    // Geodesic sphere geometry
+    // Geodesic sphere
     const radius = 5.6;
 
     const baseGeometry = new THREE.IcosahedronGeometry(
@@ -62,10 +66,9 @@ const FrequenzGlobeFooter3D = () => {
       2
     );
 
-    // Glowing cyan wireframe
-    const wireframeGeometry = new THREE.WireframeGeometry(
-      baseGeometry
-    );
+    // Wireframe
+    const wireframeGeometry =
+      new THREE.WireframeGeometry(baseGeometry);
 
     const lineMaterial = new THREE.LineBasicMaterial({
       color: 0x00ffce,
@@ -82,7 +85,7 @@ const FrequenzGlobeFooter3D = () => {
 
     globeGroup.add(lineSegments);
 
-    // Create procedural glowing node texture
+    // Procedural glow texture
     const createGlowTexture = () => {
       const canvas = document.createElement('canvas');
 
@@ -139,7 +142,7 @@ const FrequenzGlobeFooter3D = () => {
 
     const dotTexture = createGlowTexture();
 
-    // Standard globe vertices
+    // Standard vertex nodes
     const pointsMaterial = new THREE.PointsMaterial({
       color: 0x00ffce,
       size: 0.35,
@@ -198,17 +201,83 @@ const FrequenzGlobeFooter3D = () => {
 
     globeGroup.add(hubPoints);
 
-    // Render scene
-    renderer.render(scene, camera);
+    // Initial globe orientation
+    globeGroup.rotation.x = 0.3;
+    globeGroup.rotation.y = 0.2;
+
+    // Responsive resize handler
+    const handleResize = () => {
+      if (!container) return;
+
+      const newWidth = container.clientWidth;
+      const newHeight = container.clientHeight;
+
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(
+        newWidth,
+        newHeight
+      );
+    };
+
+    window.addEventListener(
+      'resize',
+      handleResize
+    );
+
+    handleResize();
+
+    // Animation
+    let animationFrameId;
+
+    const clock = new THREE.Clock();
+
+    const animate = () => {
+      animationFrameId =
+        requestAnimationFrame(animate);
+
+      const elapsedTime =
+        clock.getElapsedTime();
+
+      // Continuous globe rotation
+      globeGroup.rotation.y += 0.002;
+      globeGroup.rotation.x += 0.0006;
+
+      // Pulsing hub nodes
+      hubMaterial.size =
+        0.65 +
+        Math.sin(elapsedTime * 2.5) * 0.18;
+
+      renderer.render(
+        scene,
+        camera
+      );
+    };
+
+    animate();
 
     // Cleanup
     return () => {
+      cancelAnimationFrame(
+        animationFrameId
+      );
+
+      window.removeEventListener(
+        'resize',
+        handleResize
+      );
+
       if (
         container &&
         renderer.domElement &&
-        container.contains(renderer.domElement)
+        container.contains(
+          renderer.domElement
+        )
       ) {
-        container.removeChild(renderer.domElement);
+        container.removeChild(
+          renderer.domElement
+        );
       }
 
       baseGeometry.dispose();
@@ -216,7 +285,7 @@ const FrequenzGlobeFooter3D = () => {
       lineMaterial.dispose();
       pointsMaterial.dispose();
       hubGeometry.dispose();
-      hubMaterial();
+      hubMaterial.dispose();
       renderer.dispose();
     };
   }, []);
