@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.smartsolar.mobile.R;
@@ -240,9 +241,10 @@ public class CreateReservationActivity extends AppCompatActivity {
         if (energyStr.isEmpty()) { tvError.setText("Please enter energy amount in kWh."); tvError.setVisibility(View.VISIBLE); return; }
 
         int stationIdx = spinnerStation.getSelectedItemPosition();
-        String stationId;
+        String stationId, stationName;
         try {
             stationId = stationList.get(stationIdx).getString("id");
+            stationName = stationList.get(stationIdx).getString("name");
         } catch (Exception e) { return; }
 
         String type = spinnerType.getSelectedItem().toString().equals("Drop-Off (Sell Energy)") ? "DropOff" : "Charging";
@@ -252,7 +254,21 @@ public class CreateReservationActivity extends AppCompatActivity {
         isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String isoDateTime = isoFormat.format(selectedDateTime.getTime());
 
-        performReservationSubmission(stationId, type, duration, energyStr, isoDateTime);
+        SimpleDateFormat displayFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
+        String details = "\n\nStation: " + stationName + "\n" +
+                     "Slot: #" + selectedSlotNumber + "\n" +
+                     "Scheduled: " + displayFormat.format(selectedDateTime.getTime()) + "\n" +
+                     "Energy: " + energyStr + " kWh\n" +
+                     "Type: " + (type.equals("DropOff") ? "Drop-Off" : "Charging");
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_confirm_reservation_title)
+                .setMessage(getString(R.string.dialog_confirm_reservation_msg) + details)
+                .setPositiveButton(R.string.btn_confirm_generate_qr, (dialog, which) -> {
+                    performReservationSubmission(stationId, type, duration, energyStr, isoDateTime);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void performReservationSubmission(String stationId, String type, int duration, String energyStr, String isoDateTime) {
@@ -276,8 +292,27 @@ public class CreateReservationActivity extends AppCompatActivity {
                         "reservations?prosumerNic=" + nic)
                         .post(ApiClient.jsonBody(body)).build();
 
-                ApiClient.getClient().newCall(request).execute();
-            } catch (Exception ignored) {}
+                Response response = ApiClient.getClient().newCall(request).execute();
+                String responseBody = response.body().string();
+                JSONObject json = new JSONObject(responseBody);
+
+                if (!response.isSuccessful()) {
+                    String msg = json.optString("message", "Booking failed.");
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnSubmit.setEnabled(true);
+                        tvError.setText(msg);
+                        tvError.setVisibility(View.VISIBLE);
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnSubmit.setEnabled(true);
+                    tvError.setText("Network error: " + e.getMessage());
+                    tvError.setVisibility(View.VISIBLE);
+                });
+            }
         }).start();
     }
 }
