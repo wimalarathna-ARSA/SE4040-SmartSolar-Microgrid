@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="8dp"
+    android:background="@drawable/bg_neuro_card"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_neuro_icon_circle">
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_bolt_thin"
+                android:contentDescription="Booking" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+            <TextView
+                android:id="@+id/tv_booking_code"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RES-399927"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/neuro_green"/>
+            <TextView
+                android:id="@+id/tv_booking_station"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Colombo Central Solar Hub"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/neuro_text_primary"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_booking_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Completed"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/neuro_text_green"
+            android:background="@drawable/bg_neuro_badge_pill"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:gravity="bottom">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tv_booking_energy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12.0 kWh"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-bold"
+                android:textColor="@color/neuro_text_primary"/>
+            <TextView
+                android:id="@+id/tv_booking_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2026-09-23 08:30"
+                android:textSize="12sp"
+                android:textColor="@color/neuro_text_muted"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_booking_cost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rs. 25.00"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="@color/neuro_text_primary" />
+    </LinearLayout>
+
+</LinearLayout>
