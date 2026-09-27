@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.zxing.BarcodeFormat;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
@@ -12,6 +13,10 @@ import com.smartsolar.mobile.api.ApiClient;
 import com.smartsolar.mobile.data.SessionManager;
 import okhttp3.*;
 import org.json.JSONObject;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class BookingDetailActivity extends AppCompatActivity {
 
@@ -57,6 +62,7 @@ public class BookingDetailActivity extends AppCompatActivity {
 
         loadReservationDetail();
 
+        btnEdit.setOnClickListener(v -> showEditReservationDialog());
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
         btnBack.setOnClickListener(v -> finish());
     }
@@ -76,7 +82,24 @@ public class BookingDetailActivity extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
                     tvCode.setText("Ref: " + json.optString("reservationCode"));
                     tvStation.setText("Hub: " + json.optString("stationName"));
+                    String rawScheduled = json.optString("scheduledDateTime", "");
+                    String displayScheduled = rawScheduled;
+                    try {
+                        java.text.SimpleDateFormat utcParser = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+                        utcParser.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        java.util.Date parsedDate = utcParser.parse(rawScheduled.length() > 19 ? rawScheduled.substring(0, 19) : rawScheduled);
+                        java.text.SimpleDateFormat localFormatter = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
+                        localFormatter.setTimeZone(TimeZone.getDefault());
+                        displayScheduled = localFormatter.format(parsedDate);
+                    } catch (Exception ignored) {
+                        displayScheduled = rawScheduled.replace("T", " ").substring(0, Math.min(16, rawScheduled.length()));
+                    }
+                    tvScheduled.setText("Scheduled: " + displayScheduled);
+                    tvEnergy.setText("Energy: " + json.optDouble("energyAmountKWh") + " kWh for " + json.optInt("durationHours") + " hr(s)");
+                    tvSlot.setText("Battery Slot: #" + json.optInt("slotNumber", 0));
+                    tvCost.setText("Estimated Value: Rs. " + String.format("%.2f", json.optDouble("totalCost")));
                     tvStatus.setText("Status: " + json.optString("status"));
+                    tvType.setText("Type: " + ("DropOff".equals(json.optString("reservationType")) ? "Drop-Off (Selling to Grid)" : "Charging (Buying from Grid)"));
 
                     String qrData = json.optString("qrCodeData", "");
                     String status = json.optString("status");
@@ -85,6 +108,14 @@ public class BookingDetailActivity extends AppCompatActivity {
                         tvQrHint.setText("Show this QR code to the Grid Operator at the solar hub.");
                         tvQrHint.setVisibility(View.VISIBLE);
                         ivQrCode.setVisibility(View.VISIBLE);
+                    }
+
+                    if ("Approved".equals(status) || "Pending".equals(status)) {
+                        btnEdit.setVisibility(View.VISIBLE);
+                        btnCancel.setVisibility(View.VISIBLE);
+                    } else {
+                        btnEdit.setVisibility(View.GONE);
+                        btnCancel.setVisibility(View.GONE);
                     }
                 });
             } catch (Exception e) {
@@ -105,5 +136,69 @@ public class BookingDetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             tvQrHint.setText("QR code could not be rendered.");
         }
+    }
+
+    private void showEditReservationDialog() {
+        if (currentReservation == null) return;
+
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources().getDisplayMetrics().density);
+        form.setPadding(padding, 0, padding, 0);
+
+        TextView policy = new TextView(this);
+        policy.setText("Edits require at least 12 hours before the scheduled start time.");
+        policy.setPadding(0, 0, 0, padding / 2);
+        form.addView(policy);
+
+        Calendar scheduled = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        try {
+            String value = currentReservation.optString("scheduledDateTime");
+            SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+            parser.setTimeZone(TimeZone.getTimeZone("UTC"));
+            java.util.Date parsed = parser.parse(value.replace("Z", ""));
+            if (parsed != null) scheduled.setTime(parsed);
+        } catch (Exception ignored) {
+            scheduled.add(Calendar.HOUR_OF_DAY, 24);
+        }
+
+        DatePicker datePicker = new DatePicker(this);
+        datePicker.init(scheduled.get(Calendar.YEAR), scheduled.get(Calendar.MONTH), scheduled.get(Calendar.DAY_OF_MONTH), null);
+        form.addView(datePicker);
+
+        TimePicker timePicker = new TimePicker(this);
+        timePicker.setIs24HourView(true);
+        timePicker.setHour(scheduled.get(Calendar.HOUR_OF_DAY));
+        timePicker.setMinute(scheduled.get(Calendar.MINUTE));
+        form.addView(timePicker);
+
+        EditText energy = new EditText(this);
+        energy.setHint("Energy amount (kWh)");
+        energy.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        energy.setText(String.valueOf(currentReservation.optDouble("energyAmountKWh", 0)));
+        form.addView(energy);
+
+        EditText duration = new EditText(this);
+        duration.setHint("Duration (hours)");
+        duration.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        duration.setText(String.valueOf(currentReservation.optInt("durationHours", 1)));
+        form.addView(duration);
+
+        Spinner type = new Spinner(this);
+        String[] types = {"DropOff", "Charging"};
+        type.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, types));
+        type.setSelection("Charging".equals(currentReservation.optString("reservationType")) ? 1 : 0);
+        form.addView(type);
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setFillViewport(true);
+        scrollView.addView(form);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Edit Reservation")
+                .setView(scrollView)
+                .setPositiveButton("Save Changes", (dialog, which) -> {})
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 }
