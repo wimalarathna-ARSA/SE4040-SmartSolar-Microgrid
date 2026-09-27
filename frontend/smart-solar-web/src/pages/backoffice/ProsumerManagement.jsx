@@ -1643,6 +1643,18 @@ const ProsumerManagement = () => {
         </div>
       )}
       
+      {/* LocationPickerModal for installation GPS selection */}
+      <LocationPickerModal
+        isOpen={showMapModal}
+        onClose={() => setShowMapModal(false)}
+        initialLocation={{
+          address: registerForm.address || '',
+          latitude: registerInstallLat || 6.9271,
+          longitude: registerInstallLng || 79.8612,
+        }}
+        onApply={handleApplyMapLocation}
+        zIndex={10000}
+      />
     </div>
   );
 };
