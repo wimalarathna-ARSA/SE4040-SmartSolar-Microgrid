@@ -1421,6 +1421,29 @@ const ProsumerManagement = () => {
             </div>
           </div>
         )}
+                {/* =========================================================================
+            BOTTOM BACK LINK
+           ========================================================================= */}
+        <div style={{ marginTop: '28px' }}>
+          <Link
+            to="/backoffice"
+            style={{
+              color: 'rgba(255, 255, 255, 0.85)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)')}
+          >
+            <i className="bi bi-arrow-left"></i>
+            <span>Back to Administration Console</span>
+          </Link>
+        </div>
 
     </div>
     </div>
