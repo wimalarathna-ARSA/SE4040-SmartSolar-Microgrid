@@ -5,7 +5,10 @@ import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import com.smartsolar.mobile.R;
+import com.smartsolar.mobile.api.ApiClient;
 import com.smartsolar.mobile.data.SessionManager;
+import okhttp3.*;
+import org.json.JSONObject;
 
 public class BookingDetailActivity extends AppCompatActivity {
 
@@ -15,6 +18,7 @@ public class BookingDetailActivity extends AppCompatActivity {
     private View progressBar;
     private SessionManager sessionManager;
     private String reservationId, prosumerNic;
+    private JSONObject currentReservation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +52,36 @@ public class BookingDetailActivity extends AppCompatActivity {
             tvSummaryHeader.setVisibility(View.VISIBLE);
         }
 
+        loadReservationDetail();
+
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
         btnBack.setOnClickListener(v -> finish());
+    }
+
+    private void loadReservationDetail() {
+        progressBar.setVisibility(View.VISIBLE);
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this,
+                        "reservations/" + reservationId).get().build();
+                Response response = ApiClient.getClient().newCall(request).execute();
+                String body = response.body().string();
+                JSONObject json = new JSONObject(body);
+                currentReservation = json;
+
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    tvCode.setText("Ref: " + json.optString("reservationCode"));
+                    tvStation.setText("Hub: " + json.optString("stationName"));
+                    tvStatus.setText("Status: " + json.optString("status"));
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    tvError.setText("Failed to load reservation: " + e.getMessage());
+                    tvError.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
     }
 }
