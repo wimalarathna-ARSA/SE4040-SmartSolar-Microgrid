@@ -856,6 +856,222 @@ const ProsumerManagement = () => {
           </div>
         )}
 
+                {/* =========================================================================
+            TAB: EMAIL UPDATE REQUESTS (Frosted Glass)
+           ========================================================================= */}
+        {activeTab === 'email-requests' && (
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderRadius: '28px',
+              border: '1px solid rgba(255, 255, 255, 0.95)',
+              boxShadow: '0 16px 40px -8px rgba(10, 35, 70, 0.12)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Card Header */}
+            <div
+              style={{
+                padding: '24px 32px 20px 32px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: '1.18rem',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <i className="bi bi-envelope-check text-primary"></i>
+                  <span>Prosumer Email Update Requests</span>
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                  Accepting a request grants the prosumer one-time access to update their registered email. Max 3 updates per 24 hours.
+                </p>
+              </div>
+              <span
+                style={{
+                  background: '#0284c7',
+                  color: '#ffffff',
+                  borderRadius: '50px',
+                  padding: '6px 18px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  boxShadow: '0 2px 10px rgba(2, 132, 199, 0.3)',
+                }}
+              >
+                {emailRequests.length} Pending {emailRequests.length === 1 ? 'Request' : 'Requests'}
+              </span>
+            </div>
+
+            {/* Table */}
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  borderSpacing: 0,
+                  background: 'transparent',
+                  textAlign: 'left',
+                }}
+              >
+                <thead>
+                  <tr style={{ background: '#e3edf6', borderTop: '1px solid rgba(210, 230, 245, 0.8)', borderBottom: '1px solid rgba(210, 230, 245, 0.8)' }}>
+                    <th style={{ padding: '16px 32px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>NIC</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>FULL NAME</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>CURRENT EMAIL</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>REQUESTED EMAIL</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>REASON / DATE</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>24H UPDATES</th>
+                    <th style={{ padding: '16px 32px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'center', background: '#e3edf6' }}>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emailRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '54px 24px', color: '#64748b', background: '#f8fafc' }}>
+                        <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#f0fdf4', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '1.5rem' }}>
+                          <i className="bi bi-check-lg"></i>
+                        </div>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.98rem' }}>No Pending Email Update Requests</div>
+                        <div style={{ fontSize: '0.84rem', marginTop: '4px' }}>All prosumer email change requests have been processed.</div>
+                      </td>
+                    </tr>
+                  ) : (
+                    emailRequests.map((r, idx) => {
+                      const rowBg = idx % 2 === 0 ? '#ebf4fa' : '#f8fafc';
+                      const isLimitReached = r.updatesLast24Hours >= 3;
+                      return (
+                        <tr
+                          key={r.nic}
+                          style={{
+                            background: rowBg,
+                            borderBottom: idx === emailRequests.length - 1 ? 'none' : '1px solid rgba(210, 230, 245, 0.7)',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0edf8')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowBg)}
+                        >
+                          <td style={{ padding: '18px 32px', background: 'transparent' }}>
+                            <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.02em', display: 'inline-block' }}>
+                              {r.nic}
+                            </span>
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#0f172a', fontWeight: 700, fontSize: '0.92rem' }}>
+                            {r.fullName}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#475569', fontSize: '0.88rem' }}>
+                            {r.currentEmail}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#0f172a', fontWeight: 600, fontSize: '0.88rem' }}>
+                            {r.requestedNewEmail ? (
+                              <span style={{ color: '#0284c7', background: 'rgba(2, 132, 199, 0.1)', padding: '3px 8px', borderRadius: '6px' }}>
+                                {r.requestedNewEmail}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Any new email</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#334155', fontSize: '0.84rem' }}>
+                            <div>{r.reason || 'No reason specified'}</div>
+                            {r.requestDate && (
+                              <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                                {new Date(r.requestDate).toLocaleString()}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent' }}>
+                            <span
+                              style={{
+                                background: isLimitReached ? '#fee2e2' : '#f1f5f9',
+                                color: isLimitReached ? '#b91c1c' : '#334155',
+                                border: isLimitReached ? '1px solid #fca5a5' : '1px solid #cbd5e1',
+                                borderRadius: '50px',
+                                padding: '3px 10px',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <i className={`bi ${isLimitReached ? 'bi-exclamation-triangle-fill' : 'bi-shield-check'}`}></i>
+                              <span>{r.updatesLast24Hours} / 3 in 24h</span>
+                            </span>
+                            {isLimitReached && (
+                              <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700, marginTop: '4px' }}>
+                                Limit reached! Try later.
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: '18px 32px', background: 'transparent', textAlign: 'center' }}>
+                            <div className="d-flex align-items-center justify-content-center gap-2">
+                              <button
+                                onClick={() => handleReviewEmailRequest(r.nic, 'Accept')}
+                                disabled={isLimitReached}
+                                style={{
+                                  background: isLimitReached ? '#94a3b8' : '#10b981',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '50px',
+                                  padding: '6px 16px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 700,
+                                  cursor: isLimitReached ? 'not-allowed' : 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  boxShadow: isLimitReached ? 'none' : '0 2px 10px rgba(16, 185, 129, 0.35)',
+                                }}
+                              >
+                                <i className="bi bi-check-circle"></i>
+                                <span>Accept & Grant Access</span>
+                              </button>
+                              <button
+                                onClick={() => handleReviewEmailRequest(r.nic, 'Deny')}
+                                style={{
+                                  background: 'rgba(239, 68, 68, 0.12)',
+                                  color: '#ef4444',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  borderRadius: '50px',
+                                  padding: '6px 14px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                }}
+                              >
+                                <i className="bi bi-x-circle"></i>
+                                <span>Deny</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+
     </div>
     </div>
   );
