@@ -1070,7 +1070,357 @@ const ProsumerManagement = () => {
             </div>
           </div>
         )}
+        {/* =========================================================================
+            TAB 2: ALL PROSUMERS REGISTRY TABLE (Pure Light Frosted Glass)
+           ========================================================================= */}
+        {activeTab === 'all' && (
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderRadius: '28px',
+              border: '1px solid rgba(255, 255, 255, 0.95)',
+              boxShadow: '0 16px 40px -8px rgba(10, 35, 70, 0.12)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Card Header with Search Input */}
+            <div
+              style={{
+                padding: '24px 32px 20px 32px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: '1.18rem',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  margin: 0,
+                }}
+              >
+                All Solar Prosumers Directory
+              </h2>
+              <div style={{ position: 'relative', width: '280px' }}>
+                <i className="bi bi-search" style={{ position: 'absolute', left: '14px', top: '10px', color: '#94a3b8' }}></i>
+                <input
+                  type="text"
+                  placeholder="Search NIC, name, email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 16px 8px 36px',
+                    borderRadius: '50px',
+                    border: '1px solid rgba(15, 23, 42, 0.15)',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    color: '#0f172a',
+                    fontSize: '0.86rem',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
 
+            {/* Table */}
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  borderSpacing: 0,
+                  background: 'transparent',
+                  textAlign: 'left',
+                }}
+              >
+                <thead>
+                  <tr style={{ background: '#e3edf6', borderTop: '1px solid rgba(210, 230, 245, 0.8)', borderBottom: '1px solid rgba(210, 230, 245, 0.8)' }}>
+                    <th style={{ padding: '16px 32px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>NIC (PRIMARY KEY)</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>FULL NAME</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>EMAIL</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>PHONE</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>INSTALLATION ADDRESS</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>STATUS</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>DEACTIVATION FLAG</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>EMAIL ACCESS</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>REGISTERED DATE</th>
+                    <th style={{ padding: '16px 32px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6', textAlign: 'center' }}>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="10" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
+                        <div className="spinner-border spinner-border-sm me-2 text-primary"></div>
+                        Loading prosumer directory...
+                      </td>
+                    </tr>
+                  ) : filteredProsumers.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
+                        No matching prosumers found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProsumers.map((p, idx) => {
+                      const rowBg = idx % 2 === 0 ? '#ebf4fa' : '#f8fafc';
+                      const isHighlighted = highlightedNic === p.nic;
+                      return (
+                        <tr
+                          key={p.id || idx}
+                          id={`prosumer-row-${p.nic}`}
+                          style={{
+                            background: isHighlighted ? '#fee2e2' : rowBg,
+                            borderBottom: idx === filteredProsumers.length - 1 ? 'none' : '1px solid rgba(210, 230, 245, 0.7)',
+                            outline: isHighlighted ? '3px solid #ef4444' : 'none',
+                            boxShadow: isHighlighted ? '0 0 0 4px rgba(239, 68, 68, 0.35), 0 8px 24px rgba(239, 68, 68, 0.25)' : 'none',
+                            transition: 'all 0.35s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isHighlighted) e.currentTarget.style.backgroundColor = '#e0edf8';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isHighlighted) e.currentTarget.style.backgroundColor = rowBg;
+                          }}
+                        >
+                          <td style={{ padding: '18px 32px', background: 'transparent' }}>
+                            <span style={{ color: '#e11d48', fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.02em', display: 'inline-block' }}>
+                              {p.nic}
+                            </span>
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#0f172a', fontWeight: 700, fontSize: '0.92rem' }}>
+                            {p.fullName}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#475569', fontSize: '0.88rem' }}>
+                            {p.email}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#334155', fontSize: '0.88rem' }}>
+                            {p.phoneNumber || 'N/A'}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#334155', fontSize: '0.86rem' }}>
+                            <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                              {p.address || 'N/A'}
+                            </div>
+                            {p.installationLatitude != null && p.installationLongitude != null && (
+                              <div style={{ marginTop: '4px', fontSize: '0.72rem', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#e0f2fe', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                                <i className="bi bi-geo-alt-fill"></i>
+                                <span>{p.installationLatitude.toFixed(4)}, {p.installationLongitude.toFixed(4)}</span>
+                              </div>
+                            )}
+                          </td>
+
+                          <td style={{ padding: '18px 24px', background: 'transparent' }}>
+                            <span
+                              style={{
+                                background: p.status === 'Active' ? '#10b981' : p.status === 'PendingApproval' ? '#f59e0b' : '#ef4444',
+                                color: '#ffffff',
+                                borderRadius: '50px',
+                                padding: '5px 16px',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                display: 'inline-block',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                              }}
+                            >
+                              {p.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent' }}>
+                            {p.deactivationRequested ? (
+                              <div>
+                                <span
+                                  style={{
+                                    background: '#fee2e2',
+                                    color: '#b91c1c',
+                                    border: '1px solid #fecaca',
+                                    borderRadius: '50px',
+                                    padding: '4px 12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                  }}
+                                >
+                                  <i className="bi bi-exclamation-octagon-fill text-danger"></i>
+                                  <span>Requested</span>
+                                </span>
+                                {p.deactivationReason && (
+                                  <div
+                                    style={{
+                                      marginTop: '6px',
+                                      fontSize: '0.76rem',
+                                      color: '#7f1d1d',
+                                      background: '#ffffff',
+                                      border: '1px dashed #f87171',
+                                      borderRadius: '8px',
+                                      padding: '6px 10px',
+                                      maxWidth: '260px',
+                                      lineHeight: 1.35,
+                                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+                                    }}
+                                  >
+                                    <div style={{ fontWeight: 700, fontSize: '0.7rem', color: '#991b1b', textTransform: 'uppercase', marginBottom: '2px' }}>
+                                      Reason from user:
+                                    </div>
+                                    <span>"{p.deactivationReason}"</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>None</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent' }}>
+                            <div>
+                              {p.emailUpdateAccessGranted ? (
+                                <span
+                                  style={{
+                                    background: '#dcfce7',
+                                    color: '#15803d',
+                                    border: '1px solid #86efac',
+                                    borderRadius: '50px',
+                                    padding: '4px 12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                  }}
+                                >
+                                  <i className="bi bi-unlock-fill"></i>
+                                  <span>Access Granted</span>
+                                </span>
+                              ) : p.emailUpdateRequestStatus === 'Pending' ? (
+                                <span
+                                  style={{
+                                    background: '#e0f2fe',
+                                    color: '#0369a1',
+                                    border: '1px solid #7dd3fc',
+                                    borderRadius: '50px',
+                                    padding: '4px 12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                  }}
+                                >
+                                  <i className="bi bi-hourglass-split"></i>
+                                  <span>Request Pending</span>
+                                </span>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Locked (Default)</span>
+                              )}
+                              <div style={{ fontSize: '0.72rem', color: (p.emailUpdatesLast24Hours || 0) >= 3 ? '#ef4444' : '#64748b', marginTop: '4px', fontWeight: 600 }}>
+                                24h Updates: {p.emailUpdatesLast24Hours || 0} / 3 {(p.emailUpdatesLast24Hours || 0) >= 3 ? '(Limit Reached)' : ''}
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#475569', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                            {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td style={{ padding: '18px 32px', background: 'transparent', textAlign: 'center' }}>
+                            <div className="d-flex flex-column align-items-center gap-1">
+                              {p.status === 'Active' && (
+                                <button
+                                  onClick={() => handleDeactivate(p.nic)}
+                                  style={{
+                                    background: 'rgba(239, 68, 68, 0.12)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    borderRadius: '50px',
+                                    padding: '5px 14px',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                  }}
+                                >
+                                  <i className="bi bi-person-x"></i> Deactivate
+                                </button>
+                              )}
+                              {p.status === 'Deactivated' && (
+                                <button
+                                  onClick={() => handleReactivate(p.nic)}
+                                  style={{
+                                    background: 'rgba(16, 185, 129, 0.12)',
+                                    color: '#10b981',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                                    borderRadius: '50px',
+                                    padding: '5px 14px',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                  }}
+                                >
+                                  <i className="bi bi-arrow-repeat"></i> Reactivate
+                                </button>
+                              )}
+                              {p.status === 'PendingApproval' && (
+                                <button
+                                  onClick={() => handleActivate(p.nic)}
+                                  style={{
+                                    background: '#10b981',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '50px',
+                                    padding: '5px 14px',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.35)',
+                                  }}
+                                >
+                                  <i className="bi bi-check-circle"></i> Activate
+                                </button>
+                              )}
+                              {p.status === 'Active' && (
+                                <button
+                                  onClick={() => handleDirectEmailAccess(p.nic, !p.emailUpdateAccessGranted)}
+                                  style={{
+                                    background: p.emailUpdateAccessGranted ? 'rgba(239, 68, 68, 0.08)' : 'rgba(2, 132, 199, 0.08)',
+                                    color: p.emailUpdateAccessGranted ? '#dc2626' : '#0284c7',
+                                    border: `1px solid ${p.emailUpdateAccessGranted ? 'rgba(239, 68, 68, 0.25)' : 'rgba(2, 132, 199, 0.25)'}`,
+                                    borderRadius: '50px',
+                                    padding: '4px 12px',
+                                    fontSize: '0.74rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                  }}
+                                  title={p.emailUpdateAccessGranted ? 'Revoke email edit permission' : 'Grant email edit permission'}
+                                >
+                                  <i className={`bi ${p.emailUpdateAccessGranted ? 'bi-lock' : 'bi-unlock'}`}></i>
+                                  <span>{p.emailUpdateAccessGranted ? 'Revoke Email' : 'Grant Email'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
     </div>
     </div>
