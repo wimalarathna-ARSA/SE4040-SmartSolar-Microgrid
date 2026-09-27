@@ -1,5 +1,13 @@
+// ============================================================================
+// File: BookingDetailActivity.java
+// Author: IT22166210
+// Course: SE4040 - Enterprise Application Development
+// Description: Reservation detail, update, and cancel screen (Summary Page).
+//              Shows QR code for Approved bookings.
+//              Update/Cancel enforces the 12-hour notice rule (API enforces strictly).
+// Architecture: FAT Service Pattern - 12-hour rule enforced by C# Web API
+// ============================================================================
 package com.smartsolar.mobile.ui.prosumer;
-
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,6 +28,7 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+/** Booking detail, summary, update and cancellation screen with QR dispatch. */
 public class BookingDetailActivity extends AppCompatActivity {
 
     private TextView tvCode, tvStation, tvScheduled, tvEnergy, tvCost, tvStatus, tvType, tvSlot, tvQrHint, tvError, tvSummaryHeader;
@@ -30,8 +39,11 @@ public class BookingDetailActivity extends AppCompatActivity {
     private String reservationId, prosumerNic;
     private JSONObject currentReservation;
 
+    /** Loads reservation details from API and shows QR code if approved. */
+    // Fetches reservation by ID and renders summary page with QR payload
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Extract reservation ID, bind views, show summary header if confirmed, and load reservation details
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking_detail);
 
@@ -64,13 +76,17 @@ public class BookingDetailActivity extends AppCompatActivity {
 
         loadReservationDetail();
 
+        // Cancel booking - API enforces 12-hour notice rule
         btnEdit.setOnClickListener(v -> showEditReservationDialog());
         btnCancel.setOnClickListener(v -> cancelReservation());
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
         btnBack.setOnClickListener(v -> finish());
     }
 
+    /** Fetches reservation detail from the C# Web API by ID. */
+    // Calls GET /api/reservations/{id} and populates the summary page
     private void loadReservationDetail() {
+        // GET /api/reservations/{id} and render booking status, converted local timestamp, and QR code
         progressBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
             try {
@@ -85,6 +101,7 @@ public class BookingDetailActivity extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
                     tvCode.setText("Ref: " + json.optString("reservationCode"));
                     tvStation.setText("Hub: " + json.optString("stationName"));
+                    // Fix: Parse UTC ISO datetime from API and convert to device local timezone for display
                     String rawScheduled = json.optString("scheduledDateTime", "");
                     String displayScheduled = rawScheduled;
                     try {
@@ -92,9 +109,10 @@ public class BookingDetailActivity extends AppCompatActivity {
                         utcParser.setTimeZone(TimeZone.getTimeZone("UTC"));
                         java.util.Date parsedDate = utcParser.parse(rawScheduled.length() > 19 ? rawScheduled.substring(0, 19) : rawScheduled);
                         java.text.SimpleDateFormat localFormatter = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
-                        localFormatter.setTimeZone(TimeZone.getDefault());
+                        localFormatter.setTimeZone(TimeZone.getDefault()); // Device local timezone
                         displayScheduled = localFormatter.format(parsedDate);
                     } catch (Exception ignored) {
+                        // Fallback: basic strip if parse fails
                         displayScheduled = rawScheduled.replace("T", " ").substring(0, Math.min(16, rawScheduled.length()));
                     }
                     tvScheduled.setText("Scheduled: " + displayScheduled);
@@ -104,6 +122,7 @@ public class BookingDetailActivity extends AppCompatActivity {
                     tvStatus.setText("Status: " + json.optString("status"));
                     tvType.setText("Type: " + ("DropOff".equals(json.optString("reservationType")) ? "Drop-Off (Selling to Grid)" : "Charging (Buying from Grid)"));
 
+                    // Show QR Code for Approved bookings
                     String qrData = json.optString("qrCodeData", "");
                     String status = json.optString("status");
                     if ("Approved".equals(status) && !qrData.isEmpty()) {
@@ -113,6 +132,7 @@ public class BookingDetailActivity extends AppCompatActivity {
                         ivQrCode.setVisibility(View.VISIBLE);
                     }
 
+                    // Show cancel button only for active bookings
                     if ("Approved".equals(status) || "Pending".equals(status)) {
                         btnEdit.setVisibility(View.VISIBLE);
                         btnCancel.setVisibility(View.VISIBLE);
@@ -131,7 +151,10 @@ public class BookingDetailActivity extends AppCompatActivity {
         }).start();
     }
 
+    /** Generates a QR code Bitmap from the reservation's signed QR payload. */
+    // Uses ZXing BarcodeEncoder to render secure token as QR image
     private void generateQrCode(String qrData) {
+        // Generate a 400x400 QR code bitmap using ZXing BarcodeEncoder for approved reservation
         try {
             BarcodeEncoder encoder = new BarcodeEncoder();
             Bitmap bitmap = encoder.encodeBitmap(qrData, BarcodeFormat.QR_CODE, 400, 400);
@@ -141,7 +164,9 @@ public class BookingDetailActivity extends AppCompatActivity {
         }
     }
 
+    /** Opens the booking editor. The API rejects edits made inside the 12-hour notice window. */
     private void showEditReservationDialog() {
+        // Display dialog with DatePicker, TimePicker, energy, and duration inputs to modify booking
         if (currentReservation == null) return;
 
         LinearLayout form = new LinearLayout(this);
@@ -199,7 +224,7 @@ public class BookingDetailActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
                 .setTitle("Edit Reservation")
-                .setView(scrollView)
+            .setView(scrollView)
                 .setPositiveButton("Save Changes", (dialog, which) -> submitReservationUpdate(datePicker, timePicker, energy, duration, type))
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
@@ -207,6 +232,7 @@ public class BookingDetailActivity extends AppCompatActivity {
 
     private void submitReservationUpdate(DatePicker datePicker, TimePicker timePicker, EditText energy,
                                          EditText duration, Spinner type) {
+        // Validate forward scheduling window (within 7 days) and PUT updated reservation to API
         try {
             Calendar selected = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             selected.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(),
@@ -265,12 +291,16 @@ public class BookingDetailActivity extends AppCompatActivity {
     }
 
     private String toIsoUtc(Calendar value) {
+        // Format Calendar timestamp into ISO 8601 UTC string format expected by C# Web API
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.format(value.getTime());
     }
 
+    /** Sends cancellation request to C# Web API. API enforces the 12-hour notice rule. */
+    // Calls DELETE /api/reservations/{id}?prosumerNic=... (API returns error if < 12h notice)
     private void cancelReservation() {
+        // DELETE /api/reservations/{id}?prosumerNic={nic} enforcing the strict 12-hour notice rule
         progressBar.setVisibility(View.VISIBLE);
         btnCancel.setEnabled(false);
         new Thread(() -> {
@@ -288,6 +318,7 @@ public class BookingDetailActivity extends AppCompatActivity {
                         finish();
                     });
                 } else {
+                    // API returns 12-hour rule violation message
                     String msg = json.optString("message", "Cancellation failed.");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
