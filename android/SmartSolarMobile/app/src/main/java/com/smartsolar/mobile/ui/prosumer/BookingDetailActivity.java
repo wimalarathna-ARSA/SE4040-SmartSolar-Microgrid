@@ -1,9 +1,12 @@
 package com.smartsolar.mobile.ui.prosumer;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.api.ApiClient;
 import com.smartsolar.mobile.data.SessionManager;
@@ -74,6 +77,15 @@ public class BookingDetailActivity extends AppCompatActivity {
                     tvCode.setText("Ref: " + json.optString("reservationCode"));
                     tvStation.setText("Hub: " + json.optString("stationName"));
                     tvStatus.setText("Status: " + json.optString("status"));
+
+                    String qrData = json.optString("qrCodeData", "");
+                    String status = json.optString("status");
+                    if ("Approved".equals(status) && !qrData.isEmpty()) {
+                        generateQrCode(qrData);
+                        tvQrHint.setText("Show this QR code to the Grid Operator at the solar hub.");
+                        tvQrHint.setVisibility(View.VISIBLE);
+                        ivQrCode.setVisibility(View.VISIBLE);
+                    }
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
@@ -83,5 +95,15 @@ public class BookingDetailActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private void generateQrCode(String qrData) {
+        try {
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            Bitmap bitmap = encoder.encodeBitmap(qrData, BarcodeFormat.QR_CODE, 400, 400);
+            ivQrCode.setImageBitmap(bitmap);
+        } catch (Exception e) {
+            tvQrHint.setText("QR code could not be rendered.");
+        }
     }
 }
