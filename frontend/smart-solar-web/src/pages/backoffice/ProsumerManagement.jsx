@@ -243,16 +243,355 @@ const ProsumerManagement = () => {
     setShowMapModal(false);
   };
 
-  const filteredProsumers = prosumers.filter(p => 
+  const filteredProsumers = prosumers.filter(p =>
     p.nic.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.address && p.address.toLowerCase().includes(searchTerm.toLowerCase()))
-  
+  );
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(120deg, #cde3ef 0%, #a2c6dd 20%, #468ac0 50%, #0d5a9d 78%, #03376c 100%)',
+        color: '#0f172a',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        padding: '36px 40px 60px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+          {/* Background Constellation Mesh */}
+      <ConstellationMeshSVG />
+
+      <div style={{ maxWidth: '1440px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <BackofficePageHero
+          imageSrc="/images/solar-rooftop-home.jpg"
+          eyebrow="SOLARX • Rooftop Network"
+          title="Prosumer Management"
+          subtitle="Approvals, registry and rooftop installations across the provinces."
+          breadcrumb={['Prosumers']}
+        />
+        
+        {/* TOOLBAR: actions only (duplicate title removed, hero above is the page title) */}
+        <div className="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-3">
+
+          {/* Header Action Controls */}
+          <div className="d-flex align-items-center gap-3">
+            {/* Register New Prosumer Button */}
+            <button
+              onClick={() => { setShowRegisterModal(true); setRegisterMsg({ type: '', text: '' }); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                border: 'none',
+                borderRadius: '50px',
+                padding: '10px 20px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+                transition: 'all 0.2s ease',
+              }}
+              title="Register a new prosumer account"
+            >
+              <i className="bi bi-person-plus-fill"></i>
+              <span>Register New Prosumer</span>
+            </button>
+
+            <button
+              onClick={fetchData}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 255, 255, 0.85)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.9)',
+                borderRadius: '50px',
+                padding: '10px 20px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: '#0f172a',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(7, 43, 74, 0.08)',
+                transition: 'all 0.2s ease',
+              }}
+              title="Refresh prosumer data"
+            >
+              <i className="bi bi-arrow-clockwise"></i>
+              <span>Refresh</span>
+            </button>
 
 
+            {/* Notification Bell Icon & Dropdown for Deactivation Requests */}
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  background: totalNotifications > 0 ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(12px)',
+                  border: totalNotifications > 0 ? '2px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.9)',
+                  boxShadow: totalNotifications > 0 ? '0 4px 16px rgba(14, 165, 233, 0.3)' : '0 4px 14px rgba(7, 43, 74, 0.08)',
+                  color: totalNotifications > 0 ? '#0284c7' : '#475569',
+                  fontSize: '1.25rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                title={totalNotifications > 0 ? `${totalNotifications} pending notification(s)` : 'No pending notifications'}
+              >
+                <i className={totalNotifications > 0 ? 'bi bi-bell-fill' : 'bi bi-bell'}></i>
+                {totalNotifications > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-4px',
+                      right: '-4px',
+                      background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                      color: '#ffffff',
+                      borderRadius: '50px',
+                      minWidth: '22px',
+                      height: '22px',
+                      padding: '0 6px',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(2, 132, 199, 0.5)',
+                      border: '2px solid #ffffff',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {totalNotifications}
+                  </span>
+                )}
+              </button>
 
-); 
+              {/* Notification Dropdown Menu */}
+              {showNotificationDropdown && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 'calc(100% + 12px)',
+                    width: '420px',
+                    maxWidth: '90vw',
+                    background: 'rgba(255, 255, 255, 0.98)',
+                    backdropFilter: 'blur(24px)',
+                    borderRadius: '24px',
+                    border: '1px solid rgba(255, 255, 255, 0.95)',
+                    boxShadow: '0 20px 50px -10px rgba(10, 35, 70, 0.3), 0 0 0 1px rgba(15, 23, 42, 0.06)',
+                    zIndex: 1100,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {/* Dropdown Header */}
+                  <div
+                    style={{
+                      padding: '16px 22px',
+                      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div className="d-flex align-items-center gap-2">
+                      <i className="bi bi-exclamation-triangle-fill text-warning" style={{ fontSize: '1.05rem' }}></i>
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, letterSpacing: '-0.01em', color: '#ffffff' }}>
+                        Deactivation Requests
+                      </h4>
+                    </div>
+                    <span
+                      style={{
+                        background: deactivationRequests.length > 0 ? '#ef4444' : '#64748b',
+                        color: '#ffffff',
+                        borderRadius: '50px',
+                        padding: '3px 10px',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {deactivationRequests.length} {deactivationRequests.length === 1 ? 'Request' : 'Requests'}
+                    </span>
+                  </div>
+
+                  {/* Dropdown Content */}
+                  <div style={{ maxHeight: '380px', overflowY: 'auto', padding: '16px' }}>
+                    {deactivationRequests.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '32px 16px', color: '#64748b' }}>
+                        <div
+                          style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '50%',
+                            background: '#f0fdf4',
+                            border: '1px solid #bbf7d0',
+                            color: '#16a34a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 12px',
+                            fontSize: '1.4rem',
+                          }}
+                        >
+                          <i className="bi bi-check-lg"></i>
+                        </div>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem', marginBottom: '4px' }}>
+                          No Pending Deactivation Requests
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                          All registered prosumer accounts are operating normally without pending deactivation flags.
+                        </div>
+                      </div>
+                    ) : (
+                      deactivationRequests.map((p) => (
+                        <div
+                          key={p.nic}
+                          onClick={() => handleSelectNotification(p)}
+                          style={{
+                            background: '#fff5f5',
+                            border: '1px solid #fecaca',
+                            borderRadius: '16px',
+                            padding: '14px',
+                            marginBottom: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            boxShadow: '0 2px 6px rgba(239, 68, 68, 0.05)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#fee2e2';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#fff5f5';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(239, 68, 68, 0.05)';
+                          }}
+                        >
+                          {/* Prosumer Info Row */}
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <div style={{ fontWeight: 750, color: '#0f172a', fontSize: '0.88rem' }}>
+                              {p.fullName}
+                            </div>
+                            <span
+                              style={{
+                                background: p.status === 'Active' ? '#10b981' : '#ef4444',
+                                color: '#ffffff',
+                                borderRadius: '50px',
+                                padding: '2px 8px',
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {p.status}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '0.78rem', color: '#e11d48', fontWeight: 700, marginBottom: '8px' }}>
+                            NIC: {p.nic}
+                          </div>
+
+                          {/* Request Reason Body */}
+                          <div
+                            style={{
+                              background: '#ffffff',
+                              border: '1px solid #fca5a5',
+                              borderRadius: '10px',
+                              padding: '8px 12px',
+                              fontSize: '0.8rem',
+                              color: '#7f1d1d',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '8px',
+                              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
+                            }}
+                          >
+                            <i className="bi bi-chat-quote-fill" style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '1px', flexShrink: 0 }}></i>
+                            <div style={{ wordBreak: 'break-word', lineHeight: 1.4 }}>
+                              <span style={{ fontWeight: 700, display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#991b1b', marginBottom: '2px' }}>
+                                Reason Submitted by Prosumer:
+                              </span>
+                              <span>"{p.deactivationReason || 'No detailed reason provided.'}"</span>
+                            </div>
+                          </div>
+
+                          {/* Direct to Row Prompt */}
+                          <div
+                            style={{
+                              marginTop: '8px',
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.74rem',
+                              color: '#0284c7',
+                              fontWeight: 700,
+                            }}
+                          >
+                            <span>Direct to table row</span>
+                            <i className="bi bi-arrow-right-short" style={{ fontSize: '1rem' }}></i>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Status Alert Message */}
+        {message.text && (
+          <div
+            style={{
+              background: message.type === 'danger' ? 'rgba(254, 226, 226, 0.9)' : message.type === 'warning' ? 'rgba(254, 243, 199, 0.9)' : 'rgba(220, 252, 231, 0.9)',
+              backdropFilter: 'blur(16px)',
+              borderRadius: '16px',
+              border: `1px solid ${message.type === 'danger' ? 'rgba(239, 68, 68, 0.4)' : message.type === 'warning' ? 'rgba(245, 158, 11, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
+              padding: '14px 20px',
+              marginBottom: '22px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: message.type === 'danger' ? '#b91c1c' : message.type === 'warning' ? '#92400e' : '#15803d',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.05)',
+            }}
+          >
+            <div className="d-flex align-items-center gap-2">
+              <i className={`bi ${message.type === 'danger' ? 'bi-exclamation-triangle-fill' : message.type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill'}`}></i>
+              <span>{message.text}</span>
+            </div>
+            <button
+              onClick={() => setMessage({ type: '', text: '' })}
+              style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '1.1rem' }}
+            >
+              &times;
+            </button>
+          </div>
+        )}
+    
+
+    
+    </div>
+    </div>
+  );
 };
 
 export default ProsumerManagement;
