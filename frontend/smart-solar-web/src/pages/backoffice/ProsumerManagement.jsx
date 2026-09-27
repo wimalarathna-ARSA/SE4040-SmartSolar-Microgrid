@@ -1446,6 +1446,203 @@ const ProsumerManagement = () => {
         </div>
 
     </div>
+
+          {/* =========================================================================
+          REGISTER NEW PROSUMER MODAL
+          Backoffice can register prosumers directly with optional GPS map pick.
+         ========================================================================= */}
+      {showRegisterModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9000,
+            background: 'rgba(0, 0, 0, 0.55)', backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowRegisterModal(false); }}
+        >
+          <div
+            style={{
+              background: '#ffffff', borderRadius: '20px', width: '100%', maxWidth: '560px',
+              maxHeight: '90vh', overflowY: 'auto',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+              padding: '32px',
+            }}
+          >
+            {/* Modal header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontWeight: 800, color: '#0f172a', fontSize: '1.3rem' }}>
+                  Register New Prosumer
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                  Account will be created in <strong>PendingApproval</strong> status. Activate from the Pending tab.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowRegisterModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#64748b', lineHeight: 1 }}
+              >×</button>
+            </div>
+
+            {/* Feedback banner */}
+            {registerMsg.text && (
+              <div style={{
+                marginBottom: '16px', padding: '12px 16px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600,
+                background: registerMsg.type === 'success' ? '#dcfce7' : '#fee2e2',
+                color: registerMsg.type === 'success' ? '#166534' : '#991b1b',
+                border: `1px solid ${registerMsg.type === 'success' ? '#86efac' : '#fca5a5'}`,
+              }}>
+                {registerMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={handleRegisterProsumer}>
+              {/* NIC */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#374151', marginBottom: '5px' }}>
+                  NIC Identifier (Primary Key) *
+                </label>
+                <input
+                  type="text" required value={registerForm.nic}
+                  onChange={e => setRegisterForm(f => ({ ...f, nic: e.target.value }))}
+                  placeholder="e.g. 199512345678"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #d1d5db', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Full Name */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#374151', marginBottom: '5px' }}>
+                  Full Name *
+                </label>
+                <input
+                  type="text" required value={registerForm.fullName}
+                  onChange={e => setRegisterForm(f => ({ ...f, fullName: e.target.value }))}
+                  placeholder="e.g. Kamal Perera"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #d1d5db', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Email */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#374151', marginBottom: '5px' }}>
+                  Email Address *
+                </label>
+                <input
+                  type="email" required value={registerForm.email}
+                  onChange={e => setRegisterForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="prosumer@example.com"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #d1d5db', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Password */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#374151', marginBottom: '5px' }}>
+                  Password (min 8 chars, strong) *
+                </label>
+                <input
+                  type="password" required minLength={8} value={registerForm.password}
+                  onChange={e => setRegisterForm(f => ({ ...f, password: e.target.value }))}
+                  placeholder="••••••••"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #d1d5db', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+                <PasswordStrengthIndicator password={registerForm.password} />
+              </div>
+              {/* Phone */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#374151', marginBottom: '5px' }}>
+                  Phone Number *
+                </label>
+                <input
+                  type="tel" required value={registerForm.phoneNumber}
+                  onChange={e => setRegisterForm(f => ({ ...f, phoneNumber: e.target.value }))}
+                  placeholder="+94 77 123 4567"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #d1d5db', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              {/* Address */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#374151', marginBottom: '5px' }}>
+                  Solar Installation Address
+                </label>
+                <input
+                  type="text" value={registerForm.address}
+                  onChange={e => setRegisterForm(f => ({ ...f, address: e.target.value }))}
+                  placeholder="e.g. 45 High Level Road, Maharagama"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #d1d5db', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {/* GPS / Map Picker Section */}
+              <div style={{
+                marginBottom: '20px', padding: '14px 16px', borderRadius: '12px',
+                background: '#f0fdf4', border: '1.5px solid #bbf7d0',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#166534' }}>
+                      📍 Solar Installation GPS Coordinates
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '2px' }}>
+                      Enables "Nearby Microgrid Nodes" feature for this prosumer
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowMapModal(true)}
+                    style={{
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: '#fff', border: 'none', borderRadius: '8px',
+                      padding: '8px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    🗺 Pick on Map
+                  </button>
+                </div>
+                {registerInstallLat != null ? (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '8px 12px', borderRadius: '8px', background: '#dcfce7',
+                    fontSize: '0.8rem', color: '#166534', fontWeight: 600,
+                  }}>
+                    <i className="bi bi-geo-alt-fill"></i>
+                    <span>
+                      {registerInstallAddr
+                        ? <>{registerInstallAddr} &nbsp;·&nbsp; </>
+                        : null}
+                      Lat {registerInstallLat.toFixed(5)}, Lng {registerInstallLng.toFixed(5)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setRegisterInstallLat(null); setRegisterInstallLng(null); setRegisterInstallAddr(''); }}
+                      style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontWeight: 700, fontSize: '1rem' }}
+                    >×</button>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.78rem', color: '#9ca3af', fontStyle: 'italic' }}>
+                    No location selected — click "Pick on Map" to set the GPS point
+                  </div>
+                )}
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit" disabled={registerLoading}
+                style={{
+                  width: '100%', padding: '13px', borderRadius: '12px', border: 'none',
+                  background: registerLoading
+                    ? '#9ca3af'
+                    : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: registerLoading ? 'not-allowed' : 'pointer',
+                  boxShadow: registerLoading ? 'none' : '0 4px 14px rgba(5, 150, 105, 0.35)',
+                }}
+              >
+                {registerLoading ? '⏳ Registering…' : '✅ Register Prosumer Account'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 };
