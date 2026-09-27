@@ -694,7 +694,167 @@ const ProsumerManagement = () => {
             </span>
           </button>
         </div>
+        {/* =========================================================================
+            TAB 1: PENDING ACTIVATIONS TABLE (Pure Light Frosted Glass)
+           ========================================================================= */}
+        {activeTab === 'pending' && (
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderRadius: '28px',
+              border: '1px solid rgba(255, 255, 255, 0.95)',
+              boxShadow: '0 16px 40px -8px rgba(10, 35, 70, 0.12)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Card Header */}
+            <div
+              style={{
+                padding: '24px 32px 20px 32px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: '1.18rem',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <i className="bi bi-hourglass-split text-warning"></i>
+                <span>Registrations Awaiting Backoffice Activation</span>
+              </h2>
+              <span
+                style={{
+                  background: '#f59e0b',
+                  color: '#ffffff',
+                  borderRadius: '50px',
+                  padding: '6px 18px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)',
+                }}
+              >
+                {pendingProsumers.length} Pending
+              </span>
+            </div>
 
+            {/* Table */}
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  borderSpacing: 0,
+                  background: 'transparent',
+                  textAlign: 'left',
+                }}
+              >
+                <thead>
+                  <tr style={{ background: '#e3edf6', borderTop: '1px solid rgba(210, 230, 245, 0.8)', borderBottom: '1px solid rgba(210, 230, 245, 0.8)' }}>
+                    <th style={{ padding: '16px 32px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>NIC (PRIMARY KEY)</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>FULL NAME</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>EMAIL</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>PHONE</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>INSTALLATION ADDRESS</th>
+                    <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>REGISTERED DATE</th>
+                    <th style={{ padding: '16px 32px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6', textAlign: 'center' }}>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
+                        <div className="spinner-border spinner-border-sm me-2 text-primary"></div>
+                        Loading pending registrations...
+                      </td>
+                    </tr>
+                  ) : pendingProsumers.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '48px 24px', color: '#475569', background: '#f8fafc' }}>
+                        <i className="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                        All registered prosumer accounts are activated and up to date!
+                      </td>
+                    </tr>
+                  ) : (
+                    pendingProsumers.map((p, idx) => {
+                      const rowBg = idx % 2 === 0 ? '#ebf4fa' : '#f8fafc';
+                      return (
+                        <tr
+                          key={p.id || idx}
+                          style={{
+                            background: rowBg,
+                            borderBottom: idx === pendingProsumers.length - 1 ? 'none' : '1px solid rgba(210, 230, 245, 0.7)',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0edf8')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowBg)}
+                        >
+                          <td style={{ padding: '18px 32px', background: 'transparent' }}>
+                            <span style={{ color: '#e11d48', fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.02em', display: 'inline-block' }}>
+                              {p.nic}
+                            </span>
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#0f172a', fontWeight: 700, fontSize: '0.92rem' }}>
+                            {p.fullName}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#475569', fontSize: '0.88rem' }}>
+                            {p.email}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#334155', fontSize: '0.88rem' }}>
+                            {p.phoneNumber || 'N/A'}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#334155', fontSize: '0.88rem' }}>
+                            {p.address || 'N/A'}
+                          </td>
+                          <td style={{ padding: '18px 24px', background: 'transparent', color: '#475569', fontSize: '0.88rem' }}>
+                            {new Date(p.createdAt).toLocaleDateString()}
+                          </td>
+                          <td style={{ padding: '18px 32px', background: 'transparent', textAlign: 'center' }}>
+                            <button
+                              onClick={() => handleActivate(p.nic)}
+                              style={{
+                                background: '#10b981',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '50px',
+                                padding: '6px 18px',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 10px rgba(16, 185, 129, 0.35)',
+                                transition: 'transform 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                            >
+                              <i className="bi bi-check-lg"></i>
+                              <span>Activate Account</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
     </div>
     </div>
