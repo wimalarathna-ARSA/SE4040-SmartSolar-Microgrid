@@ -63,6 +63,7 @@ public class BookingDetailActivity extends AppCompatActivity {
         loadReservationDetail();
 
         btnEdit.setOnClickListener(v -> showEditReservationDialog());
+        btnCancel.setOnClickListener(v -> cancelReservation());
         findViewById(R.id.btn_back_header).setOnClickListener(v -> finish());
         btnBack.setOnClickListener(v -> finish());
     }
@@ -197,8 +198,110 @@ public class BookingDetailActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Edit Reservation")
                 .setView(scrollView)
-                .setPositiveButton("Save Changes", (dialog, which) -> {})
+                .setPositiveButton("Save Changes", (dialog, which) -> submitReservationUpdate(datePicker, timePicker, energy, duration, type))
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
+    }
+
+    private void submitReservationUpdate(DatePicker datePicker, TimePicker timePicker, EditText energy,
+                                         EditText duration, Spinner type) {
+        try {
+            Calendar selected = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            selected.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(),
+                    timePicker.getHour(), timePicker.getMinute(), 0);
+
+            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            Calendar maxDate = (Calendar) now.clone();
+            maxDate.add(Calendar.DAY_OF_YEAR, 7);
+            if (!selected.after(now) || selected.after(maxDate)) {
+                tvError.setText("The booking must be scheduled in the future and within 7 days.");
+                tvError.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            JSONObject body = new JSONObject();
+            body.put("scheduledDateTime", toIsoUtc(selected));
+            body.put("durationHours", Integer.parseInt(duration.getText().toString().trim()));
+            body.put("energyAmountKWh", Double.parseDouble(energy.getText().toString().trim()));
+            body.put("reservationType", type.getSelectedItem().toString());
+            body.put("stationId", currentReservation.optString("stationId"));
+
+            progressBar.setVisibility(View.VISIBLE);
+            btnEdit.setEnabled(false);
+            new Thread(() -> {
+                try {
+                    Request request = ApiClient.buildAuthRequest(this,
+                            "reservations/" + reservationId + "?prosumerNic=" + prosumerNic)
+                            .put(ApiClient.jsonBody(body)).build();
+                    Response response = ApiClient.getClient().newCall(request).execute();
+                    String responseBody = response.body().string();
+                    JSONObject result = new JSONObject(responseBody);
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnEdit.setEnabled(true);
+                        if (response.isSuccessful()) {
+                            Toast.makeText(this, "Booking updated successfully.", Toast.LENGTH_LONG).show();
+                            loadReservationDetail();
+                        } else {
+                            tvError.setText(result.optString("message", "Booking update failed."));
+                            tvError.setVisibility(View.VISIBLE);
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnEdit.setEnabled(true);
+                        tvError.setText("Network error: " + e.getMessage());
+                        tvError.setVisibility(View.VISIBLE);
+                    });
+                }
+            }).start();
+        } catch (Exception e) {
+            tvError.setText("Please enter valid reservation details.");
+            tvError.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private String toIsoUtc(Calendar value) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return format.format(value.getTime());
+    }
+
+    private void cancelReservation() {
+        progressBar.setVisibility(View.VISIBLE);
+        btnCancel.setEnabled(false);
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this,
+                        "reservations/" + reservationId + "?prosumerNic=" + prosumerNic)
+                        .delete().build();
+                Response response = ApiClient.getClient().newCall(request).execute();
+                String body = response.body().string();
+                JSONObject json = new JSONObject(body);
+                if (response.isSuccessful()) {
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(this, "Booking cancelled.", Toast.LENGTH_LONG).show();
+                        finish();
+                    });
+                } else {
+                    String msg = json.optString("message", "Cancellation failed.");
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnCancel.setEnabled(true);
+                        tvError.setText(msg);
+                        tvError.setVisibility(View.VISIBLE);
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnCancel.setEnabled(true);
+                    tvError.setText("Network error: " + e.getMessage());
+                    tvError.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
     }
 }
