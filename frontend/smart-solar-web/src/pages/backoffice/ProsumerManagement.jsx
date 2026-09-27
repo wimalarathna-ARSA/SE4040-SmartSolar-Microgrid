@@ -587,8 +587,115 @@ const ProsumerManagement = () => {
           </div>
         )}
     
-
     
+        {/* =========================================================================
+            PILL TABS NAVIGATION
+           ========================================================================= */}
+        <div className="d-flex align-items-center gap-3 mb-4 flex-wrap">
+          <button
+            onClick={() => setActiveTab('pending')}
+            style={{
+              background: activeTab === 'pending' ? '#1d72f2' : 'rgba(255, 255, 255, 0.7)',
+              color: activeTab === 'pending' ? '#ffffff' : '#334155',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '10px 22px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: activeTab === 'pending' ? '0 4px 14px rgba(29, 114, 242, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <i className="bi bi-clock-history"></i>
+            <span>Pending Activations</span>
+            <span
+              style={{
+                background: activeTab === 'pending' ? '#fbbf24' : '#f59e0b',
+                color: '#1e293b',
+                borderRadius: '50px',
+                padding: '2px 10px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+              }}
+            >
+              {pendingProsumers.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('email-requests')}
+            style={{
+              background: activeTab === 'email-requests' ? '#1d72f2' : 'rgba(255, 255, 255, 0.7)',
+              color: activeTab === 'email-requests' ? '#ffffff' : '#334155',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '10px 22px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: activeTab === 'email-requests' ? '0 4px 14px rgba(29, 114, 242, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <i className="bi bi-envelope-exclamation"></i>
+            <span>Email Update Requests</span>
+            <span
+              style={{
+                background: activeTab === 'email-requests' ? '#38bdf8' : '#0284c7',
+                color: '#ffffff',
+                borderRadius: '50px',
+                padding: '2px 10px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+              }}
+            >
+              {emailRequests.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('all')}
+            style={{
+              background: activeTab === 'all' ? '#1d72f2' : 'rgba(255, 255, 255, 0.7)',
+              color: activeTab === 'all' ? '#ffffff' : '#334155',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '10px 22px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: activeTab === 'all' ? '0 4px 14px rgba(29, 114, 242, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <i className="bi bi-person-lines-fill"></i>
+            <span>All Prosumers Registry</span>
+            <span
+              style={{
+                background: activeTab === 'all' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(15, 23, 42, 0.12)',
+                color: activeTab === 'all' ? '#ffffff' : '#475569',
+                borderRadius: '50px',
+                padding: '2px 10px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+              }}
+            >
+              {prosumers.length}
+            </span>
+          </button>
+        </div>
+
+
     </div>
     </div>
   );
