@@ -25,33 +25,44 @@ namespace SmartSolarApi.Controllers
         /// <summary>
         /// Constructor injecting MongoDbContext.
         /// </summary>
+        // Injects MongoDbContext for database connectivity testing
         public DatabaseTestController(MongoDbContext db)
         {
             _db = db;
         }
 
         /// <summary>
-        /// Tests MongoDB connection by writing a ping document.
+        /// Tests MongoDB connection by writing a ping document to connectionTests collection.
         /// GET: api/database/test
         /// </summary>
+        // Inserts a test ping document into the database and returns connection status
         [HttpGet("test")]
         public async Task<IActionResult> Test()
         {
-            var document = new BsonDocument
+            try
             {
-                { "message", "MongoDB connection successful" },
-                { "createdAt", DateTime.UtcNow }
-            };
+                var document = new BsonDocument
+                {
+                    { "message", "MongoDB connection successful" },
+                    { "createdAt", DateTime.UtcNow }
+                };
 
-            var collection = _db.UserDetails.Database
-                .GetCollection<BsonDocument>("connectionTests");
+                var collection = _db.UserDetails.Database.GetCollection<BsonDocument>("connectionTests");
+                await collection.InsertOneAsync(document);
 
-            await collection.InsertOneAsync(document);
-
-            return Ok(new
+                return Ok(new
+                {
+                    message = "MongoDB connection successful"
+                });
+            }
+            catch (Exception ex)
             {
-                message = "MongoDB connection successful"
-            });
+                return StatusCode(500, new
+                {
+                    message = "MongoDB connection failed",
+                    error = ex.Message
+                });
+            }
         }
     }
 }
