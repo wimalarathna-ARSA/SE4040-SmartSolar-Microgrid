@@ -11,13 +11,20 @@ import { Link } from 'react-router-dom';
 import FrequenzGlobeFooter3D from './3d/FrequenzGlobeFooter3D';
 
 const Footer = () => {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   return (
     <footer
       id="footer"
       className="position-relative text-light"
       style={{ backgroundColor: '#020202' }}
     >
-      {/* Upper CTA Section */}
+      {/* Upper CTA */}
 
       <section
         className="position-relative overflow-hidden py-5 d-flex align-items-center justify-content-center"
@@ -88,7 +95,6 @@ const Footer = () => {
                 boxShadow:
                   '0 0 30px rgba(0,255,206,0.55), 0 8px 24px rgba(0,0,0,0.5)',
                 border: 'none',
-                letterSpacing: '-0.01em',
               }}
             >
               <span>↗</span> Get started
@@ -96,6 +102,44 @@ const Footer = () => {
           </div>
         </div>
       </section>
+
+      {/* Divider and Scroll To Top */}
+
+      <div className="container position-relative">
+        <div className="d-flex justify-content-end mb-2">
+          <button
+            onClick={scrollToTop}
+            className="btn btn-link text-decoration-none text-light p-0 d-flex flex-column align-items-center gap-1 opacity-75 hover-opacity-100"
+            style={{
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+            }}
+            title="Scroll to top"
+          >
+            <i className="bi bi-chevron-up fs-5 text-white"></i>
+
+            <span
+              style={{
+                fontSize: '0.68rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#94a3b8',
+              }}
+            >
+              Scroll to top
+            </span>
+          </button>
+        </div>
+
+        <hr
+          className="my-0"
+          style={{
+            borderColor: 'rgba(255, 255, 255, 0.25)',
+            opacity: 1,
+          }}
+        />
+      </div>
 
       {/* Company and Careers */}
 
@@ -166,14 +210,10 @@ const Footer = () => {
                   height: '32px',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
-                  transition: 'all 0.2s ease',
                 }}
                 title="LinkedIn"
               >
-                <i
-                  className="bi bi-linkedin"
-                  style={{ fontSize: '0.9rem' }}
-                ></i>
+                <i className="bi bi-linkedin"></i>
               </a>
             </div>
           </div>
@@ -213,7 +253,6 @@ const Footer = () => {
                   borderRadius: '6px',
                   textDecoration: 'none',
                   fontSize: '0.95rem',
-                  transition: 'all 0.25s ease',
                 }}
               >
                 <span>↗</span> View open positions
