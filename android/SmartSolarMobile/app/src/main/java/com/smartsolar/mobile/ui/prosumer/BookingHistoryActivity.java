@@ -65,7 +65,11 @@ public class BookingHistoryActivity extends AppCompatActivity {
         tabPending    = findViewById(R.id.tab_pending);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new BookingHistoryAdapter(bookingList);
+        adapter = new BookingHistoryAdapter(bookingList, booking -> {
+            Intent intent = new Intent(this, BookingDetailActivity.class);
+            try { intent.putExtra("reservation_id", booking.getString("id")); } catch (Exception ignored) {}
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
 
         setupTabs();
@@ -166,10 +170,13 @@ public class BookingHistoryActivity extends AppCompatActivity {
     }
 
     static class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAdapter.VH> {
+        interface OnItemClick { void onClick(JSONObject item); }
         private final List<JSONObject> items;
+        private final OnItemClick listener;
 
-        BookingHistoryAdapter(List<JSONObject> items) {
+        BookingHistoryAdapter(List<JSONObject> items, OnItemClick listener) {
             this.items = items;
+            this.listener = listener;
         }
 
         @Override public VH onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -199,6 +206,8 @@ public class BookingHistoryActivity extends AppCompatActivity {
             }
             holder.tvDate.setText(scheduled);
             holder.tvCost.setText(String.format("Rs. %.2f", item.optDouble("totalCost", 0)));
+            
+            holder.itemView.setOnClickListener(v -> listener.onClick(item));
         }
 
         @Override public int getItemCount() { return items.size(); }
