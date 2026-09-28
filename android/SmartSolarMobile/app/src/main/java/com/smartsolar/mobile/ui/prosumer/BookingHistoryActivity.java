@@ -45,6 +45,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Initialise session, bind views, setup RecyclerView with adapter, wire search and status tabs
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking_history);
 
@@ -84,6 +85,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
     }
 
     private void setupTabs() {
+        // Attach click listeners to All, Completed, Approved, and Pending tabs with selection styles
         View.OnClickListener listener = v -> {
             tabAll.setBackground(null);
             tabCompleted.setBackground(null);
@@ -112,6 +114,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
     }
 
     private void loadBookings() {
+        // Fetch filtered reservations from API, cache records in SQLite, and calculate trading KPIs
         String nic = sessionManager.getNic();
         String search = etSearch.getText().toString().trim();
 
@@ -134,15 +137,15 @@ public class BookingHistoryActivity extends AppCompatActivity {
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject booking = array.getJSONObject(i);
                     bookingList.add(booking);
-                    DatabaseHelper db = new DatabaseHelper(BookingHistoryActivity.this);
-                    db.cacheEnergyReservation(
-                        booking.optString("id"), booking.optString("reservationCode"), nic,
-                        booking.optString("stationId"), booking.optString("stationName"),
-                        booking.optString("scheduledDateTime"), booking.optInt("durationHours"),
-                        booking.optDouble("energyAmountKWh"), booking.optDouble("totalCost"),
-                        booking.optString("reservationType"), booking.optString("status"),
-                        booking.optString("qrCodeData"));
-                    db.close();
+                        DatabaseHelper db = new DatabaseHelper(BookingHistoryActivity.this);
+                        db.cacheEnergyReservation(
+                            booking.optString("id"), booking.optString("reservationCode"), nic,
+                            booking.optString("stationId"), booking.optString("stationName"),
+                            booking.optString("scheduledDateTime"), booking.optInt("durationHours"),
+                            booking.optDouble("energyAmountKWh"), booking.optDouble("totalCost"),
+                            booking.optString("reservationType"), booking.optString("status"),
+                            booking.optString("qrCodeData"));
+                        db.close();
                     if (booking.optString("status").equalsIgnoreCase("Completed")) {
                         totalTraded += booking.optDouble("energyAmountKWh", 0);
                         totalValue += booking.optDouble("totalCost", 0);
@@ -173,17 +176,13 @@ public class BookingHistoryActivity extends AppCompatActivity {
         interface OnItemClick { void onClick(JSONObject item); }
         private final List<JSONObject> items;
         private final OnItemClick listener;
-
         BookingHistoryAdapter(List<JSONObject> items, OnItemClick listener) {
-            this.items = items;
-            this.listener = listener;
+            this.items = items; this.listener = listener;
         }
-
         @Override public VH onCreateViewHolder(ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_booking, parent, false);
             return new VH(v);
         }
-
         @Override public void onBindViewHolder(VH holder, int position) {
             JSONObject item = items.get(position);
             holder.tvCode.setText(item.optString("reservationCode"));
@@ -209,9 +208,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
             
             holder.itemView.setOnClickListener(v -> listener.onClick(item));
         }
-
         @Override public int getItemCount() { return items.size(); }
-
         static class VH extends RecyclerView.ViewHolder {
             TextView tvCode, tvStation, tvEnergy, tvStatus, tvDate, tvCost;
             VH(View v) {
