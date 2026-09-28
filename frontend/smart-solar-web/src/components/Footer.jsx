@@ -5,7 +5,6 @@
 // Description: Site-wide footer component.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import FrequenzGlobeFooter3D from './3d/FrequenzGlobeFooter3D';
@@ -13,39 +12,29 @@ import FrequenzGlobeFooter3D from './3d/FrequenzGlobeFooter3D';
 /**
  * Footer
  * Matches the exact Frequenz enterprise footer design:
- * 1. Upper CTA section with centered 3D glowing constellation globe.
+ * 1. Upper CTA section with centered 3D glowing constellation globe, bold headline, and "↗ Get started" button.
  * 2. Horizontal divider with "Scroll to top" button.
- * 3. Two-column footer: Company and Careers.
- * 4. Bottom legal links.
+ * 3. Two-column footer: Left column (Company, address, contact, LinkedIn), Right column (Careers with cyan title & "↗ View open positions").
+ * 4. Bottom legal links: Cookies, Imprint, Privacy, Trust Center.
  */
 const Footer = () => {
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <footer
-      id="footer"
-      className="position-relative text-light"
-      style={{ backgroundColor: '#020202' }}
-    >
-      {/* =========================================================================
-          1. UPPER CTA SECTION
-          ========================================================================= */}
-
-      <section
-        className="position-relative overflow-hidden py-5 d-flex align-items-center justify-content-center"
-        style={{ minHeight: '520px' }}
-      >
+    <footer id="footer" className="position-relative text-light" style={{ backgroundColor: '#020202' }}>
+      {/* 
+        ========================================================================
+        1. UPPER CTA SECTION: Centered 3D Glowing Globe & Enterprise Headline
+        ========================================================================
+      */}
+      <section className="position-relative overflow-hidden py-5 d-flex align-items-center justify-content-center" style={{ minHeight: '520px' }}>
+        {/* 3D Glowing Wireframe Globe Canvas */}
         <FrequenzGlobeFooter3D />
 
-        <div
-          className="container position-relative text-center py-5"
-          style={{ zIndex: 2 }}
-        >
+        {/* Centered CTA Content */}
+        <div className="container position-relative text-center py-5" style={{ zIndex: 2 }}>
           <div
             className="text-uppercase fw-bold mb-3"
             style={{
@@ -82,11 +71,9 @@ const Footer = () => {
             <p className="mb-2">
               Are you a technical manager or energy expert looking for new energy solutions or business models?
             </p>
-
             <p className="mb-2">
               Discover, with us, the many-sided possibilities of our innovative platform.
             </p>
-
             <p className="mb-0 fw-semibold text-white">
               Let's invent new solutions together!
             </p>
@@ -102,8 +89,7 @@ const Footer = () => {
                 fontSize: '1.1rem',
                 padding: '14px 38px',
                 borderRadius: '10px',
-                boxShadow:
-                  '0 0 30px rgba(0,255,206,0.55), 0 8px 24px rgba(0,0,0,0.5)',
+                boxShadow: '0 0 30px rgba(0,255,206,0.55), 0 8px 24px rgba(0,0,0,0.5)',
                 border: 'none',
                 letterSpacing: '-0.01em',
               }}
@@ -114,100 +100,58 @@ const Footer = () => {
         </div>
       </section>
 
-      {/* =========================================================================
-          2. HORIZONTAL DIVIDER & SCROLL TO TOP
-          ========================================================================= */}
-
+      {/* 
+        ========================================================================
+        2. HORIZONTAL DIVIDER & "SCROLL TO TOP"
+        ========================================================================
+      */}
       <div className="container position-relative">
         <div className="d-flex justify-content-end mb-2">
           <button
             onClick={scrollToTop}
             className="btn btn-link text-decoration-none text-light p-0 d-flex flex-column align-items-center gap-1 opacity-75 hover-opacity-100"
-            style={{
-              cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-            }}
+            style={{ cursor: 'pointer', background: 'none', border: 'none' }}
             title="Scroll to top"
           >
             <i className="bi bi-chevron-up fs-5 text-white"></i>
-
-            <span
-              style={{
-                fontSize: '0.68rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                color: '#94a3b8',
-              }}
-            >
+            <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8' }}>
               Scroll to top
             </span>
           </button>
         </div>
-
-        <hr
-          className="my-0"
-          style={{
-            borderColor: 'rgba(255, 255, 255, 0.25)',
-            opacity: 1,
-          }}
-        />
+        <hr className="my-0" style={{ borderColor: 'rgba(255, 255, 255, 0.25)', opacity: 1 }} />
       </div>
 
-      {/* =========================================================================
-          3. MAIN TWO-COLUMN FOOTER CONTENT
-          ========================================================================= */}
-
+      {/* 
+        ========================================================================
+        3. MAIN TWO-COLUMN FOOTER CONTENT
+        ========================================================================
+      */}
       <div className="container py-5">
         <div className="row g-5 justify-content-between align-items-start">
-          {/* Company */}
-
+          
+          {/* Left Column: Brand, Address, Phone, Email & Social */}
           <div className="col-lg-5 col-md-6">
             <div className="d-flex align-items-center gap-2 mb-4">
-              <img
-                src="/solarx-logo.png"
-                alt="SØLΛR-X"
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  objectFit: 'contain',
-                }}
-              />
-
+              <img src="/solarx-logo.png" alt="SØLΛR-X" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
               <h3
                 className="text-white fw-bold mb-0"
-                style={{
-                  fontSize: '1.9rem',
-                  letterSpacing: '-0.025em',
-                }}
+                style={{ fontSize: '1.9rem', letterSpacing: '-0.025em' }}
               >
-                SØLΛR
-                <span style={{ color: '#00ffce' }}>-X</span>
+                SØLΛR<span style={{ color: '#00ffce' }}>-X</span>
               </h3>
             </div>
 
-            <div
-              className="text-secondary small mb-4"
-              style={{
-                lineHeight: '1.65',
-                fontSize: '0.88rem',
-              }}
-            >
-              SØLΛR-X Energy Platform PLC
-              <br />
-              Union Place, Colombo 02
-              <br />
+            <div className="text-secondary small mb-4" style={{ lineHeight: '1.65', fontSize: '0.88rem' }}>
+              SØLΛR-X Energy Platform PLC<br />
+              Union Place, Colombo 02<br />
               00200 Colombo, Sri Lanka
             </div>
 
             <div className="mb-4">
-              <div
-                className="text-white fw-bold small mb-1"
-                style={{ fontSize: '0.9rem' }}
-              >
+              <div className="text-white fw-bold small mb-1" style={{ fontSize: '0.9rem' }}>
                 +94 11 7 555 874
               </div>
-
               <a
                 href="mailto:info@solarx.energy"
                 className="text-white fw-bold text-decoration-none small"
@@ -232,16 +176,12 @@ const Footer = () => {
                 }}
                 title="LinkedIn"
               >
-                <i
-                  className="bi bi-linkedin"
-                  style={{ fontSize: '0.9rem' }}
-                ></i>
+                <i className="bi bi-linkedin" style={{ fontSize: '0.9rem' }}></i>
               </a>
             </div>
           </div>
 
-          {/* Careers */}
-
+          {/* Right Column: Careers */}
           <div className="col-lg-5 col-md-6">
             <h3
               className="fw-bold mb-3"
@@ -280,10 +220,8 @@ const Footer = () => {
                   transition: 'all 0.25s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'rgba(0, 255, 206, 0.15)';
-                  e.currentTarget.style.boxShadow =
-                    '0 0 20px rgba(0, 255, 206, 0.4)';
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 255, 206, 0.15)';
+                  e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 206, 0.4)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
@@ -294,52 +232,32 @@ const Footer = () => {
               </a>
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* =========================================================================
-          4. BOTTOM LEGAL BAR
-          ========================================================================= */}
-
+      {/* 
+        ========================================================================
+        4. BOTTOM LEGAL BAR
+        ========================================================================
+      */}
       <div className="container pb-4 pt-2">
-        <div
-          className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-secondary small"
-          style={{ fontSize: '0.78rem' }}
-        >
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-secondary small" style={{ fontSize: '0.78rem' }}>
           <div>
             &copy; {new Date().getFullYear()} SØLΛR-X Energy Platform PLC
           </div>
 
           <div className="d-flex align-items-center gap-4 flex-wrap">
-            <a
-              href="#cookies"
-              onClick={(e) => e.preventDefault()}
-              className="text-secondary text-decoration-none hover-white transition-colors"
-            >
+            <a href="#cookies" onClick={(e) => e.preventDefault()} className="text-secondary text-decoration-none hover-white transition-colors">
               Cookies
             </a>
-
-            <a
-              href="#imprint"
-              onClick={(e) => e.preventDefault()}
-              className="text-secondary text-decoration-none hover-white transition-colors"
-            >
+            <a href="#imprint" onClick={(e) => e.preventDefault()} className="text-secondary text-decoration-none hover-white transition-colors">
               Imprint
             </a>
-
-            <a
-              href="#privacy"
-              onClick={(e) => e.preventDefault()}
-              className="text-secondary text-decoration-none hover-white transition-colors"
-            >
+            <a href="#privacy" onClick={(e) => e.preventDefault()} className="text-secondary text-decoration-none hover-white transition-colors">
               Privacy
             </a>
-
-            <a
-              href="#trust"
-              onClick={(e) => e.preventDefault()}
-              className="text-secondary text-decoration-none hover-white transition-colors"
-            >
+            <a href="#trust" onClick={(e) => e.preventDefault()} className="text-secondary text-decoration-none hover-white transition-colors">
               Trust Center
             </a>
           </div>
