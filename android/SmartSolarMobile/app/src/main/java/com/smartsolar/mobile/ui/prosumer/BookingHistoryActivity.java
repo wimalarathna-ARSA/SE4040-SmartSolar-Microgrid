@@ -9,18 +9,24 @@ package com.smartsolar.mobile.ui.prosumer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.smartsolar.mobile.R;
+import com.smartsolar.mobile.api.ApiClient;
+import com.smartsolar.mobile.data.DatabaseHelper;
 import com.smartsolar.mobile.data.SessionManager;
+import okhttp3.*;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +39,9 @@ public class BookingHistoryActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private List<JSONObject> bookingList = new ArrayList<>();
     private BookingHistoryAdapter adapter;
+    private String currentStatusFilter = "";
+
+    private TextView tabAll, tabCompleted, tabApproved, tabPending;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +59,110 @@ public class BookingHistoryActivity extends AppCompatActivity {
         tvTotalValue  = findViewById(R.id.tv_total_value);
         progressBar   = findViewById(R.id.progress_bar);
 
+        tabAll        = findViewById(R.id.tab_all);
+        tabCompleted  = findViewById(R.id.tab_completed);
+        tabApproved   = findViewById(R.id.tab_approved);
+        tabPending    = findViewById(R.id.tab_pending);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new BookingHistoryAdapter(bookingList);
         recyclerView.setAdapter(adapter);
+
+        setupTabs();
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { loadBookings(); }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        loadBookings();
+    }
+
+    private void setupTabs() {
+        View.OnClickListener listener = v -> {
+            tabAll.setBackground(null);
+            tabCompleted.setBackground(null);
+            tabApproved.setBackground(null);
+            tabPending.setBackground(null);
+            tabAll.setTextColor(getResources().getColor(R.color.neuro_text_muted));
+            tabCompleted.setTextColor(getResources().getColor(R.color.neuro_text_muted));
+            tabApproved.setTextColor(getResources().getColor(R.color.neuro_text_muted));
+            tabPending.setTextColor(getResources().getColor(R.color.neuro_text_muted));
+
+            v.setBackgroundResource(R.drawable.bg_neuro_tab_selected);
+            ((TextView)v).setTextColor(getResources().getColor(R.color.neuro_green));
+
+            if (v.getId() == R.id.tab_all) currentStatusFilter = "";
+            else if (v.getId() == R.id.tab_completed) currentStatusFilter = "Completed";
+            else if (v.getId() == R.id.tab_approved) currentStatusFilter = "Approved";
+            else if (v.getId() == R.id.tab_pending) currentStatusFilter = "Pending";
+
+            loadBookings();
+        };
+
+        tabAll.setOnClickListener(listener);
+        tabCompleted.setOnClickListener(listener);
+        tabApproved.setOnClickListener(listener);
+        tabPending.setOnClickListener(listener);
+    }
+
+    private void loadBookings() {
+        String nic = sessionManager.getNic();
+        String search = etSearch.getText().toString().trim();
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                String url = "reservations?prosumerNic=" + nic;
+                if (!currentStatusFilter.isEmpty()) url += "&status=" + currentStatusFilter;
+                if (!search.isEmpty()) url += "&search=" + URLEncoder.encode(search, "UTF-8");
+
+                Request request = ApiClient.buildAuthRequest(this, url).get().build();
+                Response response = ApiClient.getClient().newCall(request).execute();
+                JSONArray array = new JSONArray(response.body().string());
+
+                bookingList.clear();
+                double totalTraded = 0;
+                double totalValue = 0;
+
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject booking = array.getJSONObject(i);
+                    bookingList.add(booking);
+                    DatabaseHelper db = new DatabaseHelper(BookingHistoryActivity.this);
+                    db.cacheEnergyReservation(
+                        booking.optString("id"), booking.optString("reservationCode"), nic,
+                        booking.optString("stationId"), booking.optString("stationName"),
+                        booking.optString("scheduledDateTime"), booking.optInt("durationHours"),
+                        booking.optDouble("energyAmountKWh"), booking.optDouble("totalCost"),
+                        booking.optString("reservationType"), booking.optString("status"),
+                        booking.optString("qrCodeData"));
+                    db.close();
+                    if (booking.optString("status").equalsIgnoreCase("Completed")) {
+                        totalTraded += booking.optDouble("energyAmountKWh", 0);
+                        totalValue += booking.optDouble("totalCost", 0);
+                    }
+                }
+
+                final double fTotalTraded = totalTraded;
+                final double fTotalValue = totalValue;
+
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    adapter.notifyDataSetChanged();
+                    tvEmpty.setVisibility(bookingList.isEmpty() ? View.VISIBLE : View.GONE);
+                    tvTotalTraded.setText(String.format("%.1f", fTotalTraded));
+                    tvTotalValue.setText(String.format("Rs. %.2f", fTotalValue));
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    tvEmpty.setText("Error loading data.");
+                    tvEmpty.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
     }
 
     static class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAdapter.VH> {
