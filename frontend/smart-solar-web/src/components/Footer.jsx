@@ -10,6 +10,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import FrequenzGlobeFooter3D from './3d/FrequenzGlobeFooter3D';
 
+/**
+ * Footer
+ * Matches the exact Frequenz enterprise footer design:
+ * 1. Upper CTA section with centered 3D glowing constellation globe.
+ * 2. Horizontal divider with "Scroll to top" button.
+ * 3. Two-column footer: Company and Careers.
+ * 4. Bottom legal links.
+ */
 const Footer = () => {
   const scrollToTop = () => {
     window.scrollTo({
@@ -24,7 +32,9 @@ const Footer = () => {
       className="position-relative text-light"
       style={{ backgroundColor: '#020202' }}
     >
-      {/* Upper CTA */}
+      {/* =========================================================================
+          1. UPPER CTA SECTION
+          ========================================================================= */}
 
       <section
         className="position-relative overflow-hidden py-5 d-flex align-items-center justify-content-center"
@@ -95,6 +105,7 @@ const Footer = () => {
                 boxShadow:
                   '0 0 30px rgba(0,255,206,0.55), 0 8px 24px rgba(0,0,0,0.5)',
                 border: 'none',
+                letterSpacing: '-0.01em',
               }}
             >
               <span>↗</span> Get started
@@ -103,7 +114,9 @@ const Footer = () => {
         </div>
       </section>
 
-      {/* Divider and Scroll To Top */}
+      {/* =========================================================================
+          2. HORIZONTAL DIVIDER & SCROLL TO TOP
+          ========================================================================= */}
 
       <div className="container position-relative">
         <div className="d-flex justify-content-end mb-2">
@@ -141,10 +154,14 @@ const Footer = () => {
         />
       </div>
 
-      {/* Company and Careers */}
+      {/* =========================================================================
+          3. MAIN TWO-COLUMN FOOTER CONTENT
+          ========================================================================= */}
 
       <div className="container py-5">
         <div className="row g-5 justify-content-between align-items-start">
+          {/* Company */}
+
           <div className="col-lg-5 col-md-6">
             <div className="d-flex align-items-center gap-2 mb-4">
               <img
@@ -164,7 +181,8 @@ const Footer = () => {
                   letterSpacing: '-0.025em',
                 }}
               >
-                SØLΛR<span style={{ color: '#00ffce' }}>-X</span>
+                SØLΛR
+                <span style={{ color: '#00ffce' }}>-X</span>
               </h3>
             </div>
 
@@ -210,13 +228,19 @@ const Footer = () => {
                   height: '32px',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.2s ease',
                 }}
                 title="LinkedIn"
               >
-                <i className="bi bi-linkedin"></i>
+                <i
+                  className="bi bi-linkedin"
+                  style={{ fontSize: '0.9rem' }}
+                ></i>
               </a>
             </div>
           </div>
+
+          {/* Careers */}
 
           <div className="col-lg-5 col-md-6">
             <h3
@@ -253,11 +277,71 @@ const Footer = () => {
                   borderRadius: '6px',
                   textDecoration: 'none',
                   fontSize: '0.95rem',
+                  transition: 'all 0.25s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'rgba(0, 255, 206, 0.15)';
+                  e.currentTarget.style.boxShadow =
+                    '0 0 20px rgba(0, 255, 206, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 <span>↗</span> View open positions
               </a>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          4. BOTTOM LEGAL BAR
+          ========================================================================= */}
+
+      <div className="container pb-4 pt-2">
+        <div
+          className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-secondary small"
+          style={{ fontSize: '0.78rem' }}
+        >
+          <div>
+            &copy; {new Date().getFullYear()} SØLΛR-X Energy Platform PLC
+          </div>
+
+          <div className="d-flex align-items-center gap-4 flex-wrap">
+            <a
+              href="#cookies"
+              onClick={(e) => e.preventDefault()}
+              className="text-secondary text-decoration-none hover-white transition-colors"
+            >
+              Cookies
+            </a>
+
+            <a
+              href="#imprint"
+              onClick={(e) => e.preventDefault()}
+              className="text-secondary text-decoration-none hover-white transition-colors"
+            >
+              Imprint
+            </a>
+
+            <a
+              href="#privacy"
+              onClick={(e) => e.preventDefault()}
+              className="text-secondary text-decoration-none hover-white transition-colors"
+            >
+              Privacy
+            </a>
+
+            <a
+              href="#trust"
+              onClick={(e) => e.preventDefault()}
+              className="text-secondary text-decoration-none hover-white transition-colors"
+            >
+              Trust Center
+            </a>
           </div>
         </div>
       </div>
