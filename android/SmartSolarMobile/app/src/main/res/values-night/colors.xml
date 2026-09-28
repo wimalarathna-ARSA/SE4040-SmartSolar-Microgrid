@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: values-night/colors.xml
+     Description: SmartSolar Professional Dark Palette.
+                  Deep slate surfaces, desaturated sage/sand/slate accents.
+                  No neon or highlight colors — same restrained system as light.
+     ============================================================================ -->
+<resources>
+    <!-- Calm dark canvas -->
+    <color name="solar_bg">#0E141D</color>
+    <color name="solar_dark">#0B1118</color>
+    <color name="solar_nav_bg">#131C27</color>
+    <color name="solar_nav_indicator">#1E2A3A</color>
+
+    <!-- Cards & sections — slate on near-black -->
+    <color name="solar_card">#1A2432</color>
+    <color name="solar_card_inner">#141E2C</color>
+    <color name="solar_card_stroke">#2A3648</color>
+    <color name="solar_card_stroke_highlight">#33445C</color>
+
+    <!-- Brand — muted sage teal, solid fills, white labels -->
+    <color name="solar_primary">#4E8B8B</color>
+    <color name="solar_primary_dark">#3A6E6E</color>
+    <color name="solar_primary_subtle">#334E8B8B</color>
+    <color name="solar_btn_text">#FFFFFF</color>
+
+    <!-- Secondary accents — restrained slate blue -->
+    <color name="solar_secondary">#7A93B5</color>
+    <color name="solar_secondary_subtle">#337A93B5</color>
+    <color name="solar_accent">#8A93A3</color>
+    <color name="solar_accent_subtle">#338A93A3</color>
+    <color name="solar_accent_cyan">#7A93B5</color>
+    <color name="solar_danger">#BE6B6B</color>
+    <color name="solar_danger_bg">#3A2428</color>
+
+    <!-- Typography — light slate hierarchy -->
+    <color name="solar_text_primary">#E8EDF3</color>
+    <color name="solar_text_secondary">#A7B3C5</color>
+    <color name="solar_text_muted">#71809A</color>
+    <color name="solar_text_accent">#7FB3B0</color>
+
+    <!-- Base Utilities -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Form Inputs -->
+    <color name="solar_input_bg">#141E2C</color>
+    <color name="solar_input_stroke">#2A3648</color>
+
+    <!-- Status & surface tokens -->
+    <color name="neuro_bg">#0E141D</color>
+    <color name="neuro_surface">#0B1118</color>
+    <color name="neuro_shadow_dark">#2A3648</color>
+    <color name="neuro_shadow_light">#2A3648</color>
+    <color name="neuro_green">#4E8B8B</color>
+    <color name="neuro_green_dark">#3A6E6E</color>
+    <color name="neuro_green_bg">#1E3A30</color>
+    <color name="neuro_amber">#C2A15F</color>
+    <color name="neuro_amber_bg">#3A3122</color>
+    <color name="neuro_blue">#8FA9CC</color>
+    <color name="neuro_blue_bg">#24344A</color>
+    <color name="neuro_text_primary">#E8EDF3</color>
+    <color name="neuro_text_secondary">#A7B3C5</color>
+    <color name="neuro_text_muted">#71809A</color>
+    <color name="neuro_text_green">#8FC3A6</color>
+    <color name="neuro_tab_selected_bg">#26344A</color>
+    <color name="neuro_tab_text_selected">#7FB3B0</color>
+    <color name="neuro_tab_text_unselected">#71809A</color>
+    <color name="neuro_status_active">#8FC3A6</color>
+    <color name="neuro_nav_bg">#131C27</color>
+    <color name="neuro_nav_selected">#7FB3B0</color>
+    <color name="neuro_nav_unselected">#64748F</color>
+    <color name="neuro_danger">#BE6B6B</color>
+    <color name="neuro_danger_bg">#3A2428</color>
+    <color name="neuro_danger_dark">#965252</color>
+    <color name="neuro_input_bg">#141E2C</color>
+    <color name="neuro_input_stroke">#2A3648</color>
+    <color name="neuro_card_stroke">#2A3648</color>
+    <color name="neuro_card_inner">#141E2C</color>
+
+    <!-- Card & section surfaces -->
+    <color name="glass_fill_start">#1A2432</color>
+    <color name="glass_fill_center">#1A2432</color>
+    <color name="glass_fill_end">#141E2C</color>
+    <color name="glass_fill_soft">#141E2C</color>
+    <color name="glass_fill_solid">#1A2432</color>
+    <color name="glass_stroke">#2A3648</color>
+    <color name="glass_stroke_soft">#232F40</color>
+    <color name="glass_stroke_bright">#33445C</color>
+    <color name="glass_surface">#1A2432</color>
+    <color name="glass_divider">#232F40</color>
+    <color name="glass_mint">#1E3A30</color>
+    <color name="glass_mint_stroke">#2E5648</color>
+    <color name="glass_lavender">#24344A</color>
+    <color name="glass_peach">#3A3122</color>
+
+    <color name="text_on_accent">#FFFFFF</color>
+    <color name="text_on_violet">#D7E0EC</color>
+    <color name="text_on_danger">#FFFFFF</color>
+    <color name="glow_cyan">#334E8B8B</color>
+
+    <!-- Adaptive surface tokens -->
+    <color name="surface_variant">#222E3E</color>
+    <color name="surface_selected">#26344A</color>
+    <color name="border_strong">#3A4A61</color>
+    <color name="canvas_top">#141D29</color>
+    <color name="canvas_bottom">#0B1118</color>
+    <color name="illus_line">#5B6B82</color>
+    <color name="illus_line_soft">#33445C</color>
+    <color name="illus_fill">#1E2A3C</color>
+</resources>

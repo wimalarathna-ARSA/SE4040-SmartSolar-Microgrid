@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Calm canvas: flat light gray wash, no neon blooms -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="@color/canvas_top"
+                android:endColor="@color/canvas_bottom"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

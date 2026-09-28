@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_canvas"
+    android:padding="20dp">
+
+    <FrameLayout
+        android:id="@+id/btn_back_header"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_neuro_icon_circle"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:focusable="true">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_line_back_arrow"
+            android:contentDescription="Back" />
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textSize="24sp"
+        android:fontFamily="sans-serif-semibold"
+        android:textColor="@color/neuro_text_primary"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Password & Security Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_neuro_card"
+        android:padding="20dp"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Password &amp; Security"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/neuro_text_primary"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change your account password via Gmail OTP verification."
+            android:textSize="12sp"
+            android:textColor="@color/neuro_text_muted"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reset_password"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Reset / Change Password"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/text_on_accent"
+            android:background="@drawable/bg_btn_primary"
+            app:backgroundTint="@null"
+            app:cornerRadius="16dp"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+    <!-- Appearance Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_neuro_card"
+        android:padding="20dp"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_appearance_title"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/neuro_text_primary"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_appearance_desc"
+            android:textSize="12sp"
+            android:textColor="@color/neuro_text_muted"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_theme_light"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:gravity="center"
+                android:text="@string/theme_light"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:background="@drawable/bg_pill_tab_selected"
+                android:textColor="@color/neuro_tab_text_selected"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btn_theme_dark"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:gravity="center"
+                android:text="@string/theme_dark"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:background="@drawable/bg_pill_tab_unselected"
+                android:textColor="@color/neuro_tab_text_unselected"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Logout Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_neuro_card"
+        android:padding="20dp"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Account Security"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/neuro_text_primary"/>
+
+        <TextView
+            android:id="@+id/tv_logout_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Securely sign out of your account."
+            android:textSize="12sp"
+            android:textColor="@color/neuro_text_muted"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_logout_action"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Sign Out"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/text_on_danger"
+            android:background="@drawable/bg_btn_danger"
+            app:backgroundTint="@null"
+            app:cornerRadius="16dp"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_glass_canvas">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="32dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="24dp">
+
+                <FrameLayout
+                    android:id="@+id/btn_back_header"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_neuro_icon_circle"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_line_back_arrow"
+                        android:contentDescription="Back" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Energy Analytics"
+                        android:textSize="24sp"
+                        android:fontFamily="sans-serif-semibold"
+                        android:textColor="@color/neuro_text_primary"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Data-driven grid insights"
+                        android:textSize="12sp"
+                        android:textColor="@color/neuro_text_muted"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 1. Booking Status - Pie Chart -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Booking Status Distribution"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="16dp" />
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/chart_booking_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp" />
+            </LinearLayout>
+
+            <!-- 2. Weekly Energy Usage - Bar Chart -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Weekly Energy Usage"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="kWh transferred per day (Current Week)"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="16dp" />
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/chart_weekly_energy"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp" />
+            </LinearLayout>
+
+            <!-- 3. Monthly Energy Summary - Horizontal Bar Chart -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monthly Energy Summary"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="16dp" />
+                <com.github.mikephil.charting.charts.HorizontalBarChart
+                    android:id="@+id/chart_monthly_summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp" />
+            </LinearLayout>
+
+            <!-- 4. Bookings by Microgrid Node - Line Chart -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Node Utilization Trends"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="16dp" />
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/chart_node_usage"
+                    android:layout_width="match_parent"
+                    android:layout_height="320dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.smartsolar.mobile.ui.common.LoadingDotsView
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"        android:visibility="gone" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
