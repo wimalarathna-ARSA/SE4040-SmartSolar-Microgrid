@@ -9,7 +9,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.smartsolar.mobile.R;
+import com.smartsolar.mobile.api.ApiClient;
 import com.smartsolar.mobile.data.SessionManager;
+import okhttp3.*;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -43,6 +46,41 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TransferAdapter(transferList);
         recyclerView.setAdapter(adapter);
+
+        loadTransfers();
+    }
+
+    private void loadTransfers() {
+        String nic = sessionManager.getNic();
+        progressBar.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                String url = "reservations?prosumerNic=" + nic + "&status=Completed";
+                Request request = ApiClient.buildAuthRequest(this, url).get().build();
+                Response response = ApiClient.getClient().newCall(request).execute();
+                
+                if (response.body() != null) {
+                    JSONArray array = new JSONArray(response.body().string());
+                    transferList.clear();
+                    for (int i = 0; i < array.length(); i++) {
+                        transferList.add(array.getJSONObject(i));
+                    }
+
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        adapter.notifyDataSetChanged();
+                        tvEmpty.setVisibility(transferList.isEmpty() ? View.VISIBLE : View.GONE);
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    tvEmpty.setText("Error loading transfers.");
+                    tvEmpty.setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
     }
 
     static class TransferAdapter extends RecyclerView.Adapter<TransferAdapter.VH> {
