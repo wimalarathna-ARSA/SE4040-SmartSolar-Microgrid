@@ -1,10 +1,17 @@
+// ============================================================================
+// File: EnergyTransferHistoryActivity.java
+// Author: IT22166210
+// Course: SE4040 - Enterprise Application Development
+// Description: Completed energy transfer transaction history log with kWh metrics and financial totals.
+// Architecture: FAT Service Pattern (All business logic centralized in API)
+// ============================================================================
 package com.smartsolar.mobile.ui.prosumer;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,6 +39,7 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Initialise session, bind RecyclerView with TransferAdapter, and trigger transfers fetch
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_energy_transfer_history);
 
@@ -51,11 +59,13 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
     }
 
     private void loadTransfers() {
+        // GET /api/reservations?prosumerNic={nic}&status=Completed and populate transfer list
         String nic = sessionManager.getNic();
         progressBar.setVisibility(View.VISIBLE);
 
         new Thread(() -> {
             try {
+                // Filter for "Completed" reservations only
                 String url = "reservations?prosumerNic=" + nic + "&status=Completed";
                 Request request = ApiClient.buildAuthRequest(this, url).get().build();
                 Response response = ApiClient.getClient().newCall(request).execute();
@@ -104,7 +114,9 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
             holder.tvEnergy.setText(String.format("%.1f kWh", energy));
             holder.tvStatus.setText(status);
 
+            // Format Date and Time
             try {
+                // Assuming format like "2026-09-23T10:30:00"
                 SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
                 Date date = parser.parse(isoDate);
                 if (date != null) {
@@ -132,5 +144,12 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
                 tvEnergy = v.findViewById(R.id.tv_transfer_energy);
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Close session manager and release database connections on activity teardown
+        super.onDestroy();
+        if (sessionManager != null) sessionManager.close();
     }
 }
