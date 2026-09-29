@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: activity_operator_node_detail.xml
+     Description: Grid Operator Node Details Screen - Glassmorphism UI Styling
+     ============================================================================ -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_canvas">
+
+    <!-- Top Toolbar Header Bar Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="12dp">
+
+        <FrameLayout
+            android:id="@+id/btn_back_header"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_neuro_icon_circle"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_line_back_arrow"
+                android:contentDescription="Back" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Node Details"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="@color/neuro_text_primary"
+            android:paddingHorizontal="16dp"
+            android:gravity="center" />
+
+        <FrameLayout
+            android:id="@+id/btn_refresh"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_neuro_icon_circle"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_line_refresh"
+                app:tint="@color/neuro_text_primary"
+                android:contentDescription="Refresh" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <com.smartsolar.mobile.ui.common.LoadingDotsView
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"        android:visibility="gone"
+        android:layout_margin="16dp" />
+
+    <ScrollView
+        android:id="@+id/scroll_view_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="36dp">
+
+            <!-- Node Identity Header Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:id="@+id/tv_node_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="—"
+                    android:textSize="22sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_node_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ID: —"
+                    android:textSize="12sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:fontFamily="sans-serif-monospace"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Transaction Availability Status Badge View Layer -->
+                <LinearLayout
+                    android:id="@+id/layout_status_badge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp"
+                    android:gravity="center"
+                    android:background="@drawable/bg_neuro_inner_card">
+
+                    <TextView
+                        android:id="@+id/tv_availability_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Checking status..."
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-semibold"
+                        android:textColor="@color/neuro_text_muted" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Embedded OpenStreetMap Mini Map Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="12dp"
+                android:layout_marginBottom="20dp">
+
+                <org.osmdroid.views.MapView
+                    android:id="@+id/map_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_open_google_maps_operator"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Navigate with Google Maps"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_green"
+                    android:background="@drawable/bg_neuro_inner_card"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="10dp"
+                    app:icon="@drawable/ic_line_location"
+                    app:iconTint="@color/neuro_green"
+                    app:iconGravity="textStart"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <!-- Technical Attributes / Telemetry Specs Information Layout -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Technical Parameters"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/neuro_text_primary"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp">
+
+                <!-- Row: Operational Status -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Operational Status"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_op_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textStyle="bold"
+                        android:textColor="@color/neuro_text_primary" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <!-- Row: Location GPS coordinates text -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="GPS Coordinates"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_gps_coords"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="@color/neuro_text_primary" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <!-- Row: Capacity Spec in kW -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Grid Capacity Spec"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_capacity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="— kW"
+                        android:textStyle="bold"
+                        android:textColor="@color/neuro_text_primary" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <!-- Row: Battery Storage slots breakdown metrics info -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Total Storage Slots"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_total_slots"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="@color/neuro_text_primary" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Currently Available"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_available_slots"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textStyle="bold"
+                        android:textColor="@color/neuro_green_dark" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Reserved / Occupied"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_reserved_slots"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="@color/neuro_amber" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <!-- Row: Operational Schedule string -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Operational Schedule"
+                        android:textColor="@color/neuro_text_secondary"
+                        android:layout_marginBottom="4dp" />
+                    <TextView
+                        android:id="@+id/tv_schedule"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textStyle="bold"
+                        android:textColor="@color/neuro_text_primary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Upcoming Scheduled Relevant Bookings Section Layout Layer -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upcoming Station Bookings"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/neuro_text_primary"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:id="@+id/layout_upcoming_bookings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
