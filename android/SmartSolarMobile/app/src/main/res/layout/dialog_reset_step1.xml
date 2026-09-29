@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- dialog_reset_step1.xml – Step 1: Enter Email / NIC and request OTP -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_neuro_card">
+
+    <!-- Icon + Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="20dp">
+
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_neuro_icon_circle"
+            android:layout_marginBottom="12dp">
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_line_person"
+                android:contentDescription="Reset password" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset Password"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="@color/neuro_text_primary"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 1 of 3 — Enter your Email or NIC"
+            android:textSize="12sp"
+            android:textColor="@color/neuro_text_muted"
+            android:layout_gravity="center"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+
+    <!-- Error Banner -->
+    <TextView
+        android:id="@+id/tv_reset_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/neuro_danger"
+        android:background="@color/neuro_danger_bg"
+        android:padding="10dp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"/>
+
+    <!-- Email / NIC Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Registered Email or NIC"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:boxBackgroundColor="@color/neuro_input_bg"
+        app:boxStrokeColor="@color/neuro_green"
+        app:boxCornerRadiusTopStart="14dp"
+        app:boxCornerRadiusTopEnd="14dp"
+        app:boxCornerRadiusBottomStart="14dp"
+        app:boxCornerRadiusBottomEnd="14dp"
+        app:hintTextColor="@color/neuro_text_green"
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_reset_identifier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/neuro_text_primary"
+            android:inputType="textEmailAddress"
+            android:imeOptions="actionDone"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="A 6-digit verification code will be sent to your registered Gmail address."
+        android:textSize="11sp"
+        android:textColor="@color/neuro_text_muted"
+        android:layout_marginBottom="20dp"/>
+
+    <!-- Send OTP Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_reset_send_otp"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Send Verification Code"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-bold"
+        android:textColor="@color/text_on_accent"
+        android:background="@drawable/bg_btn_primary"
+        app:backgroundTint="@null"
+        app:cornerRadius="16dp"
+        android:textAllCaps="false"/>
+
+    <!-- Progress Spinner -->
+    <com.smartsolar.mobile.ui.common.LoadingDotsView
+        android:id="@+id/pb_reset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"        android:layout_marginTop="12dp"
+        android:visibility="gone"/>
+
+</LinearLayout>
