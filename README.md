@@ -21,8 +21,8 @@
 | Resource | Link |
 |----------|------|
 | 💻 **GitHub Repository** | https://github.com/wimalarathna-ARSA/SE4040-SmartSolar-Microgrid.git |
-| 🎥 **Demo Video (OneDrive)** | https://1drv.ms/v/c/ffd009c5057ecdb2/IQCfRuxT4GUkSLsJiPHZf5SwAeCiGelkh_hZQOgsbpuDrMg?e=IbNnEV |
-| 🖥️ **Backend (IIS Hosted)** | See [Backend – IIS Hosting](#-2-backend--central-fat-web-api-c--aspnet-core) – published build in `IIS/SmartSolarApi/` |
+| 🎥 **Demo Video (OneDrive)** | https://mysliit-my.sharepoint.com/:v:/g/personal/it22207418_my_sliit_lk/IQCcHqUg4nIcQ7-yaFUqjtZQAfmKS1a2ai4MyJ2OIljxLfQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=Q5gUFw |
+
 
 ```bash
 # Clone the project
@@ -305,4 +305,4 @@ Open `android/SmartSolarMobile` in Android Studio → Run.
 
 
 
-<p align="center">☀️ <b>Smart Solar Microgrid</b> — SE4040 EAD · <a href="https://github.com/wimalarathna-ARSA/SE4040-SmartSolar-Microgrid.git">GitHub</a> · <a href="https://mysliit-my.sharepoint.com/:v:/g/personal/it22207418_my_sliit_lk/IQCcHqUg4nIcQ7-yaFUqjtZQAfmKS1a2ai4MyJ2OIljxLfQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=3mt2Ea">Demo Video</a></p>
+<p align="center">☀️ <b>Smart Solar Microgrid</b> — SE4040 EAD · <a href="https://github.com/wimalarathna-ARSA/SE4040-SmartSolar-Microgrid.git">GitHub</a> · <a href="https://mysliit-my.sharepoint.com/:v:/g/personal/it22207418_my_sliit_lk/IQCcHqUg4nIcQ7-yaFUqjtZQAfmKS1a2ai4MyJ2OIljxLfQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=Q5gUFw">Demo Video</a></p>
