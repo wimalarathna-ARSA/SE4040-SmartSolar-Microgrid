@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Onboarding illustration 1: rooftop solar generation.
+     Restrained slate line style matching illus_empty_nodes. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="220dp"
+    android:height="150dp"
+    android:viewportWidth="220"
+    android:viewportHeight="150">
+    <!-- Sun -->
+    <path
+        android:pathData="M172,38 m-16,0 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2.5"
+        android:fillColor="@color/neuro_amber_bg" />
+    <path
+        android:pathData="M172,12 L172,18 M172,58 L172,64 M146,38 L152,38 M192,38 L198,38 M154,20 L158,24 M186,52 L190,56 M190,20 L186,24 M158,52 L154,56"
+        android:strokeColor="@color/illus_line"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    <!-- House body -->
+    <path
+        android:pathData="M28,132 L28,88 L72,60 L116,88 L116,132 Z"
+        android:strokeColor="@color/neuro_text_secondary"
+        android:strokeWidth="2.5"
+        android:fillColor="@color/glass_surface"
+        android:strokeLineJoin="round" />
+    <!-- Roof solar panels -->
+    <path
+        android:pathData="M48,86 L72,70 L96,86 L72,102 Z"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2"
+        android:fillColor="@color/neuro_green_bg"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M60,86 L72,78 L84,86 M72,78 L72,98 M60,94 L84,78"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round" />
+    <!-- Door -->
+    <path
+        android:pathData="M64,132 L64,112 L80,112 L80,132"
+        android:strokeColor="@color/illus_line"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round" />
+    <!-- Ground line -->
+    <path
+        android:pathData="M14,132 L206,132"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    <!-- Energy link to grid node -->
+    <path
+        android:pathData="M116,100 L140,100"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M154,100 m-14,0 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2"
+        android:fillColor="@color/glass_surface" />
+    <path
+        android:pathData="M154,93 L158,101 L150,101 Z"
+        android:fillColor="@color/neuro_green" />
+</vector>

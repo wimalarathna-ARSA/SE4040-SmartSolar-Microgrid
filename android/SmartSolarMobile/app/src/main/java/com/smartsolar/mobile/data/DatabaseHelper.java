@@ -160,7 +160,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 ")");
     }
 
-    
     /**
      * Handles database schema migration on version upgrades.
      */
@@ -260,7 +259,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-        /**
+    /**
      * Retrieves active user session from SQLite.
      */
     // Returns Cursor with most recent session row
@@ -344,7 +343,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLE_CACHED_STATIONS + " ORDER BY " + COL_STATION_NAME + " ASC", null);
     }
- /**
+
+    /**
      * Caches user energy reservations to local SQLite for offline history viewing.
      */
     // Inserts or replaces booking records from API response

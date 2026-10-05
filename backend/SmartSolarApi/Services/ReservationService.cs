@@ -91,7 +91,10 @@ namespace SmartSolarApi.Services
                 .Select(r => r.SlotNumber!.Value)
                 .ToHashSet();
 
-            if (occupiedSlotNumbers.Count >= station.TotalBatterySlots || station.AvailableBatterySlots <= 0)
+            var busySlotNumbers = station.BusySlotNumbers?.ToHashSet() ?? new HashSet<int>();
+            var allBlocked = occupiedSlotNumbers.Union(busySlotNumbers).ToHashSet();
+
+            if (allBlocked.Count >= station.TotalBatterySlots || station.AvailableBatterySlots <= 0)
             {
                 return (false, "Selected solar station currently has no available battery storage slots.", null);
             }
@@ -104,6 +107,11 @@ namespace SmartSolarApi.Services
                     return (false, $"Selected slot #{dto.SlotNumber.Value} exceeds total capacity ({station.TotalBatterySlots} slots) for this hub.", null);
                 }
 
+                if (busySlotNumbers.Contains(dto.SlotNumber.Value))
+                {
+                    return (false, $"Slot #{dto.SlotNumber.Value} is marked Busy by the operator and is not available for reservations.", null);
+                }
+
                 if (occupiedSlotNumbers.Contains(dto.SlotNumber.Value))
                 {
                     return (false, $"Slot #{dto.SlotNumber.Value} is already reserved by another prosumer. Please select another slot.", null);
@@ -112,15 +120,15 @@ namespace SmartSolarApi.Services
             }
             else
             {
-                // Automatically allocate the lowest unbooked slot number
+                // Automatically allocate the lowest unbooked and non-busy slot number
                 chosenSlotNumber = 1;
-                while (chosenSlotNumber <= station.TotalBatterySlots && occupiedSlotNumbers.Contains(chosenSlotNumber))
+                while (chosenSlotNumber <= station.TotalBatterySlots && allBlocked.Contains(chosenSlotNumber))
                 {
                     chosenSlotNumber++;
                 }
                 if (chosenSlotNumber > station.TotalBatterySlots)
                 {
-                    return (false, "All battery storage slots are currently booked for this station.", null);
+                    return (false, "All battery storage slots are currently booked or busy for this station.", null);
                 }
             }
 
@@ -145,24 +153,24 @@ namespace SmartSolarApi.Services
                 EnergyAmountKWh = dto.EnergyAmountKWh,
                 TotalCost = totalCost,
                 ReservationType = dto.ReservationType,
-                Status = "Approved", // Approved immediately to generate QR code dispatch
+                Status = "Pending", // New bookings start as Pending; Backoffice approves via web app
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
-            // Generate secure QR payload
-            reservation.QrCodeData = GenerateSecureQrPayload(reservation);
+            // No QR at creation: the secure QR pass is issued only when Backoffice approves
+            reservation.QrCodeData = string.Empty;
 
             await _db.EnergyReservation.InsertOneAsync(reservation);
 
             // Atomically update AvailableBatterySlots reflecting actual free slots
-            var newAvail = Math.Max(0, station.TotalBatterySlots - (occupiedSlotNumbers.Count + 1));
+            var newAvail = Math.Max(0, station.TotalBatterySlots - (allBlocked.Count + 1));
             var slotUpdate = Builders<SolarStationInfo>.Update
                 .Set(s => s.AvailableBatterySlots, newAvail)
                 .Set(s => s.UpdatedAt, now);
             await _db.SolarStationInfo.UpdateOneAsync(s => s.Id == station.Id, slotUpdate);
 
-            return (true, $"Reservation created and approved successfully for Slot #{chosenSlotNumber}. Transaction QR code generated.", MapToDto(reservation));
+            return (true, $"Reservation created successfully for Slot #{chosenSlotNumber} and is pending Backoffice approval. The transaction QR code will be issued once approved.", MapToDto(reservation));
         }
 
         /// <summary>
@@ -185,7 +193,7 @@ namespace SmartSolarApi.Services
                 return (false, "Unauthorized: You do not own this reservation.", null);
             }
 
-            if (reservation.Status == "Completed" || reservation.Status == "Cancelled")
+            if (reservation.Status == "Completed" || reservation.Status == "Cancelled" || reservation.Status == "Missed")
             {
                 return (false, $"Cannot modify reservation that is already {reservation.Status}.", null);
             }
@@ -244,13 +252,59 @@ namespace SmartSolarApi.Services
                 reservation.Status = dto.Status;
             }
 
-            // Regenerate QR data with updated metadata
-            reservation.QrCodeData = GenerateSecureQrPayload(reservation);
-            update = update.Set(r => r.QrCodeData, reservation.QrCodeData);
+            // QR lifecycle: issued when Backoffice approves, empty while Pending (hidden on mobile)
+            if (reservation.Status == "Approved")
+            {
+                reservation.QrCodeData = GenerateSecureQrPayload(reservation);
+                update = update.Set(r => r.QrCodeData, reservation.QrCodeData);
+            }
+            else if (reservation.Status == "Pending")
+            {
+                reservation.QrCodeData = string.Empty;
+                update = update.Set(r => r.QrCodeData, reservation.QrCodeData);
+            }
 
             await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservationId, update);
 
             return (true, "Reservation updated successfully with refreshed transaction QR code.", MapToDto(reservation));
+        }
+
+        /// <summary>
+        /// Backoffice approves a pending reservation.
+        /// Changes status to "Approved" and generates cryptographically signed transaction QR code.
+        /// The issued QR pass immediately becomes visible on the prosumer's mobile app.
+        /// </summary>
+        public async Task<(bool Success, string Message, ReservationResponseDto? Reservation)> ApproveReservationAsync(string reservationId)
+        {
+            var reservation = await _db.EnergyReservation.Find(r => r.Id == reservationId).FirstOrDefaultAsync();
+            if (reservation == null)
+            {
+                return (false, "Reservation not found.", null);
+            }
+
+            if (reservation.Status == "Approved")
+            {
+                return (true, "Reservation is already approved.", MapToDto(reservation));
+            }
+
+            if (reservation.Status == "Completed" || reservation.Status == "Cancelled" || reservation.Status == "Missed")
+            {
+                return (false, $"Cannot approve a reservation that is already {reservation.Status}.", null);
+            }
+
+            var now = DateTime.UtcNow;
+            reservation.Status = "Approved";
+            reservation.QrCodeData = GenerateSecureQrPayload(reservation);
+            reservation.UpdatedAt = now;
+
+            var update = Builders<EnergyReservation>.Update
+                .Set(r => r.Status, "Approved")
+                .Set(r => r.QrCodeData, reservation.QrCodeData)
+                .Set(r => r.UpdatedAt, now);
+
+            await _db.EnergyReservation.UpdateOneAsync(r => r.Id == reservationId, update);
+
+            return (true, $"Reservation {reservation.ReservationCode} approved successfully. Transaction QR pass has been generated and dispatched to prosumer ({reservation.ProsumerName}).", MapToDto(reservation));
         }
 
         /// <summary>
@@ -276,6 +330,11 @@ namespace SmartSolarApi.Services
             if (reservation.Status == "Cancelled")
             {
                 return (false, "Reservation is already cancelled.");
+            }
+
+            if (reservation.Status == "Missed")
+            {
+                return (false, "Reservation has already been marked as Missed and its battery slot was released.");
             }
 
             if (reservation.Status == "Completed")
@@ -307,7 +366,8 @@ namespace SmartSolarApi.Services
             var stationForCancel = await _db.SolarStationInfo.Find(s => s.Id == reservation.StationId).FirstOrDefaultAsync();
             if (stationForCancel != null)
             {
-                int newAvail = Math.Min(stationForCancel.TotalBatterySlots, Math.Max(0, stationForCancel.TotalBatterySlots - remainingActiveCancel));
+                int busyCount = stationForCancel.BusySlotNumbers?.Count ?? 0;
+                int newAvail = Math.Min(stationForCancel.TotalBatterySlots, Math.Max(0, stationForCancel.TotalBatterySlots - (remainingActiveCancel + busyCount)));
                 var slotFree = Builders<SolarStationInfo>.Update
                     .Set(s => s.AvailableBatterySlots, newAvail)
                     .Set(s => s.UpdatedAt, now);
@@ -340,6 +400,11 @@ namespace SmartSolarApi.Services
                 return (false, "Transaction rejected: This reservation has been cancelled.", null);
             }
 
+            if (reservation.Status == "Missed")
+            {
+                return (false, "Transaction rejected: This reservation was not completed on schedule and has been marked as Missed. The battery slot was released.", null);
+            }
+
             var now = DateTime.UtcNow;
 
             var update = Builders<EnergyReservation>.Update
@@ -365,7 +430,8 @@ namespace SmartSolarApi.Services
             var stationForComplete = await _db.SolarStationInfo.Find(s => s.Id == reservation.StationId).FirstOrDefaultAsync();
             if (stationForComplete != null)
             {
-                int newAvail = Math.Min(stationForComplete.TotalBatterySlots, Math.Max(0, stationForComplete.TotalBatterySlots - remainingActiveComplete));
+                int busyCount = stationForComplete.BusySlotNumbers?.Count ?? 0;
+                int newAvail = Math.Min(stationForComplete.TotalBatterySlots, Math.Max(0, stationForComplete.TotalBatterySlots - (remainingActiveComplete + busyCount)));
                 var slotRestore = Builders<SolarStationInfo>.Update
                     .Set(s => s.AvailableBatterySlots, newAvail)
                     .Set(s => s.UpdatedAt, now);
@@ -373,6 +439,70 @@ namespace SmartSolarApi.Services
             }
 
             return (true, $"Energy transfer successfully verified and finalized! Slot #{reservation.SlotNumber} is now released.", MapToDto(reservation));
+        }
+
+        /// <summary>
+        /// Scans all Approved and Pending reservations whose scheduled date & time has arrived or passed.
+        /// Automatically marks them as 'Missed' and releases their reserved battery slots back to the station.
+        /// </summary>
+        public async Task<int> CheckAndExpireMissedReservationsAsync()
+        {
+            var now = DateTime.UtcNow;
+
+            var overdueReservations = await _db.EnergyReservation.Find(r =>
+                (r.Status == "Approved" || r.Status == "Pending") &&
+                r.ScheduledDateTime <= now).ToListAsync();
+
+            if (!overdueReservations.Any())
+            {
+                return 0;
+            }
+
+            var affectedStationIds = new HashSet<string>();
+
+            foreach (var res in overdueReservations)
+            {
+                var update = Builders<EnergyReservation>.Update
+                    .Set(r => r.Status, "Missed")
+                    .Set(r => r.UpdatedAt, now);
+
+                await _db.EnergyReservation.UpdateOneAsync(r => r.Id == res.Id, update);
+                res.Status = "Missed";
+
+                if (!string.IsNullOrEmpty(res.StationId))
+                {
+                    affectedStationIds.Add(res.StationId);
+                }
+            }
+
+            // Recalculate AvailableBatterySlots for all affected stations
+            foreach (var stationId in affectedStationIds)
+            {
+                var station = await _db.SolarStationInfo.Find(s => s.Id == stationId).FirstOrDefaultAsync();
+                if (station == null) continue;
+
+                var activeReservations = await _db.EnergyReservation.Find(r =>
+                    r.StationId == stationId &&
+                    (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
+
+                var occupiedSlots = activeReservations
+                    .Where(r => r.SlotNumber.HasValue && r.SlotNumber.Value > 0)
+                    .Select(r => r.SlotNumber!.Value)
+                    .ToHashSet();
+
+                var busySlots = station.BusySlotNumbers?.ToHashSet() ?? new HashSet<int>();
+                var allUnavailable = occupiedSlots.Union(busySlots).ToHashSet();
+
+                int newAvail = Math.Max(0, station.TotalBatterySlots - allUnavailable.Count);
+
+                var slotUpdate = Builders<SolarStationInfo>.Update
+                    .Set(s => s.AvailableBatterySlots, newAvail)
+                    .Set(s => s.UpdatedAt, now);
+
+                await _db.SolarStationInfo.UpdateOneAsync(s => s.Id == stationId, slotUpdate);
+            }
+
+            return overdueReservations.Count;
         }
 
         /// <summary>
@@ -385,6 +515,9 @@ namespace SmartSolarApi.Services
             string? stationId = null,
             string? search = null)
         {
+            // Automatically transition any overdue reservations to Missed before querying
+            await CheckAndExpireMissedReservationsAsync();
+
             var filterBuilder = Builders<EnergyReservation>.Filter;
             var filter = filterBuilder.Empty;
 
@@ -412,7 +545,8 @@ namespace SmartSolarApi.Services
             }
 
             var reservations = await _db.EnergyReservation.Find(filter)
-                .SortByDescending(r => r.ScheduledDateTime)
+                // Latest created bookings first (energy trading history shows newest on top)
+                .SortByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
             return reservations.Select(MapToDto).ToList();
@@ -425,6 +559,9 @@ namespace SmartSolarApi.Services
         // Reads counts of active, pending, approved future, completed, stations, and prosumers
         public async Task<DashboardStatsDto> GetDashboardStatsAsync(string? prosumerNic = null)
         {
+            // Automatically transition any overdue reservations to Missed before calculating dashboard stats
+            await CheckAndExpireMissedReservationsAsync();
+
             var now = DateTime.UtcNow;
             var filterBuilder = Builders<EnergyReservation>.Filter;
 
@@ -462,6 +599,7 @@ namespace SmartSolarApi.Services
         // Queries EnergyReservation by document ObjectId
         public async Task<ReservationResponseDto?> GetReservationByIdAsync(string id)
         {
+            await CheckAndExpireMissedReservationsAsync();
             var reservation = await _db.EnergyReservation.Find(r => r.Id == id).FirstOrDefaultAsync();
             return reservation == null ? null : MapToDto(reservation);
         }

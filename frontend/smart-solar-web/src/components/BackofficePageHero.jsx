@@ -1,80 +1,60 @@
 // ============================================================================
 // File: BackofficePageHero.jsx
-// Author: IT22106292
-// Course: SE4040 - Enterprise Application Development
-// Description: Reusable hero banner component for Backoffice section pages.
-// Architecture: FAT Service Pattern (All business logic centralized in API)
+// Description: Reusable hero banner for Backoffice section pages.
+// Theme: #F8F8F8 background, #063127 primary, #686053 muted (matches reference).
 // ============================================================================
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-/**
- * BackofficePageHero
- * Professional banner for backoffice pages using real project images.
- * Additive only - existing headers/cards below are untouched.
- */
 const BackofficePageHero = ({
-  imageSrc,
+  imageSrc = '',
   eyebrow = 'SOLARX Backoffice',
   title,
   subtitle,
   breadcrumb = [],
 }) => {
   return (
-    <div
-      className="position-relative overflow-hidden mb-4"
-      style={{
-        borderRadius: '18px',
-        border: '1px solid rgba(255,255,255,0.25)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
-        minHeight: '190px',
-      }}
-    >
-      <img
-        src={imageSrc}
-        alt=""
-        aria-hidden="true"
-        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-      />
-      <div
-        style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(95deg, rgba(3,25,45,0.94) 30%, rgba(3,25,45,0.72) 55%, rgba(3,25,45,0.30) 100%)',
-        }}
-      />
-      <div className="position-relative d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 p-4 p-lg-5" style={{ zIndex: 1 }}>
-        <div style={{ maxWidth: '640px' }}>
+    <div className="position-relative overflow-hidden mb-4 rounded-4 shadow-sm min-h-[190px] bg-[#063127] animate-[bl-fade-in_600ms_ease-out_both] motion-reduce:animate-none">
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          onError={(e) => { e.currentTarget.classList.add('d-none'); }}
+          className="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-25"
+        />
+      )}
+      <div className="position-absolute top-0 start-0 w-100 h-100 bg-gradient-to-r from-[#063127] via-[#063127]/60 to-transparent" />
+      <div className="position-relative d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 p-4 p-lg-5 z-1 animate-[bl-fade-up_600ms_cubic-bezier(0.16,1,0.3,1)_100ms_both] motion-reduce:animate-none">
+        <div className="mw-100 max-w-[640px]">
           {breadcrumb.length > 0 && (
-            <div className="d-flex align-items-center gap-2 mb-2 small" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              <Link to="/backoffice" style={{ color: '#7dd3fc', textDecoration: 'none', fontWeight: 600 }}>Dashboard</Link>
+            <div className="d-flex align-items-center gap-2 mb-2 small">
+              <Link to="/backoffice" className="text-decoration-none fw-semibold text-[#F8F8F8] opacity-75">Dashboard</Link>
               {breadcrumb.map((c, i) => (
                 <span key={i} className="d-flex align-items-center gap-2">
-                  <span style={{ opacity: 0.5 }}>›</span>
-                  <span style={{ color: '#fff', fontWeight: 600 }}>{c}</span>
+                  <span className="opacity-50 text-[#F8F8F8]">›</span>
+                  <span className="fw-semibold text-[#F8F8F8]">{c}</span>
                 </span>
               ))}
             </div>
           )}
-          <div
-            className="text-uppercase fw-bold mb-2"
-            style={{ color: '#00ffce', fontSize: '0.72rem', letterSpacing: '0.16em' }}
-          >
+          <div className="text-uppercase fw-bold mb-2 text-[#F8F8F8] opacity-75 text-[0.72rem] tracking-[0.16em]">
             {eyebrow}
           </div>
-          <h2 className="fw-bold text-white mb-2" style={{ fontSize: 'clamp(1.5rem, 2.6vw, 2.1rem)', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+          <h2 className="fw-bold mb-2 text-[#F8F8F8] text-[clamp(1.5rem,2.6vw,2.1rem)] tracking-tight leading-tight">
             {title}
           </h2>
           {subtitle && (
-            <p className="mb-0" style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+            <p className="mb-0 text-[#F8F8F8] opacity-75 text-[0.92rem] leading-relaxed">
               {subtitle}
             </p>
           )}
         </div>
         <div className="d-flex align-items-center gap-2 flex-shrink-0">
-          <img src="/images/solar-hero-panels.jpg" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.5)' }} />
-          <img src="/images/solar-rooftop-home.jpg" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.5)' }} />
-          <img src="/images/solar-field-sunset.jpeg" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.5)' }} />
+          <span className="rounded-pill px-3 py-2 text-[0.75rem] fw-bold bg-[#F8F8F8] text-[#063127]">
+            Backoffice
+          </span>
         </div>
       </div>
     </div>

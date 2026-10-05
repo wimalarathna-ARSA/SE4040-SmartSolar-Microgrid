@@ -1,107 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- ============================================================================
      File: activity_operator_node_detail.xml
-     Description: Grid Operator Node Details Screen - Glassmorphism UI Styling
+     Description: Grid Operator Node Details in transfer-history style —
+                  collapsing bg2 header with node identity, white sheet below.
      ============================================================================ -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/bg_glass_canvas">
+    android:background="@color/login_deep">
 
-    <!-- Top Toolbar Header Bar Section -->
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="24dp"
-        android:paddingBottom="12dp">
+        android:layout_height="300dp"
+        android:background="@color/login_deep"
+        app:elevation="0dp">
 
-        <FrameLayout
-            android:id="@+id/btn_back_header"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_neuro_icon_circle"
-            android:clickable="true"
-            android:focusable="true">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_line_back_arrow"
-                android:contentDescription="Back" />
-        </FrameLayout>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Node Details"
-            android:textSize="20sp"
-            android:fontFamily="sans-serif-semibold"
-            android:textColor="@color/neuro_text_primary"
-            android:paddingHorizontal="16dp"
-            android:gravity="center" />
-
-        <FrameLayout
-            android:id="@+id/btn_refresh"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_neuro_icon_circle"
-            android:clickable="true"
-            android:focusable="true">
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_line_refresh"
-                app:tint="@color/neuro_text_primary"
-                android:contentDescription="Refresh" />
-        </FrameLayout>
-    </LinearLayout>
-
-    <com.smartsolar.mobile.ui.common.LoadingDotsView
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"        android:visibility="gone"
-        android:layout_margin="16dp" />
-
-    <ScrollView
-        android:id="@+id/scroll_view_content"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="none"
-        android:overScrollMode="never">
-
-        <LinearLayout
+        <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingBottom="36dp">
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="@color/login_deep"
+            app:titleEnabled="false">
 
-            <!-- Node Identity Header Card -->
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/bg2"
+                android:scaleType="centerCrop"
+                android:contentDescription="Solar node"
+                app:layout_collapseMode="parallax" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#80063127"
+                app:layout_collapseMode="parallax" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:orientation="vertical"
-                android:background="@drawable/bg_neuro_card"
-                android:padding="20dp"
-                android:layout_marginBottom="20dp">
+                android:gravity="center_horizontal"
+                android:paddingHorizontal="48dp"
+                app:layout_collapseMode="parallax">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NODE DETAILS"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.14"
+                    android:textColor="@color/transfer_teal_pale"
+                    android:gravity="center" />
 
                 <TextView
                     android:id="@+id/tv_node_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="—"
-                    android:textSize="22sp"
-                    android:fontFamily="sans-serif-semibold"
-                    android:textColor="@color/neuro_text_primary"
-                    android:layout_marginBottom="4dp" />
+                    android:textSize="24sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:layout_marginTop="4dp" />
 
                 <TextView
                     android:id="@+id/tv_node_id"
@@ -109,29 +74,61 @@
                     android:layout_height="wrap_content"
                     android:text="ID: —"
                     android:textSize="12sp"
-                    android:textColor="@color/neuro_text_muted"
+                    android:textColor="#CBD5E1"
                     android:fontFamily="sans-serif-monospace"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Transaction Availability Status Badge View Layer -->
-                <LinearLayout
-                    android:id="@+id/layout_status_badge"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp"
                     android:gravity="center"
-                    android:background="@drawable/bg_neuro_inner_card">
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
-                    <TextView
-                        android:id="@+id/tv_availability_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Checking status..."
-                        android:textSize="15sp"
-                        android:fontFamily="sans-serif-semibold"
-                        android:textColor="@color/neuro_text_muted" />
-                </LinearLayout>
+    <!-- White sheet: scrolls up above the image -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_register_sheet"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:overScrollMode="never"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:behavior_overlapTop="48dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
+
+            <com.smartsolar.mobile.ui.common.LoadingDotsView
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Transaction Availability Status Badge View Layer -->
+            <LinearLayout
+                android:id="@+id/layout_status_badge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:gravity="center"
+                android:background="@drawable/bg_neuro_inner_card"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:id="@+id/tv_availability_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Checking status..."
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_muted" />
             </LinearLayout>
 
             <!-- Embedded OpenStreetMap Mini Map Section -->
@@ -151,18 +148,19 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_open_google_maps_operator"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="56dp"
                     android:layout_marginTop="10dp"
-                    android:text="Navigate with Google Maps"
-                    android:textSize="13sp"
+                    android:text="Navigate with Google Maps  ›"
+                    android:textSize="14sp"
                     android:fontFamily="sans-serif-semibold"
-                    android:textColor="@color/neuro_green"
-                    android:background="@drawable/bg_neuro_inner_card"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/bg_navigate_maps_btn"
                     app:backgroundTint="@null"
-                    app:cornerRadius="10dp"
+                    app:cornerRadius="16dp"
                     app:icon="@drawable/ic_line_location"
-                    app:iconTint="@color/neuro_green"
+                    app:iconTint="#BFD5D0"
                     app:iconGravity="textStart"
+                    android:elevation="4dp"
                     android:textAllCaps="false" />
             </LinearLayout>
 
@@ -173,7 +171,7 @@
                 android:text="Technical Parameters"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif-semibold"
-                android:textColor="@color/neuro_text_primary"
+                android:textColor="@color/text_brand"
                 android:layout_marginBottom="10dp" />
 
             <LinearLayout
@@ -202,7 +200,7 @@
                         android:layout_height="wrap_content"
                         android:text="—"
                         android:textStyle="bold"
-                        android:textColor="@color/neuro_text_primary" />
+                        android:textColor="@color/text_brand" />
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
@@ -224,7 +222,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="—"
-                        android:textColor="@color/neuro_text_primary" />
+                        android:textColor="@color/text_brand" />
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
@@ -247,7 +245,7 @@
                         android:layout_height="wrap_content"
                         android:text="— kW"
                         android:textStyle="bold"
-                        android:textColor="@color/neuro_text_primary" />
+                        android:textColor="@color/text_brand" />
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
@@ -269,7 +267,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="—"
-                        android:textColor="@color/neuro_text_primary" />
+                        android:textColor="@color/text_brand" />
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
@@ -335,9 +333,11 @@
                         android:layout_height="wrap_content"
                         android:text="—"
                         android:textStyle="bold"
-                        android:textColor="@color/neuro_text_primary" />
+                        android:textColor="@color/text_brand" />
                 </LinearLayout>
             </LinearLayout>
+
+
 
             <!-- Upcoming Scheduled Relevant Bookings Section Layout Layer -->
             <TextView
@@ -346,7 +346,7 @@
                 android:text="Upcoming Station Bookings"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif-semibold"
-                android:textColor="@color/neuro_text_primary"
+                android:textColor="@color/text_brand"
                 android:layout_marginBottom="10dp" />
 
             <LinearLayout
@@ -357,6 +357,45 @@
                 android:background="@drawable/bg_neuro_card"
                 android:padding="16dp" />
 
+
+
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Back button (fixed on top) -->
+    <FrameLayout
+        android:id="@+id/btn_back_header"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_neuro_icon_circle"
+        android:clickable="true"
+        android:focusable="true">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_line_back_arrow"
+            android:contentDescription="Back" />
+    </FrameLayout>
+
+    <!-- Refresh button (fixed on top) -->
+    <FrameLayout
+        android:id="@+id/btn_refresh"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_neuro_icon_circle"
+        android:clickable="true"
+        android:focusable="true">
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_line_refresh"
+            app:tint="@color/neuro_text_primary"
+            android:contentDescription="Refresh" />
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

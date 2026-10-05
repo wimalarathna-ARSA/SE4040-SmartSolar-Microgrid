@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: dialog_map_picker.xml
+     Description: Full-screen OSMDroid map dialog for selecting solar installation
+                  GPS coordinates during prosumer registration.
+     ============================================================================ -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_canvas">
+
+    <!-- Header bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_glass_panel"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Solar installation location"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/neuro_text_primary"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap on the map or drag the marker to your installation site"
+                android:textSize="11sp"
+                android:textColor="@color/neuro_text_secondary"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_cancel_map"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="✕"
+            android:textSize="16sp"
+            android:background="@drawable/bg_neuro_inner_card"
+            android:textColor="@color/neuro_text_secondary"/>
+    </LinearLayout>
+
+    <!-- Address Search Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_glass_panel"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="10dp">
+
+        <EditText
+            android:id="@+id/et_map_search"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_neuro_input"
+            android:hint="Search address / city (e.g. Kandy, Maharagama)"
+            android:imeOptions="actionSearch"
+            android:inputType="textPostalAddress"
+            android:maxLines="1"
+            android:paddingHorizontal="12dp"
+            android:textColor="@color/neuro_text_primary"
+            android:textColorHint="@color/neuro_text_muted"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btn_map_search"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_neuro_btn_green"
+            android:paddingHorizontal="16dp"
+            android:text="Search"
+            android:textColor="@color/text_on_accent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Search status / Progress indicator -->
+    <LinearLayout
+        android:id="@+id/layout_search_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_glass_panel"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone">
+
+        <com.smartsolar.mobile.ui.common.LoadingDotsView
+            android:id="@+id/progress_map_search"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tv_search_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Searching address..."
+            android:textColor="@color/neuro_text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Full OSMDroid map -->
+    <org.osmdroid.views.MapView
+        android:id="@+id/map_dialog_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <!-- Bottom panel: coordinates + apply button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_glass_panel"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/tv_coord_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap map to select location"
+            android:textSize="13sp"
+            android:textColor="@color/neuro_green"
+            android:background="@drawable/bg_neuro_inner_card"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_apply_location"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Apply this location"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_on_accent"
+            android:background="@drawable/bg_btn_primary"
+            app:backgroundTint="@null"
+            app:cornerRadius="16dp"/>
+    </LinearLayout>
+
+</LinearLayout>

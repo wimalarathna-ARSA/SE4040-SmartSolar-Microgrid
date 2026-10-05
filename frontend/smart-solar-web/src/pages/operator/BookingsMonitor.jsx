@@ -8,8 +8,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
-import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import OperatorPageHero from '../../components/OperatorPageHero';
+import { ENTER_UP } from '../../utils/enterAnimations';
+
+const statusBadgeClass = (status) => {
+  if (status === 'Approved') return 'badge bg-[#063127] text-white border border-[#063127] rounded-pill px-2.5 py-1 shadow-sm';
+  if (status === 'Pending') return 'badge bg-[#BFD5D0] text-[#063127] border border-[#8FB3A9] rounded-pill px-2.5 py-1 shadow-sm';
+  if (status === 'Completed') return 'badge bg-[#3B796A] text-white rounded-pill px-2.5 py-1 shadow-sm';
+  if (status === 'Missed') return 'badge bg-amber-100 text-amber-900 border border-amber-400 rounded-pill px-2.5 py-1 shadow-sm';
+  return 'badge bg-[#686053] text-white rounded-pill px-2.5 py-1 shadow-sm';
+};
 
 const BookingsMonitor = () => {
   const [bookings, setBookings] = useState([]);
@@ -18,6 +26,7 @@ const BookingsMonitor = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [stationFilter, setStationFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   const loadData = async () => {
     setLoading(true);
@@ -41,6 +50,21 @@ const BookingsMonitor = () => {
     }
   };
 
+  const handleCancelBooking = async (b) => {
+    const slotText = b.slotNumber ? ` and release Battery Slot #${b.slotNumber}` : '';
+    if (!window.confirm(`Are you sure you want to cancel booking ${b.reservationCode} for ${b.prosumerName}${slotText}?`)) {
+      return;
+    }
+    setMessage({ type: '', text: '' });
+    try {
+      const res = await api.delete(`/reservations/${b.id}`);
+      setMessage({ type: 'success', text: res.data.message || `Booking ${b.reservationCode} cancelled and slot released.` });
+      await loadData();
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.response?.data?.message || 'Failed to cancel booking.' });
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, [statusFilter, stationFilter]);
@@ -51,21 +75,9 @@ const BookingsMonitor = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(120deg, #dcfce7 0%, #a7f3d0 18%, #34d399 45%, #059669 75%, #022c22 100%)',
-        color: '#0f172a',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        padding: '36px 40px 60px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background Constellation Mesh Network */}
-      <ConstellationMeshSVG theme="green" />
+    <div className="min-h-screen position-relative overflow-hidden text-[#063127] bg-[#F8F8F8] font-[Inter,sans-serif]">
 
-      <div style={{ maxWidth: '1440px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div className="container-fluid max-w-[1440px] mx-auto position-relative z-[1] px-6 md:px-10 pt-9 pb-[60px]">
         <OperatorPageHero
           imageSrc="/images/Solar_3.jpg"
           eyebrow="SOLARX • Live Queues"
@@ -73,490 +85,181 @@ const BookingsMonitor = () => {
           subtitle="Drop-off and charging queues across every solar hub."
           breadcrumb={['Bookings']}
         />
-        {/* =========================================================================
-            HEADER BAR
-           ========================================================================= */}
+
         <div className="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-3">
-
-          <div className="d-flex align-items-center gap-2">
-            <button
-              onClick={loadData}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                borderRadius: '50px',
-                padding: '10px 20px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                color: '#064e3b',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(4, 120, 87, 0.08)',
-                transition: 'all 0.2s ease',
-              }}
-              title="Refresh bookings"
-            >
-              <i className="bi bi-arrow-clockwise"></i>
-              <span>Refresh</span>
-            </button>
-            <Link
-              to="/operator"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                borderRadius: '50px',
-                padding: '10px 22px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                color: '#064e3b',
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(4, 120, 87, 0.08)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <i className="bi bi-arrow-left"></i>
-              <span>Back to Console</span>
-            </Link>
-          </div>
+          <button onClick={loadData} className="btn rounded-pill px-4 py-2 text-[0.85rem] fw-bold d-inline-flex align-items-center gap-2 bg-white border text-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg" title="Refresh bookings">
+            <i className="bi bi-arrow-clockwise"></i>Refresh
+          </button>
+          <Link to="/operator" className="btn rounded-pill px-4 py-2 text-[0.85rem] fw-bold d-inline-flex align-items-center gap-2 bg-white border text-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg text-decoration-none">
+            <i className="bi bi-arrow-left"></i>Back to Console
+          </Link>
         </div>
 
-        {/* =========================================================================
-            FILTERS BAR
-           ========================================================================= */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '24px',
-            border: '1px solid rgba(255, 255, 255, 0.95)',
-            boxShadow: '0 12px 32px -4px rgba(4, 120, 87, 0.1)',
-            padding: '20px 28px',
-            marginBottom: '28px',
-          }}
-        >
-          <form onSubmit={handleSearch} className="row g-3 align-items-center">
-            {/* Search Input */}
-            <div className="col-lg-4 col-md-12">
-              <div style={{ position: 'relative' }}>
-                <i
-                  className="bi bi-search"
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                    fontSize: '0.95rem',
-                  }}
-                ></i>
-                <input
-                  type="text"
-                  placeholder="Search code, prosumer, station..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '11px 18px 11px 44px',
-                    borderRadius: '50px',
-                    background: '#ffffff',
-                    border: '1px solid rgba(16, 185, 129, 0.35)',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
-                  }}
-                />
+        <div className={`card border-0 rounded-[24px] bg-white/85 shadow-sm backdrop-blur-xl mb-4 overflow-hidden ${ENTER_UP} motion-reduce:animate-none`}>
+          <div className="card-body p-4">
+            <form onSubmit={handleSearch} className="row g-3 align-items-end">
+              <div className="col-md-4">
+                <label htmlFor="bm-search" className="form-label text-[0.78rem] fw-bold text-[#686053] text-uppercase tracking-wide">Search</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-[#063127] text-[#BFD5D0] border-[#063127]"><i className="bi bi-search"></i></span>
+                  <input
+                    id="bm-search"
+                    type="text"
+                    className="form-control rounded-[10px] text-[0.9rem] bg-white"
+                    placeholder="Search code, prosumer, station..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Status Filter */}
-            <div className="col-lg-3 col-md-6">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 20px',
-                  borderRadius: '50px',
-                  background: '#ffffff',
-                  border: '1px solid rgba(16, 185, 129, 0.35)',
-                  fontSize: '0.88rem',
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">All Statuses</option>
-                <option value="Approved">Approved (Ready for QR Scan)</option>
-                <option value="Pending">Pending Approval</option>
-                <option value="Completed">Completed (Finalized)</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            {/* Station Filter */}
-            <div className="col-lg-3 col-md-6">
-              <select
-                value={stationFilter}
-                onChange={(e) => setStationFilter(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 20px',
-                  borderRadius: '50px',
-                  background: '#ffffff',
-                  border: '1px solid rgba(16, 185, 129, 0.35)',
-                  fontSize: '0.88rem',
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="">All Solar Stations</option>
-                {stations.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.stationCode})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="col-lg-2 col-md-12 d-flex gap-2">
-              <button
-                type="submit"
-                style={{
-                  flex: 1,
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '50px',
-                  padding: '11px 18px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <i className="bi bi-funnel-fill"></i>
-                <span>Search</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('');
-                  setStationFilter('');
-                }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#475569',
-                  border: '1px solid rgba(148, 163, 184, 0.4)',
-                  borderRadius: '50px',
-                  padding: '11px 18px',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                Reset
-              </button>
-            </div>
-          </form>
+              <div className="col-md-3">
+                <label htmlFor="bm-status" className="form-label text-[0.78rem] fw-bold text-[#686053] text-uppercase tracking-wide">Status</label>
+                <select id="bm-status" className="form-select rounded-[10px] text-[0.9rem] bg-white" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="">All Statuses</option>
+                  <option value="Approved">Approved (Ready for QR Scan)</option>
+                  <option value="Pending">Pending Approval</option>
+                  <option value="Completed">Completed (Finalized)</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Missed">Missed (No-Show)</option>
+                </select>
+              </div>
+              <div className="col-md-3">
+                <label htmlFor="bm-station" className="form-label text-[0.78rem] fw-bold text-[#686053] text-uppercase tracking-wide">Station</label>
+                <select id="bm-station" className="form-select rounded-[10px] text-[0.9rem] bg-white" value={stationFilter} onChange={(e) => setStationFilter(e.target.value)}>
+                  <option value="">All Solar Stations</option>
+                  {stations.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.stationCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-2 d-flex gap-2">
+                <button type="submit" className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold flex-fill">
+                  <i className="bi bi-funnel-fill me-1"></i>Search
+                </button>
+                <button
+                  type="button"
+                  className="btn bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-semibold"
+                  onClick={() => { setSearchTerm(''); setStatusFilter(''); setStationFilter(''); }}
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        {/* =========================================================================
-            BOOKINGS LIST (PURE LIGHT TABLE)
-           ========================================================================= */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: '28px',
-            border: '1px solid rgba(255, 255, 255, 0.95)',
-            boxShadow: '0 16px 40px -8px rgba(4, 120, 87, 0.12)',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Card Header */}
-          <div
-            style={{
-              padding: '24px 32px 20px 32px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'transparent',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.18rem',
-                fontWeight: 700,
-                color: '#0f172a',
-                margin: 0,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Active &amp; Historical Energy Bookings
-            </h2>
-            <span
-              style={{
-                background: '#059669',
-                color: '#ffffff',
-                borderRadius: '50px',
-                padding: '6px 18px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                boxShadow: '0 2px 10px rgba(5, 150, 105, 0.3)',
-              }}
-            >
-              {bookings.length} Bookings Found
-            </span>
+        {message.text && (
+          <div className={`alert border d-flex align-items-center gap-2 mb-4 ${message.type === 'danger' ? 'alert-danger' : 'bg-[#063127]/10 border-[#063127]/20 text-[#063127]'} alert-dismissible rounded-[16px]`} role="alert">
+            <i className={`bi ${message.type === 'danger' ? 'bi-exclamation-octagon-fill' : 'bi-check-circle-fill'} fs-5`}></i>
+            <span className="fw-semibold small flex-grow-1">{message.text}</span>
+            <button type="button" className="btn-close" onClick={() => setMessage({ type: '', text: '' })} aria-label="Close"></button>
+          </div>
+        )}
+
+        <div className={`card border-0 rounded-[28px] bg-white/85 shadow-sm backdrop-blur-xl overflow-hidden ${ENTER_UP} motion-reduce:animate-none`}>
+          <div className="card-header bg-transparent border-0 d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3">
+            <h2 className="h5 fw-bold text-[#063127] mb-0">Active &amp; Historical Energy Bookings</h2>
+            <span className="badge bg-[#063127] text-white rounded-pill fs-6 fw-bold">{bookings.length} Bookings Found</span>
           </div>
 
-          {/* Pure Light Table - No Bootstrap .table override */}
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                borderSpacing: 0,
-                background: 'transparent',
-                textAlign: 'left',
-              }}
-            >
-              <thead>
-                <tr style={{ background: '#dcfce7', borderTop: '1px solid rgba(167, 243, 208, 0.8)', borderBottom: '1px solid rgba(167, 243, 208, 0.8)' }}>
-                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    BOOKING CODE
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    PROSUMER DETAILS
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    STATION NODE
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    SCHEDULED SLOT
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    TRADE TYPE
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    ENERGY (KWH)
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    TOTAL AMOUNT
-                  </th>
-                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    STATUS
-                  </th>
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="[&_th]:bg-[#063127] [&_th]:text-[#F8F8F8] [&_th]:text-uppercase [&_th]:text-[0.72rem] [&_th]:fw-bold [&_th]:px-4 [&_th]:py-3">
+                <tr>
+                  <th>BOOKING CODE</th>
+                  <th>BAY SLOT</th>
+                  <th>PROSUMER DETAILS</th>
+                  <th>STATION NODE</th>
+                  <th>SCHEDULED TIME</th>
+                  <th>TRADE TYPE</th>
+                  <th>ENERGY</th>
+                  <th>STATUS</th>
+                  <th className="text-end">ACTIONS</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-[0.85rem]">
                 {loading ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
-                      <div className="spinner-border spinner-border-sm me-2 text-success" role="status"></div>
+                    <td colSpan="9" className="text-center py-5 text-[#686053]">
+                      <div className="spinner-border spinner-border-sm me-2 text-[#063127]" role="status"></div>
                       Loading booking telemetry...
                     </td>
                   </tr>
                 ) : bookings.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
+                    <td colSpan="9" className="text-center py-5 text-[#686053]">
                       No energy bookings found matching the selected filters.
                     </td>
                   </tr>
                 ) : (
-                  bookings.map((b, idx) => {
-                    const rowBg = idx % 2 === 0 ? '#edf9f3' : '#f9fcfb';
-                    return (
-                      <tr
-                        key={b.id || idx}
-                        style={{
-                          background: rowBg,
-                          borderBottom: idx === bookings.length - 1 ? 'none' : '1px solid rgba(167, 243, 208, 0.6)',
-                          transition: 'background-color 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#def3e7')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowBg)}
-                      >
-                        {/* Booking Code */}
-                        <td style={{ padding: '18px 28px', background: 'transparent' }}>
-                          <span
-                            style={{
-                              background: '#0f172a',
-                              color: '#34d399',
-                              fontFamily: 'monospace',
-                              fontWeight: 700,
-                              fontSize: '0.84rem',
-                              padding: '5px 14px',
-                              borderRadius: '50px',
-                              display: 'inline-block',
-                              boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)',
-                            }}
+                  bookings.map((b, idx) => (
+                    <tr key={b.id || idx}>
+                      <td><span className="badge bg-[#063127] text-[#F8F8F8] font-monospace">{b.reservationCode}</span></td>
+                      <td>
+                        <span className="badge bg-[#063127]/10 text-[#063127] border border-[#063127]/20 rounded-pill px-2.5 py-1 fw-bold">
+                          {b.slotNumber ? `Slot #${b.slotNumber}` : 'Auto'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="fw-bold text-[#063127]">{b.prosumerName}</div>
+                        <div className="small text-danger fw-semibold">NIC: {b.prosumerNic}</div>
+                      </td>
+                      <td>
+                        <span className="fw-semibold"><i className="bi bi-broadcast text-[#063127] me-1"></i>{b.stationName}</span>
+                      </td>
+                      <td>
+                        <div className="fw-semibold">{new Date(b.scheduledDateTime).toLocaleDateString()}</div>
+                        <div className="small text-[#686053]">{new Date(b.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </td>
+                      <td>
+                        {b.reservationType === 'DropOff' ? (
+                          <span className="badge bg-[#063127] text-white rounded-pill">
+                            <i className="bi bi-arrow-down-left me-1"></i>Drop-Off (Sell)
+                          </span>
+                        ) : (
+                          <span className="badge bg-[#65998B] text-white rounded-pill">
+                            <i className="bi bi-lightning-charge me-1"></i>Charging (Buy)
+                          </span>
+                        )}
+                      </td>
+                      <td><span className="fw-bold">{b.energyAmountKWh} <small className="text-[#686053] fw-normal">kWh</small></span></td>
+                      <td>
+                        <span className={statusBadgeClass(b.status)}>
+                          {b.status === 'Pending' && <i className="bi bi-hourglass-split me-1 text-[#3B796A]"></i>}
+                          {b.status === 'Approved' && <i className="bi bi-qr-code me-1 text-white"></i>}
+                          {b.status === 'Completed' && <i className="bi bi-patch-check-fill me-1 text-emerald-300"></i>}
+                          {b.status === 'Cancelled' && <i className="bi bi-x-circle me-1 text-white"></i>}
+                          {b.status === 'Missed' && <i className="bi bi-clock-history me-1 text-amber-700"></i>}
+                          {b.status === 'Pending' ? 'Pending Approval' : b.status === 'Approved' ? 'Approved (Active)' : b.status === 'Missed' ? 'Missed (No-Show)' : b.status}
+                        </span>
+                      </td>
+                      <td className="text-end">
+                        {(b.status === 'Pending' || b.status === 'Approved') ? (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelBooking(b)}
+                            title="Cancel booking and release battery slot back to available"
+                            className="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold text-[0.78rem]"
                           >
-                            {b.reservationCode}
-                          </span>
-                        </td>
-
-                        {/* Prosumer Details */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem' }}>
-                            {b.prosumerName}
-                          </div>
-                          <div style={{ fontSize: '0.78rem', color: '#e11d48', fontWeight: 600, marginTop: '2px' }}>
-                            NIC: {b.prosumerNic}
-                          </div>
-                        </td>
-
-                        {/* Station Node */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', color: '#0f172a', fontWeight: 600, fontSize: '0.88rem' }}>
-                            <i className="bi bi-broadcast" style={{ color: '#059669' }}></i>
-                            <span>{b.stationName}</span>
-                          </div>
-                        </td>
-
-                        {/* Scheduled Slot */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.88rem' }}>
-                            {new Date(b.scheduledDateTime).toLocaleDateString()}
-                          </div>
-                          <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>
-                            {new Date(b.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </td>
-
-                        {/* Trade Type */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          {b.reservationType === 'DropOff' ? (
-                            <span
-                              style={{
-                                background: '#ecfeff',
-                                color: '#0891b2',
-                                border: '1px solid #a5f3fc',
-                                borderRadius: '50px',
-                                padding: '5px 14px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                              }}
-                            >
-                              <i className="bi bi-arrow-down-left"></i>
-                              <span>Drop-Off (Sell)</span>
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                background: '#f5f3ff',
-                                color: '#7c3aed',
-                                border: '1px solid #ddd6fe',
-                                borderRadius: '50px',
-                                padding: '5px 14px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                              }}
-                            >
-                              <i className="bi bi-lightning-charge"></i>
-                              <span>Charging (Buy)</span>
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Energy */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.9rem' }}>
-                            {b.energyAmountKWh} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>kWh</span>
-                          </div>
-                        </td>
-
-                        {/* Total Amount */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <span style={{ color: '#059669', fontWeight: 800, fontSize: '0.96rem' }}>
-                            Rs. {b.totalCost ? b.totalCost.toFixed(2) : '0.00'}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td style={{ padding: '18px 28px', background: 'transparent' }}>
-                          <span
-                            style={{
-                              background:
-                                b.status === 'Approved' ? '#10b981' :
-                                b.status === 'Pending' ? '#f59e0b' :
-                                b.status === 'Completed' ? '#0284c7' : '#ef4444',
-                              color: '#ffffff',
-                              borderRadius: '50px',
-                              padding: '5px 16px',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              letterSpacing: '0.02em',
-                              display: 'inline-block',
-                              boxShadow:
-                                b.status === 'Approved' ? '0 2px 8px rgba(16, 185, 129, 0.3)' :
-                                b.status === 'Pending' ? '0 2px 8px rgba(245, 158, 11, 0.3)' :
-                                b.status === 'Completed' ? '0 2px 8px rgba(2, 132, 199, 0.3)' :
-                                '0 2px 8px rgba(239, 68, 68, 0.3)',
-                            }}
-                          >
-                            {b.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
+                            <i className="bi bi-x-circle me-1"></i>Cancel &amp; Release
+                          </button>
+                        ) : (
+                          <span className="text-[#686053] small">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Bottom Navigation Link */}
-        <div style={{ marginTop: '36px', textAlign: 'center' }}>
-          <Link
-            to="/operator"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: '#ffffff',
-              textDecoration: 'none',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(12px)',
-              padding: '10px 24px',
-              borderRadius: '50px',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <i className="bi bi-arrow-left"></i>
-            <span>Back to Operational Console</span>
+        <div className="text-center mt-4">
+          <Link to="/operator" className="d-inline-flex align-items-center gap-2 text-[#063127] text-decoration-none fw-bold text-[0.9rem] bg-white px-4 py-2 rounded-pill border shadow-sm transition hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] hover:-translate-y-0.5 hover:shadow-lg">
+            <i className="bi bi-arrow-left"></i>Back to Operational Console
           </Link>
         </div>
       </div>

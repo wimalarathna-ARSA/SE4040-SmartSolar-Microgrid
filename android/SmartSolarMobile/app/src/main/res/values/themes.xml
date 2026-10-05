@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: themes.xml
+     Description: SmartSolar Soft Pastel Light Theme
+     ============================================================================ -->
+<resources xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- Main Application Theme -->
+    <style name="Theme.SmartSolarMobile" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary Brand Pastel Mint Palette -->
+        <item name="colorPrimary">@color/solar_primary</item>
+        <item name="colorPrimaryVariant">@color/solar_primary_dark</item>
+        <item name="colorOnPrimary">@color/solar_btn_text</item>
+
+        <!-- Secondary Accents -->
+        <item name="colorSecondary">@color/solar_secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorAccent">@color/solar_primary</item>
+        <item name="colorError">@color/solar_danger</item>
+        <item name="colorOnError">@color/white</item>
+
+        <!-- Surfaces (dialogs, menus) -->
+        <item name="colorSurface">@color/glass_surface</item>
+        <item name="colorOnSurface">@color/solar_text_primary</item>
+        <item name="android:colorBackground">@color/solar_dark</item>
+
+        <!-- Window Canvas & System Chrome -->
+        <item name="android:statusBarColor">@color/solar_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/solar_nav_bg</item>
+        <item name="android:navigationBarDividerColor">@color/transparent</item>
+        <item name="android:windowBackground">@drawable/bg_glass_canvas</item>
+
+        <!-- Typography Defaults -->
+        <item name="android:textColorPrimary">@color/solar_text_primary</item>
+        <item name="android:textColorSecondary">@color/solar_text_secondary</item>
+        <item name="android:textColorHint">@color/solar_text_muted</item>
+
+        <!-- Component Styling -->
+        <item name="cardViewStyle">@style/Widget.Solar.CardView</item>
+        <item name="bottomNavigationStyle">@style/Widget.Solar.BottomNavigation</item>
+    </style>
+
+    <!-- NoActionBar Variant for direct usage -->
+    <style name="Theme.SmartSolarMobile.NoActionBar" parent="Theme.SmartSolarMobile">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Frosted Light CardView Style -->
+    <style name="Widget.Solar.CardView" parent="CardView">
+        <item name="cardBackgroundColor">@color/glass_surface</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardMaxElevation">0dp</item>
+        <item name="cardPreventCornerOverlap">true</item>
+    </style>
+
+    <!-- Bottom Navigation View Style -->
+    <style name="Widget.Solar.BottomNavigation" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:background">@color/solar_nav_bg</item>
+        <item name="itemIconTint">@color/nav_item_colors</item>
+        <item name="itemTextColor">@color/nav_item_colors</item>
+        <item name="itemRippleColor">@color/solar_primary_subtle</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <!-- ================================================================
+         Soft Pastel Light Theme — Prosumer / Operator surfaces
+         ================================================================ -->
+    <style name="Theme.SmartSolar.Glass" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/neuro_green</item>
+        <item name="colorPrimaryVariant">@color/neuro_green_dark</item>
+        <item name="colorOnPrimary">@color/text_on_accent</item>
+        <item name="colorSecondary">@color/neuro_blue</item>
+        <item name="colorAccent">@color/neuro_green</item>
+        <item name="colorError">@color/neuro_danger</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorSurface">@color/glass_surface</item>
+        <item name="colorOnSurface">@color/neuro_text_primary</item>
+        <item name="android:colorBackground">@color/neuro_surface</item>
+        <item name="android:windowBackground">@drawable/bg_glass_canvas</item>
+        <item name="android:statusBarColor">@color/neuro_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/neuro_nav_bg</item>
+        <item name="android:navigationBarDividerColor">@color/transparent</item>
+        <item name="android:textColorPrimary">@color/neuro_text_primary</item>
+        <item name="android:textColorSecondary">@color/neuro_text_secondary</item>
+        <item name="android:textColorHint">@color/neuro_text_muted</item>
+        <item name="cardViewStyle">@style/Widget.Glass.CardView</item>
+    </style>
+
+    <!-- Frosted Light CardView Style -->
+    <style name="Widget.Glass.CardView" parent="CardView">
+        <item name="cardBackgroundColor">@color/glass_surface</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardMaxElevation">0dp</item>
+        <item name="cardPreventCornerOverlap">true</item>
+    </style>
+
+</resources>

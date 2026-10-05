@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: network_security_config.xml
+     Course: SE4040 - Enterprise Application Development
+     Description: Allows clear-text HTTP for local dev API.
+                  Covers emulator (10.0.2.2), localhost, and all LAN subnets
+                  commonly used for physical device development (192.168.x.x, 10.x.x.x).
+     ============================================================================ -->
+<network-security-config>
+    <!-- Allow cleartext HTTP to all private/local network ranges for development -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android Emulator -> PC localhost -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- PC localhost -->
+        <domain includeSubdomains="true">localhost</domain>
+        <!-- LAN IP: physical device on same WiFi (192.168.x.x range) -->
+        <domain includeSubdomains="true">192.168.8.136</domain>
+        <domain includeSubdomains="true">192.168.1.136</domain>
+        <domain includeSubdomains="true">192.168.0.136</domain>
+    </domain-config>
+</network-security-config>

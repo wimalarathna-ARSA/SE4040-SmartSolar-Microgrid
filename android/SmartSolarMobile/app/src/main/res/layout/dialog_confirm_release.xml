@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Confirm slot releasing sheet: white, round margins, green text only:
+     #BFD5D0 dividers, #8FB3A9 handle, #65998B secondary, #3B796A accents, #063127 titles -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_confirm_booking"
+    android:scrollbars="none"
+    android:clipToPadding="false">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_adjust_handle"
+        android:layout_marginBottom="18dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="PLEASE CONFIRM"
+        android:textSize="10sp"
+        android:letterSpacing="0.18"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#65998B" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Confirm Slot Releasing"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-semibold"
+        android:textColor="#063127"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="These prosumer bookings will be cancelled."
+        android:textSize="12sp"
+        android:textColor="#3B796A"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Affected bookings, rows added dynamically -->
+    <LinearLayout
+        android:id="@+id/layout_release_lines"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Freed slots return to the available pool and will show as cancelled by operator on the prosumer side."
+        android:textSize="12sp"
+        android:textColor="#65998B"
+        android:gravity="center"
+        android:layout_marginBottom="18dp" />
+
+    <!-- Deep-green release pill -->
+    <FrameLayout
+        android:id="@+id/btn_release_go"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@drawable/bg_save_dark_pill"
+        android:clickable="true"
+        android:focusable="true">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Release Slots"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#FFFFFF" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/btn_release_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Back"
+        android:textSize="13sp"
+        android:textColor="#3B796A"
+        android:padding="12dp" />
+
+</LinearLayout>
+</ScrollView>

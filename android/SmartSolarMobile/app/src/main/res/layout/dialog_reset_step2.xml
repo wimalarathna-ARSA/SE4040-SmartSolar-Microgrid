@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@drawable/bg_neuro_card">
+    android:background="@drawable/bg_reset_dialog">
 
     <!-- Icon + Title -->
     <LinearLayout

@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return (
       <div className="container py-5 text-center">
-        <div className="alert alert-danger p-4 mx-auto" style={{ maxWidth: '600px' }}>
+        <div className="alert alert-danger p-4 mx-auto max-w-[600px] w-100">
           <i className="bi bi-shield-lock-fill fs-1 text-danger mb-3 d-block"></i>
           <h4 className="alert-heading">Access Restricted</h4>
           <p>

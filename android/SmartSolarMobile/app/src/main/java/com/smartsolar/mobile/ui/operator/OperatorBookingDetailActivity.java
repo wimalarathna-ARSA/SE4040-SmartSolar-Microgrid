@@ -33,7 +33,7 @@ public class OperatorBookingDetailActivity extends AppCompatActivity {
     private View containerTransactionDetails;
     private TextView tvTransactionEmpty, tvTransactionId, tvTransactionStatus, tvEnergyAmount, tvQrReference;
 
-        @Override
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Extract booking ID from intent, bind views, wire back button, and start data fetch
         super.onCreate(savedInstanceState);
@@ -102,7 +102,8 @@ public class OperatorBookingDetailActivity extends AppCompatActivity {
             }
         }).start();
     }
- /** Renders the processed JSON payload matching operational data structures */
+
+    /** Renders the processed JSON payload matching operational data structures */
     private void updateUI(JSONObject b) {
         // Populate booking details, status badge colour, and settled transaction parameters from JSON
         if (b == null) return;
@@ -165,5 +166,4 @@ public class OperatorBookingDetailActivity extends AppCompatActivity {
 
         } catch (Exception ignored) {}
     }
-
 }

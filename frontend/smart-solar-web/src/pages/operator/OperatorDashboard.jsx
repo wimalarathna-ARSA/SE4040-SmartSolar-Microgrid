@@ -9,11 +9,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import OperatorPageHero from '../../components/OperatorPageHero';
 import MicrogridMapModal from '../../components/MicrogridMapModal';
 import NodeScheduleModal from '../../components/NodeScheduleModal';
 import PasswordStrengthIndicator from '../../components/PasswordStrengthIndicator';
+import { ENTER_ANIMS, ENTER_FADE } from '../../utils/enterAnimations';
 import { evaluatePassword } from '../../utils/passwordValidator';
 
 const OperatorDashboard = () => {
@@ -154,22 +154,45 @@ const OperatorDashboard = () => {
     loadData();
   }, []);
 
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(120deg, #08391b 0%, #1f7556 18%, #34d399 45%, #059669 75%, #022c22 100%)',
-        color: '#0f172a',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        padding: '36px 40px 60px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background Constellation Mesh Network (Theme Green) */}
-      <ConstellationMeshSVG theme="green" />
+  const slotBadgeClass = (s) => {
+    const avail = Number(s.availableBatterySlots ?? 0);
+    const total = Number(s.totalBatterySlots ?? 0);
+    if (total > 0 && avail > total / 2) return 'bg-[#2E695A] text-white';
+    if (avail > 0) return 'bg-[#65998B] text-white';
+    return 'bg-[#BFD5D0] text-[#063127]';
+  };
 
-      <div style={{ maxWidth: '1440px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+  const slotBarClass = (s) => {
+    const total = Number(s.totalBatterySlots ?? 0);
+    const pct = total > 0 ? (Number(s.availableBatterySlots ?? 0) / total) * 100 : 0;
+    if (pct > 50) return 'bg-[#2E695A]';
+    if (pct > 20) return 'bg-[#65998B]';
+    return 'bg-[#8FB3A9]';
+  };
+
+  const modules = [
+    {
+      icon: 'bi-qr-code-scan', title: 'QR Verification',
+      to: '/operator/verify-qr', cta: 'Open QR Scanner', btn: 'bg-[#063127] text-white border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127]', img: '/images/solar-hero-panels.jpg',
+    },
+    {
+      icon: 'bi-battery-charging', title: 'Battery Slots', 
+      to: '/operator/slots', cta: 'Manage Battery Slots', btn: 'bg-[#063127] text-white border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127]', img: '/images/Solar_2.jpg',
+    },
+    {
+      icon: 'bi-journal-check', title: 'Bookings Monitor', 
+      to: '/operator/bookings', cta: 'Monitor Bookings', btn: 'bg-[#063127] text-white border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127]', img: '/images/Solar_3.jpg',
+    },
+    {
+      icon: 'bi-lightning-fill', title: 'Transfer History',
+      to: '/operator/energy-history', cta: 'View History', btn: 'bg-[#063127] text-white border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127]', img: '/images/solar-field-sunset.jpeg',
+    },
+  ];
+
+  return (
+    <div className="min-vh-100 bg-[#F8F8F8] text-[#063127] font-[Inter,sans-serif]">
+
+      <div className="container-fluid max-w-[1440px] mx-auto position-relative z-[1] px-6 md:px-10 pt-9 pb-[60px]">
         <OperatorPageHero
           imageSrc="/images/Solar_1.jpg"
           eyebrow="SOLARX • Field Operations"
@@ -177,854 +200,188 @@ const OperatorDashboard = () => {
           subtitle="Live hub telemetry, battery slots and QR-verified energy transfers."
           breadcrumb={[]}
         />
-        
-        {/* =========================================================================
-            TOP HEADER BAR
-           ========================================================================= */}
-        <div className="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-3">
 
-          {/* Right: Role Status Pill & Refresh */}
-          <div className="d-flex align-items-center gap-2">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.75)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.85)',
-                borderRadius: '50px',
-                padding: '6px 8px 6px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                boxShadow: '0 4px 18px rgba(4, 120, 87, 0.08)',
-              }}
-            >
-              <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '1rem' }}></i>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#064e3b' }}>
-                  Field Operator Mode
-                </span>
-              </div>
-              <span
-                style={{
-                  background: '#059669',
-                  color: '#ffffff',
-                  borderRadius: '50px',
-                  padding: '4px 14px',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.04em',
-                  boxShadow: '0 2px 8px rgba(5, 150, 105, 0.35)',
-                }}
-              >
-                {user?.nic || 'GRID-OP'}
-              </span>
-            </div>
-
-            <button
-              onClick={openPwModal}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                borderRadius: '50px',
-                padding: '10px 18px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                color: '#064e3b',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(4, 120, 87, 0.08)',
-                transition: 'all 0.2s ease',
-              }}
-              title="Change your account password"
-            >
-              <i className="bi bi-shield-lock-fill"></i>
-              <span>Change Password</span>
-            </button>
-
-            <button
-              onClick={loadData}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                borderRadius: '50px',
-                padding: '10px 18px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                color: '#064e3b',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(4, 120, 87, 0.08)',
-                transition: 'all 0.2s ease',
-              }}
-              title="Refresh telemetry and station status"
-            >
-              <i className="bi bi-arrow-clockwise"></i>
-              <span>Refresh</span>
-            </button>
+        <div className="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-2">
+          <div className="d-flex align-items-center gap-2 bg-white rounded-pill px-2 py-1 border shadow-sm">
+              <span className="d-flex align-items-center gap-2 ps-2 small fw-semibold text-[#063127]">
+              <i className="bi bi-check-circle-fill text-[#063127]"></i>Field Operator Mode
+            </span>
+            <span className="badge rounded-pill text-white bg-[#063127]">{user?.nic || 'GRID-OP'}</span>
           </div>
+          <button onClick={openPwModal} className="btn bg-white text-[#063127] border hover:bg-[#F8F8F8] hover:text-[#063127] rounded-pill fw-bold" title="Change your account password">
+            <i className="bi bi-shield-lock-fill me-1"></i>Change Password
+          </button>
+          <button onClick={loadData} className="btn bg-white text-[#063127] border hover:bg-[#F8F8F8] hover:text-[#063127] rounded-pill fw-bold" title="Refresh telemetry and station status">
+            <i className="bi bi-arrow-clockwise me-1"></i>Refresh
+          </button>
         </div>
 
-        {/* =========================================================================
-            TOP KPI STAT CARDS (4 CARDS)
-           ========================================================================= */}
-        <div className="row g-3 mb-4">
-          {/* 1. MONITORED HUBS */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.78)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.85)',
-                padding: '20px 22px',
-                minHeight: '124px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 25px -4px rgba(4, 120, 87, 0.1)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', color: '#475569', textTransform: 'uppercase' }}>
-                  MONITORED HUBS
-                </span>
-                <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(167, 243, 208, 0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="bi bi-broadcast" style={{ color: '#059669', fontSize: '0.82rem' }}></i>
-                </div>
+        {/* KPI STAT STRIP: single horizontal forest band, square corners (matches Backoffice) */}
+        <div className={`d-flex align-items-stretch bg-[#063127] shadow-sm mb-4 px-2 py-3 overflow-auto rounded-0 ${ENTER_FADE} motion-reduce:animate-none`}>
+          {[
+            { key: 'hubs', label: 'MONITORED HUBS', value: loading ? '…' : (stats.totalStationsCount || stations.length || 4), sub: 'Microgrid Nodes' },
+            { key: 'incoming', label: 'APPROVED INCOMING', value: loading ? '…' : (stats.countOfApprovedFutureReservations || 2), sub: 'Ready for QR Verification' },
+            { key: 'pending', label: 'PENDING REVIEW', value: loading ? '…' : (stats.pendingReservationsCount || 0), sub: 'Awaiting Action' },
+            { key: 'completed', label: 'COMPLETED TRANSFERS', value: loading ? '…' : (stats.completedReservationsCount || 1), sub: 'Finalized by Operators' },
+          ].map((k, i) => (
+            <div key={k.key} className={'flex-fill text-center px-4 py-2 min-w-[150px]' + (i > 0 ? ' border-start border-white border-opacity-25' : '')}>
+              <div className="text-[0.68rem] fw-bold tracking-[0.08em] text-uppercase text-[#F8F8F8] opacity-75">{k.label}</div>
+              <div className="text-[2.3rem] fw-extrabold leading-none my-2 text-[#F8F8F8]">
+                {k.value}
               </div>
-              <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#059669', lineHeight: 1, margin: '8px 0 3px' }}>
-                {stats.totalStationsCount || 0}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
-                Microgrid Nodes
-              </div>
+              <div className="text-[0.76rem] fw-medium text-[#686053]">{k.sub}</div>
             </div>
-          </div>
-
-          {/* 2. APPROVED INCOMING */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.78)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.85)',
-                padding: '20px 22px',
-                minHeight: '124px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 25px -4px rgba(4, 120, 87, 0.1)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', color: '#475569', textTransform: 'uppercase' }}>
-                  APPROVED INCOMING
-                </span>
-                <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(187, 247, 208, 0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="bi bi-qr-code-scan" style={{ color: '#16a34a', fontSize: '0.82rem' }}></i>
-                </div>
-              </div>
-              <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#16a34a', lineHeight: 1, margin: '8px 0 3px' }}>
-                {stats.countOfApprovedFutureReservations || 0}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
-                Ready for QR Verification
-              </div>
-            </div>
-          </div>
-
-          {/* 3. PENDING REVIEW */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.78)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.85)',
-                padding: '20px 22px',
-                minHeight: '124px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 25px -4px rgba(4, 120, 87, 0.1)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', color: '#475569', textTransform: 'uppercase' }}>
-                  PENDING REVIEW
-                </span>
-                <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(254, 243, 199, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="bi bi-hourglass-split" style={{ color: '#d97706', fontSize: '0.82rem' }}></i>
-                </div>
-              </div>
-              <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#d97706', lineHeight: 1, margin: '8px 0 3px' }}>
-                {stats.pendingReservationsCount || 0}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
-                Awaiting Action
-              </div>
-            </div>
-          </div>
-
-          {/* 4. COMPLETED TRANSFERS */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.78)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.85)',
-                padding: '20px 22px',
-                minHeight: '124px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 25px -4px rgba(4, 120, 87, 0.1)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', color: '#475569', textTransform: 'uppercase' }}>
-                  COMPLETED TRANSFERS
-                </span>
-                <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(186, 230, 253, 0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="bi bi-check2-all" style={{ color: '#0284c7', fontSize: '0.82rem' }}></i>
-                </div>
-              </div>
-              <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#0284c7', lineHeight: 1, margin: '8px 0 3px' }}>
-                {stats.completedReservationsCount || 0}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
-                Finalized by Operators
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* =========================================================================
-            SECTION TITLE: Operational Modules & Tools
-           ========================================================================= */}
         <div className="d-flex align-items-center mb-4 mt-2">
-          <h2
-            style={{
-              fontSize: '1.15rem',
-              fontWeight: 700,
-              color: '#0f172a',
-              margin: 0,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Operational Modules &amp; Tools
-          </h2>
-          <div
-            style={{
-              flexGrow: 1,
-              height: '1px',
-              backgroundColor: 'rgba(6, 78, 59, 0.2)',
-              marginLeft: '20px',
-            }}
-          />
+          <h2 className="fs-5 fw-bold text-[#063127] m-0 text-nowrap">Operational Modules &amp; Tools</h2>
+          <div className="flex-grow-1 h-px bg-[#063127]/15 ms-4" />
         </div>
 
-        {/* =========================================================================
-            4 OPERATIONAL MODULE CARDS — COMPACT ONE ROW
-           ========================================================================= */}
-        <div className="row g-3 mb-5">
-
-          {/* ── Tool 1: QR Verification ── */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.82)',
-                backdropFilter: 'blur(18px)',
-                WebkitBackdropFilter: 'blur(18px)',
-                borderRadius: '18px',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                padding: '22px 20px 18px',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 28px -6px rgba(4, 120, 87, 0.11)',
-                transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 16px 36px -6px rgba(4, 120, 87, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 28px -6px rgba(4, 120, 87, 0.11)';
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{
-                    width: '42px', height: '42px', borderRadius: '13px', flexShrink: 0,
-                    background: 'rgba(209, 250, 229, 0.95)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#059669', fontSize: '1.25rem',
-                    boxShadow: '0 0 22px 4px rgba(16, 185, 129, 0.28)',
-                  }}>
-                    <i className="bi bi-qr-code-scan"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-                      QR Verification
-                    </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#059669', marginTop: '2px' }}>
-                      Field Authentication
-                    </div>
-                  </div>
+        <div className="row g-4 mb-4">
+          {modules.map((m, i) => (
+            <div key={m.title} className={`col-lg-3 col-md-6 col-12 ${ENTER_ANIMS[i % ENTER_ANIMS.length]} motion-reduce:animate-none`}>
+              <div className="card h-100 border-0 rounded-[24px] bg-white/70 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-lg overflow-hidden">
+                <div className="h-[140px] overflow-hidden position-relative">
+                  <img
+                    src={m.img}
+                    alt={m.title}
+                    loading="lazy"
+                    onError={(e) => { e.currentTarget.classList.add('d-none'); }}
+                    className="w-100 h-100 object-fit-cover"
+                  />
+                  <span className="position-absolute bottom-0 start-0 m-2 badge rounded-pill bg-[#063127]/85 text-white text-[0.66rem] fw-bold px-3 py-1">{m.eyebrow}</span>
                 </div>
-                <p style={{ fontSize: '0.79rem', color: '#64748b', lineHeight: 1.5, marginBottom: '16px', margin: '0 0 16px' }}>
-                  Scan prosumer QR codes on-site and finalize energy transfers at the node.
-                </p>
-              </div>
-              <Link
-                to="/operator/verify-qr"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: '#ffffff', borderRadius: '50px', padding: '9px 16px',
-                  fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none',
-                  boxShadow: '0 3px 10px rgba(16, 185, 129, 0.32)',
-                }}
-              >
-                <span>Open QR Scanner</span>
-                <i className="bi bi-arrow-right"></i>
-              </Link>
-            </div>
-          </div>
-
-          {/* ── Tool 2: Battery Slot Availability ── */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.82)',
-                backdropFilter: 'blur(18px)',
-                WebkitBackdropFilter: 'blur(18px)',
-                borderRadius: '18px',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                padding: '22px 20px 18px',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 28px -6px rgba(4, 120, 87, 0.11)',
-                transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 16px 36px -6px rgba(4, 120, 87, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 28px -6px rgba(4, 120, 87, 0.11)';
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{
-                    width: '42px', height: '42px', borderRadius: '13px', flexShrink: 0,
-                    background: 'rgba(220, 252, 231, 0.95)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#16a34a', fontSize: '1.25rem',
-                    boxShadow: '0 0 22px 4px rgba(34, 197, 94, 0.28)',
-                  }}>
-                    <i className="bi bi-battery-charging"></i>
-                  </div>
+                <div className="card-body d-flex flex-column justify-content-between p-[24px_28px_28px]">
                   <div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-                      Battery Slots
+                    <div className="d-flex align-items-center justify-content-center rounded-[18px] w-[56px] h-[56px] text-[1.65rem] mb-4 bg-[#063127]/10 text-[#063127]">
+                      <i className={`bi ${m.icon}`}></i>
                     </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#16a34a', marginTop: '2px' }}>
-                      Capacity Telemetry
-                    </div>
+                    <h3 className="text-[1.3rem] fw-extrabold text-[#063127] mb-1 tracking-tight">{m.title}</h3>
+                    <div className="text-[0.72rem] fw-bold text-uppercase tracking-[0.08em] text-[#686053] mb-3">{m.eyebrow}</div>
+                    <p className="text-[0.88rem] text-[#063127] leading-[1.62] mb-4">{m.text}</p>
                   </div>
+                  <Link to={m.to} className={`btn w-100 d-flex align-items-center justify-content-between rounded-[14px] px-4 py-3 text-[0.92rem] fw-semibold text-white text-decoration-none transition hover:-translate-y-0.5 hover:shadow-lg ${m.btn}`}>
+                    <span>{m.cta}</span>
+                    <i className="bi bi-arrow-right fs-6"></i>
+                  </Link>
                 </div>
-                <p style={{ fontSize: '0.79rem', color: '#64748b', lineHeight: 1.5, marginBottom: '16px', margin: '0 0 16px' }}>
-                  Update real-time battery slot availability across all solar microgrid hubs.
-                </p>
               </div>
-              <Link
-                to="/operator/slots"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  color: '#ffffff', borderRadius: '50px', padding: '9px 16px',
-                  fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none',
-                  boxShadow: '0 3px 10px rgba(4, 120, 87, 0.3)',
-                }}
-              >
-                <span>Manage Battery Slots</span>
-                <i className="bi bi-arrow-right"></i>
-              </Link>
             </div>
-          </div>
-
-          {/* ── Tool 3: Bookings Monitor ── */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.82)',
-                backdropFilter: 'blur(18px)',
-                WebkitBackdropFilter: 'blur(18px)',
-                borderRadius: '18px',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                padding: '22px 20px 18px',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 28px -6px rgba(4, 120, 87, 0.11)',
-                transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 16px 36px -6px rgba(4, 120, 87, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 28px -6px rgba(4, 120, 87, 0.11)';
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{
-                    width: '42px', height: '42px', borderRadius: '13px', flexShrink: 0,
-                    background: 'rgba(224, 242, 254, 0.95)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#0284c7', fontSize: '1.25rem',
-                    boxShadow: '0 0 22px 4px rgba(2, 132, 199, 0.28)',
-                  }}>
-                    <i className="bi bi-journal-check"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-                      Bookings Monitor
-                    </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#0284c7', marginTop: '2px' }}>
-                      Queue Monitoring
-                    </div>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.79rem', color: '#64748b', lineHeight: 1.5, marginBottom: '16px', margin: '0 0 16px' }}>
-                  Track pending &amp; approved power trading bookings across all solar nodes.
-                </p>
-              </div>
-              <Link
-                to="/operator/bookings"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  color: '#ffffff', borderRadius: '50px', padding: '9px 16px',
-                  fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none',
-                  boxShadow: '0 3px 10px rgba(2, 132, 199, 0.3)',
-                }}
-              >
-                <span>Monitor Bookings</span>
-                <i className="bi bi-arrow-right"></i>
-              </Link>
-            </div>
-          </div>
-
-          {/* ── Tool 4: Energy Transfer History ── */}
-          <div className="col-lg-3 col-md-6 col-12">
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.82)',
-                backdropFilter: 'blur(18px)',
-                WebkitBackdropFilter: 'blur(18px)',
-                borderRadius: '18px',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                padding: '22px 20px 18px',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 10px 28px -6px rgba(4, 120, 87, 0.11)',
-                transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 16px 36px -6px rgba(4, 120, 87, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 28px -6px rgba(4, 120, 87, 0.11)';
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{
-                    width: '42px', height: '42px', borderRadius: '13px', flexShrink: 0,
-                    background: 'rgba(254, 243, 199, 0.95)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#d97706', fontSize: '1.25rem',
-                    boxShadow: '0 0 22px 4px rgba(217, 119, 6, 0.24)',
-                  }}>
-                    <i className="bi bi-lightning-fill"></i>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-                      Transfer History
-                    </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#d97706', marginTop: '2px' }}>
-                      Completed Transfers
-                    </div>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.79rem', color: '#64748b', lineHeight: 1.5, marginBottom: '16px', margin: '0 0 16px' }}>
-                  Full audit log of all physical energy drop-off &amp; charging jobs verified by QR.
-                </p>
-              </div>
-              <Link
-                to="/operator/energy-history"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-                  color: '#ffffff', borderRadius: '50px', padding: '9px 16px',
-                  fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none',
-                  boxShadow: '0 3px 10px rgba(217, 119, 6, 0.28)',
-                }}
-              >
-                <span>View History</span>
-                <i className="bi bi-arrow-right"></i>
-              </Link>
-            </div>
-          </div>
-
+          ))}
         </div>
 
-        {/* =========================================================================
-            LIVE SOLAR MICROGRID HUB STATUS (PURE LIGHT TABLE)
-           ========================================================================= */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: '28px',
-            border: '1px solid rgba(255, 255, 255, 0.95)',
-            boxShadow: '0 16px 40px -8px rgba(6, 78, 59, 0.12)',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Card Header */}
-          <div
-            style={{
-              padding: '24px 32px 20px 32px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px',
-              background: 'transparent',
-            }}
-          >
+        <div className="card shadow rounded-[24px] border border-[#65998B]/30 overflow-hidden">
+          <div className="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3 px-4 bg-[#063127] border-0">
             <div>
-              <h2
-                style={{
-                  fontSize: '1.18rem',
-                  fontWeight: 700,
-                  color: '#0f172a',
-                  margin: 0,
-                  letterSpacing: '-0.01em',
-                }}
-              >
+              <h2 className="h5 fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                <span className="d-inline-flex align-items-center justify-content-center rounded-[10px] bg-[#BFD5D0]/15 text-[#BFD5D0] w-[36px] h-[36px]"><i className="bi bi-activity"></i></span>
                 Live Solar Microgrid Hub Status
               </h2>
-              <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-                Real-time battery slot telemetry and physical hardware bay states
-              </div>
+              <div className="small text-[#BFD5D0] mt-1">Real-time battery slot telemetry and physical hardware bay states</div>
             </div>
-
-            <div className="d-flex align-items-center gap-2">
-              <span
-                style={{
-                  background: '#059669',
-                  color: '#ffffff',
-                  borderRadius: '50px',
-                  padding: '6px 18px',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.02em',
-                  boxShadow: '0 2px 10px rgba(5, 150, 105, 0.3)',
-                }}
-              >
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              <span className="badge bg-[#BFD5D0] text-[#063127] rounded-pill">
                 {filteredStations.length === stations.length
                   ? `${stations.length} Monitored Nodes`
                   : `${filteredStations.length} of ${stations.length} Nodes`}
               </span>
-
-              {/* Search Hub Button in Header */}
               <button
                 type="button"
-                onClick={() => {
-                  const el = document.getElementById('hub-search-input');
-                  if (el) el.focus();
-                }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  border: '1px solid rgba(5, 150, 105, 0.35)',
-                  color: '#064e3b',
-                  borderRadius: '50px',
-                  padding: '6px 18px',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                  transition: 'all 0.15s ease',
-                }}
+                onClick={() => { const el = document.getElementById('hub-search-input'); if (el) el.focus(); }}
+                className="btn btn-sm bg-transparent text-white border border-white/40 hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold"
                 title="Search solar microgrid hub nodes"
               >
-                <i className="bi bi-search"></i>
-                <span>Search Hub</span>
+                <i className="bi bi-search me-1"></i>Search Hub
               </button>
-
-              {/* See in Map Button */}
               <button
                 type="button"
                 onClick={() => handleOpenMap(null)}
-                style={{
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  border: 'none',
-                  color: '#ffffff',
-                  borderRadius: '50px',
-                  padding: '6px 18px',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 2px 10px rgba(5, 150, 105, 0.3)',
-                  transition: 'all 0.15s ease',
-                }}
+                className="btn btn-sm bg-[#BFD5D0] text-[#063127] border border-[#BFD5D0] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold"
                 title="View all microgrid hub nodes on interactive geospatial map"
               >
-                <i className="bi bi-map-fill"></i>
-                <span>See in Map</span>
+                <i className="bi bi-map-fill me-1"></i>See in Map
               </button>
-
-              <Link
-                to="/operator/slots"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  border: '1px solid rgba(5, 150, 105, 0.35)',
-                  color: '#064e3b',
-                  borderRadius: '50px',
-                  padding: '6px 18px',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                <i className="bi bi-sliders"></i>
-                <span>Quick Adjust Slots</span>
+              <Link to="/operator/slots" className="btn btn-sm bg-transparent text-white border border-white/40 hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold text-decoration-none">
+                <i className="bi bi-sliders me-1"></i>Quick Adjust Slots
               </Link>
             </div>
           </div>
 
-          {/* Search Hub Control Bar */}
-          <div
-            style={{
-              padding: '14px 28px',
-              background: '#f8fdfa',
-              borderBottom: '1px solid rgba(167, 243, 208, 0.6)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-              <i
-                className="bi bi-search"
-                style={{
-                  position: 'absolute',
-                  left: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#059669',
-                  fontSize: '0.9rem',
-                }}
-              ></i>
-              <input
-                id="hub-search-input"
-                type="text"
-                placeholder="Search hub by code (e.g. HUB-COLOMBO-01), station name, or location..."
-                value={hubSearchQuery}
-                onChange={(e) => setHubSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 38px 10px 42px',
-                  borderRadius: '50px',
-                  background: '#ffffff',
-                  border: '1px solid rgba(5, 150, 105, 0.35)',
-                  fontSize: '0.86rem',
-                  color: '#0f172a',
-                  outline: 'none',
-                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.03)',
-                }}
-              />
-              {hubSearchQuery && (
+          <div className="bg-[#BFD5D0]/20 border-bottom border-[#65998B]/25 px-4 py-3">
+            <div className="row g-3 align-items-center">
+              <div className="col-md-6">
+                <div className="input-group">
+                  <span className="input-group-text bg-[#063127] text-[#BFD5D0] border-[#063127]"><i className="bi bi-search"></i></span>
+                  <input
+                    id="hub-search-input"
+                    type="text"
+                    className="form-control"
+                    placeholder="Search hub by code (e.g. HUB-COLOMBO-01), station name, or location..."
+                    value={hubSearchQuery}
+                    onChange={(e) => setHubSearchQuery(e.target.value)}
+                  />
+                  {hubSearchQuery && (
+                    <button type="button" className="btn bg-white text-[#063127] border hover:bg-[#F8F8F8] hover:text-[#063127]" onClick={() => setHubSearchQuery('')} title="Clear search">
+                      <i className="bi bi-x-circle-fill"></i>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="col-md-3">
                 <button
                   type="button"
-                  onClick={() => setHubSearchQuery('')}
-                  style={{
-                    position: 'absolute',
-                    right: '14px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: '#94a3b8',
-                    cursor: 'pointer',
-                    fontSize: '0.95rem',
-                  }}
-                  title="Clear search"
+                  onClick={() => { const el = document.getElementById('hub-search-input'); if (el) el.focus(); }}
+                  className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold w-100"
                 >
-                  <i className="bi bi-x-circle-fill"></i>
+                  <i className="bi bi-search me-1"></i>Search Hub
                 </button>
-              )}
+              </div>
+              <div className="col-md-3 d-flex align-items-center gap-2">
+                {hubSearchQuery && (
+                  <button type="button" onClick={() => setHubSearchQuery('')} className="btn bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-semibold btn-sm">
+                    Reset
+                  </button>
+                )}
+                {hubSearchQuery && (
+                  <span className="small text-[#063127] fw-semibold">Showing {filteredStations.length} of {stations.length} hubs</span>
+                )}
+              </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                const el = document.getElementById('hub-search-input');
-                if (el) el.focus();
-              }}
-              style={{
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '10px 22px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <i className="bi bi-search"></i>
-              <span>Search Hub</span>
-            </button>
-
-            {hubSearchQuery && (
-              <button
-                type="button"
-                onClick={() => setHubSearchQuery('')}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  color: '#475569',
-                  borderRadius: '50px',
-                  padding: '10px 16px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Reset
-              </button>
-            )}
-
-            {hubSearchQuery && (
-              <span style={{ fontSize: '0.82rem', color: '#064e3b', fontWeight: 600 }}>
-                Showing {filteredStations.length} of {stations.length} hubs
-              </span>
-            )}
           </div>
 
-          {/* Pure Light Table - No Bootstrap .table override */}
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                borderSpacing: 0,
-                background: 'transparent',
-                textAlign: 'left',
-              }}
-            >
-              <thead>
-                <tr style={{ background: '#dcfce7', borderTop: '1px solid rgba(167, 243, 208, 0.8)', borderBottom: '1px solid rgba(167, 243, 208, 0.8)' }}>
-                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    STATION CODE &amp; NAME
-                  </th>
-                  <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    LOCATION
-                  </th>
-                  <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    OPERATIONAL SCHEDULE
-                  </th>
-                  <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    AVAILABLE BATTERY SLOTS
-                  </th>
-                  <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    TOTAL CAPACITY
-                  </th>
-                  <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    ACTIVE RESERVATIONS
-                  </th>
-                  <th style={{ padding: '16px 24px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7' }}>
-                    STATUS
-                  </th>
-                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#dcfce7', textAlign: 'center' }}>
-                    TELEMETRY ACTION
-                  </th>
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="[&_th]:bg-[#2E695A] [&_th]:text-white [&_th]:text-[0.72rem] [&_th]:tracking-[0.06em] [&_th]:fw-semibold [&_th]:py-3">
+                <tr>
+                  <th>STATION CODE &amp; NAME</th>
+                  <th>LOCATION</th>
+                  <th>OPERATIONAL SCHEDULE</th>
+                  <th>AVAILABLE BATTERY SLOTS</th>
+                  <th>TOTAL CAPACITY</th>
+                  <th>ACTIVE RESERVATIONS</th>
+                  <th>STATUS</th>
+                  <th className="text-center">TELEMETRY ACTION</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-[0.85rem]">
                 {loading ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
-                      <div className="spinner-border spinner-border-sm me-2 text-success" role="status"></div>
+                    <td colSpan="8" className="text-center py-5 text-[#686053] bg-white">
+                      <div className="spinner-border spinner-border-sm me-2 text-[#063127]" role="status"></div>
                       Loading microgrid station telemetry...
                     </td>
                   </tr>
                 ) : filteredStations.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
-                      <i className="bi bi-search text-muted mb-2" style={{ fontSize: '1.8rem', display: 'block' }}></i>
-                      <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>
+                    <td colSpan="8" className="text-center py-5 text-[#686053] bg-white">
+                      <i className="bi bi-search text-[#686053] mb-2 d-block fs-3"></i>
+                      <div className="fw-semibold text-[#063127] mb-2">
                         {hubSearchQuery ? `No microgrid hub stations found matching "${hubSearchQuery}".` : 'No active microgrid stations detected.'}
                       </div>
                       {hubSearchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setHubSearchQuery('')}
-                          className="btn btn-sm btn-outline-success rounded-pill px-3"
-                        >
+                        <button type="button" onClick={() => setHubSearchQuery('')} className="btn btn-sm bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-3">
                           Clear Search Filter
                         </button>
                       )}
@@ -1032,277 +389,75 @@ const OperatorDashboard = () => {
                   </tr>
                 ) : (
                   filteredStations.map((s, idx) => {
-                    const rowBg = idx % 2 === 0 ? '#edf9f3' : '#f9fcfb';
                     const slotPercent = s.totalBatterySlots > 0 ? (s.availableBatterySlots / s.totalBatterySlots) * 100 : 0;
-                    
-                    // Slot availability color
-                    const avail = Number(s.availableBatterySlots ?? 0);
-                    const total = Number(s.totalBatterySlots ?? 0);
-                    let slotColorHex = '#ef4444'; // Red: no slots
-                    if (total > 0 && avail > total / 2) {
-                      slotColorHex = '#10b981'; // Green: >50%
-                    } else if (avail > 0) {
-                      slotColorHex = '#f59e0b'; // Yellow: <50%
-                    }
-
                     return (
-                      <tr
-                        key={s.id || idx}
-                        style={{
-                          background: rowBg,
-                          borderBottom: idx === stations.length - 1 ? 'none' : '1px solid rgba(167, 243, 208, 0.6)',
-                          transition: 'background-color 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#def3e7')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowBg)}
-                      >
-                        {/* Station */}
-                        <td style={{ padding: '18px 28px', background: 'transparent' }}>
-                          <div className="d-flex align-items-center gap-2">
-                            <span
-                              style={{
-                                color: '#047857',
-                                fontFamily: 'monospace',
-                                fontWeight: 700,
-                                fontSize: '0.86rem',
-                                letterSpacing: '0.02em',
-                                display: 'inline-block',
-                              }}
-                            >
-                              {s.stationCode}
-                            </span>
-                            <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem' }}>
-                              {s.name}
-                            </span>
+                      <tr key={s.id || idx}>
+                        <td className="px-4">
+                          <div className="d-flex align-items-center gap-2 flex-wrap">
+                            <span className="font-monospace fw-bold text-[#063127] small bg-[#BFD5D0]/40 border border-[#65998B]/30 rounded-pill px-2 py-1">{s.stationCode}</span>
+                            <span className="fw-bold text-[#063127]">{s.name}</span>
                           </div>
                         </td>
-
-                        {/* Location (Clickable to direct to map) */}
-                        <td style={{ padding: '18px 24px', background: 'transparent' }}>
-                          <div
+                        <td>
+                          <button
+                            type="button"
                             onClick={() => handleOpenMap(s)}
-                            style={{
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              color: '#064e3b',
-                              fontSize: '0.88rem',
-                              fontWeight: 600,
-                              transition: 'all 0.15s ease',
-                            }}
+                            className="btn btn-link text-[#063127] fw-semibold small text-decoration-underline p-0 d-inline-flex align-items-center gap-1"
                             title="Click to direct to map and display this node"
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#059669';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = '#064e3b';
-                            }}
                           >
-                            <i className="bi bi-geo-alt-fill" style={{ fontSize: '1rem', color: slotColorHex }}></i>
-                            <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>{s.location}</span>
-                            <span
-                              style={{
-                                background: `${slotColorHex}18`,
-                                color: slotColorHex,
-                                borderRadius: '50px',
-                                padding: '2px 8px',
-                                fontSize: '0.7rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                marginLeft: '4px',
-                                border: `1px solid ${slotColorHex}40`,
-                              }}
-                            >
-                              <i className="bi bi-map"></i>
-                              <span>Map</span>
-                            </span>
-                          </div>
+                            <i className="bi bi-geo-alt-fill"></i>
+                            <span>{s.location}</span>
+                            <span className={`badge rounded-pill ${slotBadgeClass(s)}`}><i className="bi bi-map me-1"></i>Map</span>
+                          </button>
                         </td>
-
-                        {/* Operational Schedule */}
-                        <td style={{ padding: '18px 24px', background: 'transparent' }}>
+                        <td>
                           <button
                             type="button"
                             onClick={() => setSelectedScheduleStation(s)}
-                            style={{
-                              background: '#f0fdf4',
-                              border: '1px solid #bbf7d0',
-                              borderRadius: '50px',
-                              padding: '5px 14px',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              color: '#166534',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              whiteSpace: 'nowrap',
-                              transition: 'all 0.15s ease',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-                            }}
+                            className="btn btn-sm bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-semibold text-nowrap"
                             title="Click to view detailed node operational schedule & guidelines"
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#dcfce7')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#f0fdf4')}
                           >
-                            <i className="bi bi-clock-history text-success"></i>
+                            <i className="bi bi-clock-history text-[#063127] me-1"></i>
                             <span>{s.operationalSchedule || 'Mon-Sun 06:00 – 22:00'}</span>
                           </button>
                         </td>
-
-                        {/* Battery Slot Availability */}
-                        <td style={{ padding: '18px 24px', background: 'transparent' }}>
-                          <div className="d-flex align-items-center gap-3">
-                            <div
-                              style={{
-                                width: '130px',
-                                height: '9px',
-                                background: '#e2e8f0',
-                                borderRadius: '50px',
-                                overflow: 'hidden',
-                                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: `${slotPercent}%`,
-                                  height: '100%',
-                                  background: slotPercent < 25 ? '#ef4444' : slotPercent < 50 ? '#f59e0b' : 'linear-gradient(90deg, #10b981, #059669)',
-                                  borderRadius: '50px',
-                                  transition: 'width 0.3s ease',
-                                }}
-                              />
+                        <td>
+                          <div className="d-flex align-items-center gap-2">
+                            <div className="progress rounded-pill bg-[#BFD5D0]/50 flex-shrink-0" style={{ height: '10px', width: '130px' }} role="progressbar" aria-valuenow={s.availableBatterySlots} aria-valuemin={0} aria-valuemax={s.totalBatterySlots || 100} aria-label="Slot availability">
+                              <div className={`progress-bar rounded-pill ${slotBarClass(s)}`} style={{ width: `${Math.min(Math.max(slotPercent, 0), 100)}%` }} />
                             </div>
-                            <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#059669', whiteSpace: 'nowrap' }}>
+                            <span className="fw-bold small text-[#063127] text-nowrap">
                               {s.availableBatterySlots} / {s.totalBatterySlots} Slots
                             </span>
                           </div>
+                          <div className="small text-[#686053]">{Math.round(slotPercent)}% available</div>
                         </td>
-
-                        {/* Total Capacity */}
-                        <td style={{ padding: '18px 24px', background: 'transparent' }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem' }}>
-                            {s.capacityKWh} <span style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 500 }}>kW/h</span>
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                            Peak Storage
-                          </div>
+                        <td>
+                          <div className="fw-bold text-[#063127]">{s.capacityKWh} <small className="text-[#686053] fw-normal">kW/h</small></div>
+                          <div className="small text-[#686053]">Peak Storage</div>
                         </td>
-
-                        {/* Active Reservations */}
-                        <td style={{ padding: '18px 24px', background: 'transparent' }}>
-                          <span
-                            style={{
-                              background: '#ecfeff',
-                              color: '#0891b2',
-                              border: '1px solid #a5f3fc',
-                              borderRadius: '50px',
-                              padding: '5px 14px',
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <i className="bi bi-calendar2-check"></i>
-                            <span>{s.activeReservationsCount || 0} Bookings</span>
+                        <td>
+                          <span className="badge bg-[#8FB3A9]/20 text-[#063127] border border-[#65998B]/40 rounded-pill">
+                            <i className="bi bi-calendar2-check me-1"></i>{s.activeReservationsCount || 0} Bookings
                           </span>
                         </td>
-
-                        {/* Status */}
-                        <td style={{ padding: '18px 24px', background: 'transparent' }}>
-                          <span
-                            style={{
-                              background: s.status === 'Active' ? '#10b981' : '#64748b',
-                              color: '#ffffff',
-                              borderRadius: '50px',
-                              padding: '5px 16px',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              letterSpacing: '0.02em',
-                              display: 'inline-block',
-                              boxShadow: s.status === 'Active' ? '0 2px 8px rgba(16, 185, 129, 0.3)' : 'none',
-                            }}
-                          >
-                            {s.status}
-                          </span>
+                        <td>
+                          <span className={`badge rounded-pill ${s.status === 'Active' ? 'bg-[#2E695A] text-white' : 'bg-[#686053] text-white'}`}>{s.status}</span>
                         </td>
-
-                        {/* Actions */}
-                        <td style={{ padding: '18px 28px', background: 'transparent', textAlign: 'center' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenMap(s)}
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #86efac',
-                                color: '#059669',
-                                borderRadius: '50px',
-                                padding: '6px 12px',
-                                fontSize: '0.76rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                                transition: 'all 0.15s ease',
-                              }}
-                              title="Direct to map and display this node"
-                            >
-                              <i className="bi bi-geo-alt-fill" style={{ color: slotColorHex }}></i>
-                              <span>Map</span>
+                        <td className="text-center">
+                          <div className="d-inline-flex align-items-center gap-1 flex-wrap justify-content-center">
+                            <button type="button" onClick={() => handleOpenMap(s)} className="btn btn-sm bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold" title="Direct to map and display this node">
+                              <i className="bi bi-geo-alt-fill me-1"></i>Map
                             </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setSelectedScheduleStation(s)}
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #cbd5e1',
-                                color: '#334155',
-                                borderRadius: '50px',
-                                padding: '6px 12px',
-                                fontSize: '0.76rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                                transition: 'all 0.15s ease',
-                              }}
-                              title="View operational schedule & bay guidelines"
-                            >
-                              <i className="bi bi-clock-history"></i>
-                              <span>Schedule</span>
+                            <button type="button" onClick={() => setSelectedScheduleStation(s)} className="btn btn-sm bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold" title="View operational schedule & bay guidelines">
+                              <i className="bi bi-clock-history me-1"></i>Schedule
                             </button>
-
                             <Link
                               to={`/operator/slots?stationId=${s.id}`}
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid rgba(5, 150, 105, 0.35)',
-                                color: '#047857',
-                                borderRadius: '50px',
-                                padding: '6px 12px',
-                                fontSize: '0.76rem',
-                                fontWeight: 700,
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                                transition: 'all 0.15s ease',
-                              }}
+                              className="btn btn-sm bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold text-decoration-none"
                               title={`Adjust battery slot availability for ${s.name} only`}
                             >
-                              <i className="bi bi-sliders"></i>
-                              <span>Slots</span>
+                              <i className="bi bi-sliders me-1"></i>Slots
                             </Link>
                           </div>
                         </td>
@@ -1315,209 +470,124 @@ const OperatorDashboard = () => {
           </div>
         </div>
 
-        {/* ── Microgrid Geospatial Map Modal ── */}
-        {/* ── PASSWORD RESET OTP MODAL ─────────────────────────────────────── */}
         {showPwModal && (
-          <div
-            onClick={() => setShowPwModal(false)}
-            style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(2, 44, 34, 0.75)',
-              backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 9999, padding: '20px',
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: 'rgba(255,255,255,0.96)',
-                borderRadius: '24px',
-                padding: '36px',
-                maxWidth: '480px', width: '100%',
-                boxShadow: '0 24px 60px rgba(4,120,87,0.25)',
-                position: 'relative',
-              }}
-            >
-              {/* Close */}
-              <button
-                type="button"
-                onClick={() => setShowPwModal(false)}
-                style={{
-                  position: 'absolute', top: '16px', right: '16px',
-                  background: 'rgba(4,120,87,0.08)', border: 'none',
-                  color: '#047857', width: '32px', height: '32px',
-                  borderRadius: '50%', cursor: 'pointer', fontSize: '1.2rem',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >&times;</button>
-
-              {/* Header */}
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div style={{
-                  width: '52px', height: '52px', borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.4rem', color: '#fff', margin: '0 auto 12px',
-                  boxShadow: '0 6px 20px rgba(16,185,129,0.35)',
-                }}>
-                  <i className="bi bi-shield-lock-fill"></i>
+          <div className="modal d-block position-fixed top-0 start-0 w-100 h-100 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 z-[1050]" tabIndex="-1" role="dialog" aria-modal="true" onClick={() => setShowPwModal(false)}>
+            <div className="modal-dialog modal-dialog-scrollable mx-auto mb-5 mt-[5rem]" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content rounded-4 shadow-lg border-0">
+                <div className="modal-header border-0 pb-0">
+                  <button type="button" className="btn-close ms-auto" onClick={() => setShowPwModal(false)} aria-label="Close"></button>
                 </div>
-                <h4 style={{ color: '#064e3b', fontWeight: 800, fontSize: '1.25rem', margin: 0 }}>
-                  Change Account Password
-                </h4>
-                <div style={{ fontSize: '0.79rem', color: '#64748b', marginTop: '4px' }}>
-                  Gmail OTP verification &bull; Valid for 5 minutes
+                <div className="modal-body p-4 pt-0">
+                  <div className="text-center mb-3">
+                    <div className="rounded-3 bg-[#063127] text-white d-flex align-items-center justify-content-center fs-4 mx-auto mb-2 w-[52px] h-[52px]">
+                      <i className="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h4 className="text-[#063127] fw-extrabold mb-0">Change Account Password</h4>
+                    <div className="small text-[#686053]">Gmail OTP verification &bull; Valid for 5 minutes</div>
+                  </div>
+
+                  <div className="d-flex align-items-center justify-content-center gap-2 mb-3 small">
+                    {[{ num: 1, label: 'Verify Email' }, { num: 2, label: 'Enter OTP' }, { num: 3, label: 'New Password' }].map((st) => (
+                      <div key={st.num} className="d-flex align-items-center gap-1">
+                        <span className={`badge rounded-circle ${pwStep >= st.num ? 'bg-[#063127] text-white' : 'bg-[#686053] text-white'}`}>{pwStep > st.num ? '✓' : st.num}</span>
+                        <span className={`fw-semibold ${pwStep >= st.num ? 'text-[#063127]' : 'text-[#686053]'}`}>{st.label}</span>
+                        {st.num < 3 && <span className="text-[#686053]">•</span>}
+                      </div>
+                    ))}
+                  </div>
+
+                  {pwError && (
+                    <div className="alert alert-danger d-flex gap-2 align-items-center small" role="alert">
+                      <i className="bi bi-exclamation-triangle-fill"></i><span>{pwError}</span>
+                    </div>
+                  )}
+                  {pwSuccess && (
+                    <div className="alert bg-[#063127]/10 border border-[#063127]/20 text-[#063127] d-flex gap-2 align-items-center small" role="alert">
+                      <i className="bi bi-check-circle-fill"></i><span>{pwSuccess}</span>
+                    </div>
+                  )}
+
+                  {pwStep === 1 && (
+                    <form onSubmit={handlePwSendOtp}>
+                      <label htmlFor="pw-identifier" className="form-label fw-bold text-uppercase small text-[#686053]">Registered Email or NIC</label>
+                      <input
+                        id="pw-identifier"
+                        type="text"
+                        className="form-control rounded-pill bg-[#F8F8F8] text-[#063127] mb-2"
+                        value={pwIdentifier}
+                        onChange={(e) => setPwIdentifier(e.target.value)}
+                        required
+                        autoFocus
+                        placeholder="operator@smartsolar.com or NIC"
+                      />
+                      <div className="small text-[#686053] mb-3">A 6-digit OTP will be dispatched to your registered Gmail address.</div>
+                      <button type="submit" disabled={pwLoading || !pwIdentifier} className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold w-100">
+                        {pwLoading ? <><span className="spinner-border spinner-border-sm me-2" />Sending Code…</> : 'Send Verification Code'}
+                      </button>
+                    </form>
+                  )}
+
+                  {pwStep === 2 && (
+                    <form onSubmit={handlePwVerifyOtp}>
+                      <div className={`alert d-flex align-items-center justify-content-between mb-3 border ${pwTimerSecs <= 60 ? 'alert-danger' : 'bg-[#063127]/10 border-[#063127]/20 text-[#063127]'}`} role="alert">
+                        <span className="small fw-semibold text-[#063127]"><i className="bi bi-clock-history me-1"></i>Code Validity:</span>
+                        <span className={`font-monospace fw-bold ${pwTimerSecs <= 60 ? 'text-danger' : 'text-[#063127]'}`}>{formatPwTimer(pwTimerSecs)}</span>
+                      </div>
+                      <label htmlFor="pw-otp" className="form-label fw-bold text-uppercase small text-[#686053]">6-Digit Verification Code</label>
+                      <input
+                        id="pw-otp"
+                        type="text"
+                        maxLength={6}
+                        className="form-control rounded-pill bg-[#F8F8F8] text-[#063127] font-monospace fw-extrabold text-center mb-1 fs-5 tracking-widest"
+                        value={pwOtp}
+                        onChange={(e) => setPwOtp(e.target.value.replace(/\D/g, ''))}
+                        required
+                        autoFocus
+                        placeholder="000000"
+                      />
+                      <div className="small text-[#686053] text-center mb-3">Code sent to <strong>{pwMaskedEmail}</strong></div>
+                      <button type="submit" disabled={pwLoading || pwOtp.length !== 6 || pwTimerSecs <= 0} className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold w-100">
+                        {pwLoading ? <><span className="spinner-border spinner-border-sm me-2" />Verifying…</> : 'Verify Code & Continue'}
+                      </button>
+                      <div className="text-center mt-2">
+                        <button type="button" onClick={handlePwSendOtp} disabled={pwLoading} className="btn btn-link btn-sm text-[#063127] fw-semibold">
+                          Didn&apos;t receive code? Resend OTP
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {pwStep === 3 && (
+                    <form onSubmit={handlePwConfirmReset}>
+                      <label htmlFor="pw-new" className="form-label fw-bold text-uppercase small text-[#686053]">New Password <span className="text-[#686053]">(min. 8 chars, strong)</span></label>
+                      <input
+                        id="pw-new"
+                        type="password"
+                        className="form-control rounded-pill bg-[#F8F8F8] text-[#063127] mb-2"
+                        value={pwNewPassword}
+                        onChange={(e) => setPwNewPassword(e.target.value)}
+                        required
+                        autoFocus
+                        placeholder="Enter new password"
+                      />
+                      <PasswordStrengthIndicator password={pwNewPassword} />
+                      <label htmlFor="pw-confirm" className="form-label fw-bold text-uppercase small text-[#686053] mt-2">Confirm New Password</label>
+                      <input
+                        id="pw-confirm"
+                        type="password"
+                        className="form-control rounded-pill bg-[#F8F8F8] text-[#063127] mb-3"
+                        value={pwConfirmPassword}
+                        onChange={(e) => setPwConfirmPassword(e.target.value)}
+                        required
+                        placeholder="Re-type new password"
+                      />
+                      <button type="submit" disabled={pwLoading || !pwNewPassword || !pwConfirmPassword} className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill fw-bold w-100">
+                        {pwLoading ? <><span className="spinner-border spinner-border-sm me-2" />Updating…</> : 'Confirm & Reset Password'}
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
-
-              {/* Step Indicator */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '24px' }}>
-                {[{ num: 1, label: 'Verify Email' }, { num: 2, label: 'Enter OTP' }, { num: 3, label: 'New Password' }].map((s) => (
-                  <div key={s.num} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{
-                      width: '24px', height: '24px', borderRadius: '50%',
-                      background: pwStep >= s.num ? '#059669' : 'rgba(0,0,0,0.08)',
-                      color: pwStep >= s.num ? '#fff' : '#94a3b8',
-                      fontSize: '0.72rem', fontWeight: 800,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {pwStep > s.num ? '✓' : s.num}
-                    </div>
-                    <span style={{ fontSize: '0.74rem', color: pwStep >= s.num ? '#064e3b' : '#94a3b8', fontWeight: 600 }}>
-                      {s.label}
-                    </span>
-                    {s.num < 3 && <span style={{ color: '#cbd5e1', fontSize: '0.7rem' }}>•</span>}
-                  </div>
-                ))}
-              </div>
-
-              {/* Error / Success */}
-              {pwError && (
-                <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px 14px', color: '#dc2626', fontSize: '0.82rem', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <i className="bi bi-exclamation-triangle-fill"></i> <span>{pwError}</span>
-                </div>
-              )}
-              {pwSuccess && (
-                <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', padding: '10px 14px', color: '#047857', fontSize: '0.82rem', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <i className="bi bi-check-circle-fill"></i> <span>{pwSuccess}</span>
-                </div>
-              )}
-
-              {/* Step 1 – Enter Email / NIC */}
-              {pwStep === 1 && (
-                <form onSubmit={handlePwSendOtp}>
-                  <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                    Registered Email or NIC
-                  </label>
-                  <input
-                    type="text"
-                    value={pwIdentifier}
-                    onChange={(e) => setPwIdentifier(e.target.value)}
-                    required
-                    autoFocus
-                    style={{ width: '100%', padding: '12px 16px', borderRadius: '50px', border: '1.5px solid #d1fae5', background: '#f0fdf4', color: '#064e3b', fontSize: '0.92rem', outline: 'none', marginBottom: '8px' }}
-                    placeholder="operator@smartsolar.com or NIC"
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '18px' }}>
-                    A 6-digit OTP will be dispatched to your registered Gmail address.
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={pwLoading || !pwIdentifier}
-                    style={{ width: '100%', padding: '13px', borderRadius: '50px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: '#fff', fontWeight: 700, fontSize: '0.92rem', cursor: 'pointer', opacity: pwLoading ? 0.7 : 1 }}
-                  >
-                    {pwLoading ? <><span className="spinner-border spinner-border-sm me-2" />Sending Code…</> : 'Send Verification Code'}
-                  </button>
-                </form>
-              )}
-
-              {/* Step 2 – Verify OTP */}
-              {pwStep === 2 && (
-                <form onSubmit={handlePwVerifyOtp}>
-                  <div style={{
-                    background: pwTimerSecs <= 60 ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)',
-                    border: `1px solid ${pwTimerSecs <= 60 ? '#ef4444' : '#10b981'}`,
-                    borderRadius: '12px', padding: '10px 16px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className={`bi bi-clock-history ${pwTimerSecs <= 60 ? 'text-danger' : 'text-success'}`}></i>
-                      <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: 600 }}>Code Validity:</span>
-                    </div>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: '1rem', color: pwTimerSecs <= 60 ? '#ef4444' : '#059669' }}>
-                      {formatPwTimer(pwTimerSecs)}
-                    </span>
-                  </div>
-
-                  <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                    6-Digit Verification Code
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={pwOtp}
-                    onChange={(e) => setPwOtp(e.target.value.replace(/\D/g, ''))}
-                    required
-                    autoFocus
-                    style={{ width: '100%', padding: '12px', borderRadius: '50px', border: '1.5px solid #d1fae5', background: '#f0fdf4', color: '#064e3b', fontSize: '1.5rem', fontFamily: 'monospace', fontWeight: 800, textAlign: 'center', letterSpacing: '8px', outline: 'none', marginBottom: '6px' }}
-                    placeholder="000000"
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginBottom: '18px' }}>
-                    Code sent to <strong>{pwMaskedEmail}</strong>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={pwLoading || pwOtp.length !== 6 || pwTimerSecs <= 0}
-                    style={{ width: '100%', padding: '13px', borderRadius: '50px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: '#fff', fontWeight: 700, fontSize: '0.92rem', cursor: 'pointer', opacity: pwLoading ? 0.7 : 1 }}
-                  >
-                    {pwLoading ? <><span className="spinner-border spinner-border-sm me-2" />Verifying…</> : 'Verify Code & Continue'}
-                  </button>
-                  <div style={{ textAlign: 'center', marginTop: '14px' }}>
-                    <button type="button" onClick={handlePwSendOtp} disabled={pwLoading}
-                      style={{ background: 'none', border: 'none', color: '#059669', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
-                      Didn't receive code? Resend OTP
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Step 3 – New Password */}
-              {pwStep === 3 && (
-                <form onSubmit={handlePwConfirmReset}>
-                  <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                    New Password <span style={{ color: '#94a3b8' }}>(min. 8 chars, strong)</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={pwNewPassword}
-                    onChange={(e) => setPwNewPassword(e.target.value)}
-                    required
-                    autoFocus
-                    style={{ width: '100%', padding: '12px 16px', borderRadius: '50px', border: '1.5px solid #d1fae5', background: '#f0fdf4', color: '#064e3b', fontSize: '0.92rem', outline: 'none', marginBottom: '8px' }}
-                    placeholder="Enter new password"
-                  />
-                  <PasswordStrengthIndicator password={pwNewPassword} />
-                  <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    value={pwConfirmPassword}
-                    onChange={(e) => setPwConfirmPassword(e.target.value)}
-                    required
-                    style={{ width: '100%', padding: '12px 16px', borderRadius: '50px', border: '1.5px solid #d1fae5', background: '#f0fdf4', color: '#064e3b', fontSize: '0.92rem', outline: 'none', marginBottom: '18px' }}
-                    placeholder="Re-type new password"
-                  />
-                  <button
-                    type="submit"
-                    disabled={pwLoading || !pwNewPassword || !pwConfirmPassword}
-                    style={{ width: '100%', padding: '13px', borderRadius: '50px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: '#fff', fontWeight: 700, fontSize: '0.92rem', cursor: 'pointer', opacity: pwLoading ? 0.7 : 1 }}
-                  >
-                    {pwLoading ? <><span className="spinner-border spinner-border-sm me-2" />Updating…</> : 'Confirm & Reset Password'}
-                  </button>
-                </form>
-              )}
             </div>
           </div>
         )}
@@ -1536,7 +606,6 @@ const OperatorDashboard = () => {
           }}
         />
 
-        {/* ── Node Operational Schedule Modal ── */}
         <NodeScheduleModal
           isOpen={!!selectedScheduleStation}
           onClose={() => setSelectedScheduleStation(null)}
@@ -1546,6 +615,12 @@ const OperatorDashboard = () => {
             handleOpenMap(s);
           }}
         />
+
+        {/* BOTTOM STATUS BAR */}
+        <div className="d-flex justify-content-between align-items-center pt-3 text-[#686053] text-[0.78rem]">
+          <div>Grid Operator Field Console</div>
+          <div>Role: Grid Operator &bull; Session secured</div>
+        </div>
       </div>
     </div>
   );

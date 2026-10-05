@@ -4,15 +4,12 @@
 // Course: SE4040 - Enterprise Application Development
 // Description: Prosumer energy slot booking screen. Fetches stations from API,
 //              enforces 7-day forward booking window client-side (API also enforces),
-//              shows Summary Page after successful booking with QR code data.
+//              creates Pending reservations for Backoffice approval (QR issued on approval).
 // Architecture: FAT Service Pattern - 7-day rule enforced by C# Web API
 // ============================================================================
 package com.smartsolar.mobile.ui.prosumer;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -151,43 +148,135 @@ public class CreateReservationActivity extends AppCompatActivity {
         }).start();
     }
 
-    /** Shows chained DatePickerDialog then TimePickerDialog for slot scheduling. */
-    // Validates that selected date is within 7-day window
+    /** Shows Adjust-Slots-style sheet for picking date (within 7 days) and time. */
+    // Date mode uses day steppers; Time mode shows the analog clock circle
     private void showDateTimePicker() {
-        // Display chained DatePickerDialog and TimePickerDialog enforcing the 7-day advance booking constraint
-        Calendar now = Calendar.getInstance();
-        Calendar maxDate = Calendar.getInstance();
-        maxDate.add(Calendar.DAY_OF_YEAR, 7); // 7-day rule boundary
+        // Working copy seeded from the current selection so Cancel discards changes
+        final Calendar tmp = Calendar.getInstance();
+        if (selectedDateTime != null) tmp.setTimeInMillis(selectedDateTime.getTimeInMillis());
 
-        DatePickerDialog datePicker = new DatePickerDialog(this, (view, year, month, day) -> {
-            Calendar selected = Calendar.getInstance();
-            selected.set(year, month, day);
+        final Calendar minDay = Calendar.getInstance();
+        stripTime(minDay);
+        final Calendar maxDay = Calendar.getInstance();
+        maxDay.add(Calendar.DAY_OF_YEAR, 7);
+        stripTime(maxDay);
+        clampDay(tmp, minDay, maxDay);
 
-            // Client-side 7-day rule pre-check (API also enforces this)
-            if (selected.after(maxDate)) {
-                tvError.setText("Bookings cannot be scheduled beyond 7 days from today (7-Day Rule).");
-                tvError.setVisibility(View.VISIBLE);
-                return;
+        View view = getLayoutInflater().inflate(R.layout.dialog_pick_datetime, null);
+        TextView tvValue = view.findViewById(R.id.tv_pick_value);
+        TextView tvHint = view.findViewById(R.id.tv_pick_hint);
+        TextView tvSegDate = view.findViewById(R.id.tv_seg_date);
+        TextView tvSegTime = view.findViewById(R.id.tv_seg_time);
+        View dayStepper = view.findViewById(R.id.layout_day_stepper);
+        View clockWrap = view.findViewById(R.id.layout_clock_wrap);
+        TimePicker clock = view.findViewById(R.id.time_picker_clock);
+        final boolean[] isDateMode = {true};
+        final boolean[] syncingClock = {false};
+
+        clock.setIs24HourView(true);
+
+        SimpleDateFormat dayFmt = new SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault());
+
+        Runnable render = () -> {
+            if (isDateMode[0]) {
+                tvValue.setVisibility(View.VISIBLE);
+                tvHint.setVisibility(View.VISIBLE);
+                dayStepper.setVisibility(View.VISIBLE);
+                clockWrap.setVisibility(View.GONE);
+                tvValue.setTextSize(72);
+                tvValue.setText(String.valueOf(tmp.get(Calendar.DAY_OF_MONTH)));
+                tvHint.setText(dayFmt.format(tmp.getTime()));
+                tvSegDate.setBackgroundResource(R.drawable.bg_segment_selected);
+                tvSegDate.setTypeface(null, Typeface.BOLD);
+                tvSegTime.setBackgroundResource(0);
+                tvSegTime.setTypeface(null, Typeface.NORMAL);
+            } else {
+                // Time mode: clock face carries the time (header + dial), so the big
+                // duplicate readout is hidden and the full clock gets the space
+                tvValue.setVisibility(View.GONE);
+                tvHint.setVisibility(View.GONE);
+                dayStepper.setVisibility(View.GONE);
+                clockWrap.setVisibility(View.VISIBLE);
+                tvSegTime.setBackgroundResource(R.drawable.bg_segment_selected);
+                tvSegTime.setTypeface(null, Typeface.BOLD);
+                tvSegDate.setBackgroundResource(0);
+                tvSegDate.setTypeface(null, Typeface.NORMAL);
+                syncingClock[0] = true;
+                clock.setHour(tmp.get(Calendar.HOUR_OF_DAY));
+                clock.setMinute(tmp.get(Calendar.MINUTE));
+                syncingClock[0] = false;
             }
+        };
 
-            new TimePickerDialog(this, (timeView, hour, minute) -> {
-                selected.set(Calendar.HOUR_OF_DAY, hour);
-                selected.set(Calendar.MINUTE, minute);
-                selectedDateTime = selected;
-                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
-                tvSelectedDateTime.setText("Scheduled: " + sdf.format(selected.getTime()));
-                tvError.setVisibility(View.GONE);
-            }, 14, 0, true).show();
+        clock.setOnTimeChangedListener((v, hour, minute) -> {
+            if (syncingClock[0]) return;
+            tmp.set(Calendar.HOUR_OF_DAY, hour);
+            tmp.set(Calendar.MINUTE, minute);
+            render.run();
+        });
 
-        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+        tvSegDate.setOnClickListener(v -> { isDateMode[0] = true; render.run(); });
+        tvSegTime.setOnClickListener(v -> { isDateMode[0] = false; render.run(); });
 
-        datePicker.getDatePicker().setMinDate(now.getTimeInMillis());
-        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis()); // Enforces 7-day UI constraint
-        datePicker.show();
+        view.findViewById(R.id.btn_pick_minus).setOnClickListener(v -> {
+            Calendar next = (Calendar) tmp.clone();
+            next.add(Calendar.DAY_OF_YEAR, -1);
+            if (inDayRange(next, minDay, maxDay)) { tmp.add(Calendar.DAY_OF_YEAR, -1); render.run(); }
+            else Toast.makeText(this, "Bookings only within 7 days from today.", Toast.LENGTH_SHORT).show();
+        });
+        view.findViewById(R.id.btn_pick_plus).setOnClickListener(v -> {
+            Calendar next = (Calendar) tmp.clone();
+            next.add(Calendar.DAY_OF_YEAR, 1);
+            if (inDayRange(next, minDay, maxDay)) { tmp.add(Calendar.DAY_OF_YEAR, 1); render.run(); }
+            else Toast.makeText(this, "Bookings only within 7 days from today.", Toast.LENGTH_SHORT).show();
+        });
+        render.run();
+
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        view.findViewById(R.id.btn_pick_save).setOnClickListener(v -> {
+            selectedDateTime = (Calendar) tmp.clone();
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
+            tvSelectedDateTime.setText("Scheduled: " + sdf.format(selectedDateTime.getTime()));
+            tvError.setVisibility(View.GONE);
+            dialog.dismiss();
+        });
+        view.findViewById(R.id.btn_pick_cancel).setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private static void stripTime(Calendar c) {
+        // Zero time fields so day comparisons ignore clock time
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+    }
+
+    private static boolean inDayRange(Calendar day, Calendar min, Calendar max) {
+        // Day-precision range check against the 7-day booking window
+        Calendar d = (Calendar) day.clone();
+        stripTime(d);
+        return !d.before(min) && !d.after(max);
+    }
+
+    private static void clampDay(Calendar day, Calendar min, Calendar max) {
+        // Pull an out-of-window day back to the nearest valid edge
+        Calendar d = (Calendar) day.clone();
+        stripTime(d);
+        if (d.before(min)) {
+            day.set(Calendar.YEAR, min.get(Calendar.YEAR));
+            day.set(Calendar.DAY_OF_YEAR, min.get(Calendar.DAY_OF_YEAR));
+        } else if (d.after(max)) {
+            day.set(Calendar.YEAR, max.get(Calendar.YEAR));
+            day.set(Calendar.DAY_OF_YEAR, max.get(Calendar.DAY_OF_YEAR));
+        }
     }
 
     private void updateSlotGrid(int stationIndex) {
-        // Dynamically construct battery slot grid buttons indicating free and reserved slots
+        // Dynamically construct battery slot grid buttons indicating free, busy, and reserved slots
         if (stationIndex < 0 || stationIndex >= stationList.size()) return;
         gridSlots.removeAllViews();
         selectedSlotNumber = -1;
@@ -196,6 +285,8 @@ public class CreateReservationActivity extends AppCompatActivity {
             JSONObject station = stationList.get(stationIndex);
             int total = station.optInt("totalBatterySlots", 10);
             int avail = station.optInt("availableBatterySlots", 0);
+
+            // Occupied by prosumer bookings
             JSONArray occupiedArr = station.optJSONArray("occupiedSlotNumbers");
             Set<Integer> occupiedSlots = new HashSet<>();
             if (occupiedArr != null) {
@@ -204,7 +295,16 @@ public class CreateReservationActivity extends AppCompatActivity {
                 }
             }
 
-            if (avail <= 0 || occupiedSlots.size() >= total) {
+            // Marked busy by operator — prosumers cannot book these
+            JSONArray busyArr = station.optJSONArray("busySlotNumbers");
+            Set<Integer> busySlots = new HashSet<>();
+            if (busyArr != null) {
+                for (int j = 0; j < busyArr.length(); j++) {
+                    busySlots.add(busyArr.optInt(j));
+                }
+            }
+
+            if (avail <= 0) {
                 tvSlotHint.setText("No slots available — this station is fully booked.");
                 tvSlotHint.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
             } else {
@@ -214,8 +314,9 @@ public class CreateReservationActivity extends AppCompatActivity {
 
             for (int i = 1; i <= total; i++) {
                 final int slotNum = i;
+                boolean isBusy     = busySlots.contains(slotNum);
                 boolean isOccupied = occupiedSlots.contains(slotNum);
-                boolean isAvailable = !isOccupied;
+                boolean isAvailable = !isBusy && !isOccupied;
 
                 TextView tvSlot = new TextView(this);
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
@@ -227,22 +328,31 @@ public class CreateReservationActivity extends AppCompatActivity {
                 tvSlot.setText(String.valueOf(i));
                 tvSlot.setTextSize(14f);
                 tvSlot.setTypeface(null, Typeface.BOLD);
-                
+
                 if (isAvailable) {
+                    // Free — selectable (green outline)
                     tvSlot.setEnabled(true);
                     tvSlot.setBackgroundResource(R.drawable.bg_neuro_btn_outline);
                     tvSlot.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_green));
                     tvSlot.setOnClickListener(v -> selectSlot(slotNum, tvSlot));
+                } else if (isBusy) {
+                    // Marked busy by operator — amber, not bookable
+                    tvSlot.setEnabled(false);
+                    tvSlot.setBackgroundResource(R.drawable.bg_slot_busy);
+                    tvSlot.setTextColor(android.graphics.Color.parseColor("#D97706"));
+                    final String busyMsg = "Slot #" + slotNum + " is marked Busy by the operator and cannot be booked.";
+                    tvSlot.setOnClickListener(v ->
+                            Toast.makeText(this, busyMsg, Toast.LENGTH_SHORT).show());
                 } else {
+                    // Booked by another prosumer — muted/dimmed
                     tvSlot.setEnabled(false);
                     tvSlot.setBackgroundResource(R.drawable.bg_neuro_inner_card);
                     tvSlot.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
                     tvSlot.setAlpha(0.35f);
-                    tvSlot.setOnClickListener(v -> {
-                        Toast.makeText(this, "Slot #" + slotNum + " is already reserved. Please select a green slot.", Toast.LENGTH_SHORT).show();
-                    });
+                    tvSlot.setOnClickListener(v ->
+                            Toast.makeText(this, "Slot #" + slotNum + " is already reserved. Please select a green slot.", Toast.LENGTH_SHORT).show());
                 }
-                
+
                 gridSlots.addView(tvSlot);
             }
         } catch (Exception ignored) {}
@@ -271,7 +381,7 @@ public class CreateReservationActivity extends AppCompatActivity {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
-    /** Submits reservation to C# Web API and shows summary page with QR code on success. */
+    /** Submits reservation to C# Web API as Pending and opens the booking pass on success. */
     // Posts to POST /api/reservations?prosumerNic=... and navigates to BookingDetailActivity on success
     private void submitReservation() {
         // Validate inputs, format ISO 8601 UTC timestamp, and present booking confirmation dialog
@@ -298,22 +408,27 @@ public class CreateReservationActivity extends AppCompatActivity {
         isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String isoDateTime = isoFormat.format(selectedDateTime.getTime());
 
-        // Display Confirmation Dialog
+        // Display professional confirmation sheet with round margins
         SimpleDateFormat displayFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm", Locale.getDefault());
-        String details = "\n\nStation: " + stationName + "\n" +
-                     "Slot: #" + selectedSlotNumber + "\n" +
-                     "Scheduled: " + displayFormat.format(selectedDateTime.getTime()) + "\n" +
-                     "Energy: " + energyStr + " kWh\n" +
-                     "Type: " + (type.equals("DropOff") ? "Drop-Off" : "Charging");
+        String typeLabel = type.equals("DropOff") ? "Drop-Off" : "Charging";
 
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.dialog_confirm_reservation_title)
-                .setMessage(getString(R.string.dialog_confirm_reservation_msg) + details)
-                .setPositiveButton(R.string.btn_confirm_generate_qr, (dialog, which) -> {
-                    performReservationSubmission(stationId, type, duration, energyStr, isoDateTime);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+        View confirmView = getLayoutInflater().inflate(R.layout.dialog_confirm_booking, null);
+        ((TextView) confirmView.findViewById(R.id.tv_confirm_station)).setText(stationName);
+        ((TextView) confirmView.findViewById(R.id.tv_confirm_slot)).setText("Slot #" + selectedSlotNumber);
+        ((TextView) confirmView.findViewById(R.id.tv_confirm_scheduled)).setText(displayFormat.format(selectedDateTime.getTime()));
+        ((TextView) confirmView.findViewById(R.id.tv_confirm_energy)).setText(energyStr + " kWh");
+        ((TextView) confirmView.findViewById(R.id.tv_confirm_type)).setText(typeLabel);
+
+        AlertDialog confirmDialog = new AlertDialog.Builder(this).setView(confirmView).create();
+        if (confirmDialog.getWindow() != null) {
+            confirmDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        confirmView.findViewById(R.id.btn_confirm_go).setOnClickListener(v -> {
+            confirmDialog.dismiss();
+            performReservationSubmission(stationId, type, duration, energyStr, isoDateTime);
+        });
+        confirmView.findViewById(R.id.btn_confirm_cancel).setOnClickListener(v -> confirmDialog.dismiss());
+        confirmDialog.show();
     }
 
     private void performReservationSubmission(String stationId, String type, int duration, String energyStr, String isoDateTime) {
@@ -343,7 +458,7 @@ public class CreateReservationActivity extends AppCompatActivity {
                 JSONObject json = new JSONObject(responseBody);
 
                 if (response.isSuccessful()) {
-                    // Navigate to Booking Detail (Summary Page) with QR code
+                    // Navigate to Booking Detail (booking pass); QR appears only after approval
                     String reservationId = json.optString("id");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);

@@ -19,6 +19,7 @@
 
             <!-- Header -->
             <LinearLayout
+                android:id="@+id/analytics_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -63,6 +64,7 @@
 
             <!-- 1. Booking Status - Pie Chart -->
             <LinearLayout
+                android:id="@+id/card_booking"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_neuro_card"
@@ -83,8 +85,9 @@
                     android:layout_height="240dp" />
             </LinearLayout>
 
-            <!-- 2. Weekly Energy Usage - Bar Chart -->
+            <!-- 2. Weekly Energy Usage - fan gauge like reference -->
             <LinearLayout
+                android:id="@+id/card_weekly"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_neuro_card"
@@ -100,20 +103,43 @@
                     android:textColor="@color/neuro_text_primary"
                     android:layout_marginBottom="4dp" />
                 <TextView
+                    android:id="@+id/tv_weekly_sub"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="kWh transferred per day (Current Week)"
                     android:textSize="11sp"
                     android:textColor="@color/neuro_text_muted"
-                    android:layout_marginBottom="16dp" />
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/chart_weekly_energy"
+                    android:layout_marginBottom="8dp" />
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="220dp" />
+                    android:layout_height="220dp">
+                    <com.smartsolar.mobile.ui.common.FanGaugeView
+                        android:id="@+id/gauge_weekly"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="14dp"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal">
+                        <TextView
+                            android:id="@+id/tv_gauge_pct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            android:textSize="26sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_brand" />
+                    </LinearLayout>
+                </FrameLayout>
             </LinearLayout>
 
-            <!-- 3. Monthly Energy Summary - Horizontal Bar Chart -->
+            <!-- 3. Monthly Energy Summary - segmented share bars like reference -->
             <LinearLayout
+                android:id="@+id/card_monthly"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_neuro_card"
@@ -127,15 +153,27 @@
                     android:textSize="16sp"
                     android:fontFamily="sans-serif-semibold"
                     android:textColor="@color/neuro_text_primary"
-                    android:layout_marginBottom="16dp" />
-                <com.github.mikephil.charting.charts.HorizontalBarChart
-                    android:id="@+id/chart_monthly_summary"
+                    android:layout_marginBottom="12dp" />
+                <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="240dp" />
+                    android:layout_height="wrap_content"
+                    android:text="Month"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="16dp" />
+                <LinearLayout
+                    android:id="@+id/layout_monthly_segments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
             </LinearLayout>
 
-            <!-- 4. Bookings by Microgrid Node - Line Chart -->
+            <!-- 4. Node Utilization Trends - weekday heatmap like reference -->
             <LinearLayout
+                android:id="@+id/card_node"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_neuro_card"
@@ -148,11 +186,32 @@
                     android:textSize="16sp"
                     android:fontFamily="sans-serif-semibold"
                     android:textColor="@color/neuro_text_primary"
-                    android:layout_marginBottom="16dp" />
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/chart_node_usage"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Completed kWh per hub, this week"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="12dp" />
+                <HorizontalScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="320dp" />
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+                    <LinearLayout
+                        android:id="@+id/layout_node_legend"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical" />
+                </HorizontalScrollView>
+                <LinearLayout
+                    android:id="@+id/layout_node_heatmap"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp" />
             </LinearLayout>
 
         </LinearLayout>

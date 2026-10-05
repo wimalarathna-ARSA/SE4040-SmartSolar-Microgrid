@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Operator Fleet Analytics: 5 operational charts, same styles as prosumer analytics. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_glass_canvas">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="32dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Header -->
+            <LinearLayout
+                android:id="@+id/analytics_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="24dp">
+
+                <FrameLayout
+                    android:id="@+id/btn_back_header"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_neuro_icon_circle"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_line_back_arrow"
+                        android:contentDescription="Back" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fleet Analytics"
+                        android:textSize="24sp"
+                        android:fontFamily="sans-serif-semibold"
+                        android:textColor="@color/neuro_text_primary"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Live operational insights across hubs"
+                        android:textSize="12sp"
+                        android:textColor="@color/neuro_text_muted"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 1. Battery Slots & Station Capacity - segmented bars -->
+            <LinearLayout
+                android:id="@+id/card_capacity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Battery Slots &amp; Station Capacity"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:id="@+id/tv_capacity_sub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Free slots per station"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="12dp" />
+                <LinearLayout
+                    android:id="@+id/layout_capacity_segments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
+            <!-- 2. No-Show & Missed Booking Rate - fan gauge -->
+            <LinearLayout
+                android:id="@+id/card_noshow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No-Show &amp; Missed Booking Rate"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:id="@+id/tv_noshow_sub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Scheduled reservations expired as missed"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="8dp" />
+                <FrameLayout
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="4dp">
+                    <com.smartsolar.mobile.ui.common.RingChartView
+                        android:id="@+id/ring_noshow"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal">
+                        <TextView
+                            android:id="@+id/tv_noshow_pct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            android:textSize="26sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_brand" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Missed"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#65998B" />
+                    </LinearLayout>
+                </FrameLayout>
+                <LinearLayout
+                    android:id="@+id/layout_noshow_legend"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+
+            <!-- 3. Reservation & Fulfillment Performance - fan gauge -->
+            <LinearLayout
+                android:id="@+id/card_fulfillment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reservation &amp; Fulfillment Performance"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:id="@+id/tv_fulfill_sub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Completed vs cancelled jobs"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="8dp" />
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp">
+                    <com.smartsolar.mobile.ui.common.FanGaugeView
+                        android:id="@+id/gauge_fulfillment"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="14dp"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal">
+                        <TextView
+                            android:id="@+id/tv_fulfill_pct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            android:textSize="26sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_brand" />
+                    </LinearLayout>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 4. Station Activity - weekday booking-count heatmap -->
+            <LinearLayout
+                android:id="@+id/card_activity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Station Activity Chart"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bookings per station, this week"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="12dp" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false">
+                    <LinearLayout
+                        android:id="@+id/layout_activity_bars"
+                        android:layout_width="wrap_content"
+                        android:layout_height="230dp"
+                        android:orientation="horizontal"
+                        android:gravity="bottom" />
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- 5. Revenue & Settlement Analytics - segmented monthly revenue bars -->
+            <LinearLayout
+                android:id="@+id/card_revenue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Revenue &amp; Settlement Analytics"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_primary"
+                    android:layout_marginBottom="4dp" />
+                <TextView
+                    android:id="@+id/tv_revenue_sub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Settled value per month"
+                    android:textSize="11sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="12dp" />
+                <LinearLayout
+                    android:id="@+id/layout_revenue_segments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.smartsolar.mobile.ui.common.LoadingDotsView
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"        android:visibility="gone" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

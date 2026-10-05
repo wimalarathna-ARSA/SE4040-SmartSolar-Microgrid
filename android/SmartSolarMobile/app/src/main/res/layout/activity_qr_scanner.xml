@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- QR Verify: professional deep-green gradient canvas with soft decor circles,
+     white card, fake QR mosaic built from Views only (no images).
+     Palette only: #BFD5D0 #8FB3A9 #65998B #3B796A #063127 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_qr_pro_bg">
+
+    <!-- Decor circles for depth, no images -->
+    <View
+        android:layout_width="230dp"
+        android:layout_height="230dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-70dp"
+        android:layout_marginEnd="-70dp"
+        android:background="@drawable/bg_qr_decor_light" />
+
+    <View
+        android:layout_width="170dp"
+        android:layout_height="170dp"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="90dp"
+        android:layout_marginStart="-60dp"
+        android:background="@drawable/bg_qr_decor_mint" />
+
+    <View
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="-70dp"
+        android:layout_marginStart="-70dp"
+        android:background="@drawable/bg_qr_decor_light" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="32dp">
+
+            <!-- Back + screen eyebrow -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <FrameLayout
+                    android:id="@+id/btn_back_header"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_qr_back_circle"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="‹"
+                        android:textSize="26sp"
+                        android:textColor="#063127"
+                        android:includeFontPadding="false" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingStart="12dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="OPERATOR CONSOLE"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.16"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#BFD5D0" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Handover Verification"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-semibold"
+                        android:textColor="#FFFFFF" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- White card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_qr_white_card"
+                android:padding="20dp"
+                android:elevation="6dp">
+
+                <!-- Title box -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_qr_title_box"
+                    android:padding="18dp"
+                    android:gravity="center_horizontal"
+                    android:layout_marginBottom="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Scan QR Code"
+                        android:textSize="20sp"
+                        android:fontFamily="sans-serif-semibold"
+                        android:textColor="#063127"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Align the prosumer pass inside the frame, then verify"
+                        android:textSize="12sp"
+                        android:textColor="#3B796A"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Scan frame with text corners + fake QR mosaic (Views only) -->
+                <FrameLayout
+                    android:layout_width="230dp"
+                    android:layout_height="230dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:text="┌"
+                        android:textSize="34sp"
+                        android:textColor="#063127"
+                        android:includeFontPadding="false" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:text="┐"
+                        android:textSize="34sp"
+                        android:textColor="#063127"
+                        android:includeFontPadding="false" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:text="└"
+                        android:textSize="34sp"
+                        android:textColor="#063127"
+                        android:includeFontPadding="false" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:text="┘"
+                        android:textSize="34sp"
+                        android:textColor="#063127"
+                        android:includeFontPadding="false" />
+
+                    <!-- Fake QR mosaic -->
+                    <LinearLayout
+                        android:id="@+id/fake_qr_grid"
+                        android:layout_width="164dp"
+                        android:layout_height="164dp"
+                        android:layout_gravity="center"
+                        android:orientation="vertical"
+                        android:background="#FFFFFF"
+                        android:padding="10dp">
+
+                        <!-- Top: finder - pattern - finder -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="#063127">
+                                <View
+                                    android:layout_width="26dp"
+                                    android:layout_height="26dp"
+                                    android:layout_gravity="center"
+                                    android:background="#FFFFFF" />
+                                <View
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
+                                    android:layout_gravity="center"
+                                    android:background="#063127" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:paddingHorizontal="6dp">
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="12dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center"
+                                    android:layout_marginBottom="2dp">
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                </LinearLayout>
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="12dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#8FB3A9" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#65998B" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="#063127">
+                                <View
+                                    android:layout_width="26dp"
+                                    android:layout_height="26dp"
+                                    android:layout_gravity="center"
+                                    android:background="#FFFFFF" />
+                                <View
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
+                                    android:layout_gravity="center"
+                                    android:background="#063127" />
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <!-- Middle random rows -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginTop="4dp">
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#8FB3A9" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#BFD5D0" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginTop="3dp">
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#65998B" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#8FB3A9" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginTop="3dp">
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#BFD5D0" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#65998B" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#8FB3A9" />
+                        </LinearLayout>
+
+                        <!-- Bottom: finder - pattern - data -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="4dp">
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="#063127">
+                                <View
+                                    android:layout_width="26dp"
+                                    android:layout_height="26dp"
+                                    android:layout_gravity="center"
+                                    android:background="#FFFFFF" />
+                                <View
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
+                                    android:layout_gravity="center"
+                                    android:background="#063127" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:paddingHorizontal="6dp">
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="12dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center"
+                                    android:layout_marginBottom="2dp">
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                </LinearLayout>
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="12dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#65998B" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#8FB3A9" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#00000000" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:orientation="vertical"
+                                android:gravity="center">
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="12dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center"
+                                    android:layout_marginBottom="2dp">
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#BFD5D0" />
+                                </LinearLayout>
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="12dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center">
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#3B796A" />
+                                    <View android:layout_width="12dp" android:layout_height="12dp" android:background="#063127" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Scan beam -->
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="2dp"
+                        android:layout_gravity="center"
+                        android:background="#65998B" />
+                </FrameLayout>
+
+                <!-- Scan result appears here only after a real scan -->
+                <TextView
+                    android:id="@+id/tv_scan_result"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="12sp"
+                    android:fontFamily="monospace"
+                    android:textColor="#063127"
+                    android:background="#BFD5D0"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp" />
+
+                <!-- Error & Success -->
+                <TextView
+                    android:id="@+id/tv_error"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#063127"
+                    android:background="#BFD5D0"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_success"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:background="#3B796A"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp"
+                    android:layout_marginTop="8dp" />
+
+                <!-- Notes -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Operator Notes"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="#063127"
+                    android:layout_marginBottom="6dp"
+                    android:layout_marginTop="12dp" />
+
+                <EditText
+                    android:id="@+id/et_operator_notes"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:hint="Battery check passed..."
+                    android:background="@drawable/bg_qr_input"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="#063127"
+                    android:textColorHint="#65998B"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="8dp" />
+
+                <com.smartsolar.mobile.ui.common.LoadingDotsView
+                    android:id="@+id/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_margin="8dp" />
+
+                <!-- SCAN pill -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_scan_camera"
+                    android:layout_width="200dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center_horizontal"
+                    android:text="SCAN"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/bg_qr_scan_btn"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="50dp"
+                    android:elevation="0dp"
+                    android:layout_marginTop="12dp" />
+
+                <!-- VERIFY pill -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_verify_finalize"
+                    android:layout_width="200dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center_horizontal"
+                    android:text="VERIFY"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/bg_qr_verify_btn"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="50dp"
+                    android:elevation="0dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="8dp" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

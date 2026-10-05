@@ -117,7 +117,7 @@ public class ProfileActivity extends AppCompatActivity {
         applyEntranceMotion();
     }
 
-    // ── Structured entrance motion: cover fades, cards rise in sequence ─────
+    // ── Structured entrance motion: identity header fades, cards rise in sequence ─────
     private void applyEntranceMotion() {
         try {
             android.view.animation.Animation fade =

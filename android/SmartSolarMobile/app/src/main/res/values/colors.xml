@@ -129,4 +129,21 @@
     <color name="illus_line">#94A3B8</color>
     <color name="illus_line_soft">#CBD5E1</color>
     <color name="illus_fill">#F1F5F9</color>
+    <!-- Login adventure card -->
+    <color name="login_deep">#063127</color>
+    <!-- Analytics professional teal scale -->
+    <color name="chart_teal_100">#BFD5D0</color>
+    <color name="chart_teal_200">#8FB3A9</color>
+    <color name="chart_teal_300">#65998B</color>
+    <color name="chart_teal_400">#3B796A</color>
+    <color name="chart_teal_500">#063127</color>
+    <!-- Brand ink for text: deep green on light, pale on dark -->
+    <color name="text_brand">#063127</color>
+    <!-- Teal inks for text: mid tones on light, pale on dark -->
+    <color name="text_teal">#3B796A</color>
+    <color name="text_soft">#56877A</color>
+    <color name="text_mid">#65998B</color>
+    <!-- Transfer history palette -->
+    <color name="transfer_teal_pale">#7FA69B</color>
+    <color name="transfer_teal_soft">#56877A</color>
 </resources>

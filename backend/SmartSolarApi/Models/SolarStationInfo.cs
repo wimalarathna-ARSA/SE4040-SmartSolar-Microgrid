@@ -55,6 +55,10 @@ namespace SmartSolarApi.Models
         [BsonElement("totalBatterySlots")]
         public int TotalBatterySlots { get; set; }
 
+        // Slot numbers marked as busy/maintenance by Grid Operator
+        [BsonElement("busySlotNumbers")]
+        public List<int> BusySlotNumbers { get; set; } = new();
+
         // Operational hours and weekly schedule (e.g., "Mon-Sun 06:00-20:00")
         [BsonElement("operationalSchedule")]
         public string OperationalSchedule { get; set; } = "Mon-Sun 06:00-22:00";

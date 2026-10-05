@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Onboarding illustration 2: battery slot booking + QR handover.
+     Restrained slate line style matching illus_empty_nodes. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="220dp"
+    android:height="150dp"
+    android:viewportWidth="220"
+    android:viewportHeight="150">
+    <!-- Battery -->
+    <path
+        android:pathData="M28,60 L28,104 Q28,110 34,110 L96,110 Q102,110 102,104 L102,60 Q102,54 96,54 L34,54 Q28,54 28,60 Z"
+        android:strokeColor="@color/neuro_text_secondary"
+        android:strokeWidth="2.5"
+        android:fillColor="@color/glass_surface" />
+    <path
+        android:pathData="M102,70 L110,70 L110,94 L102,94"
+        android:strokeColor="@color/neuro_text_secondary"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+    <!-- Charge bars -->
+    <path
+        android:pathData="M40,66 L52,66 L52,98 L40,98 Z"
+        android:fillColor="@color/neuro_green" />
+    <path
+        android:pathData="M58,76 L70,76 L70,98 L58,98 Z"
+        android:fillColor="@color/neuro_blue" />
+    <path
+        android:pathData="M76,86 L88,86 L88,98 L76,98 Z"
+        android:fillColor="@color/illus_line_soft" />
+    <!-- Link arrow -->
+    <path
+        android:pathData="M118,82 L134,82 M130,78 L134,82 L130,86"
+        android:strokeColor="@color/illus_line"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- QR code -->
+    <path
+        android:pathData="M142,54 L142,110 L198,110 L198,54 Z"
+        android:strokeColor="@color/neuro_text_secondary"
+        android:strokeWidth="2.5"
+        android:fillColor="@color/glass_surface"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M150,62 L150,78 L166,78 L166,62 Z"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2"
+        android:fillColor="@color/neuro_green_bg" />
+    <path
+        android:pathData="M174,62 L174,78 L190,78 L190,62 Z"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2"
+        android:fillColor="@color/glass_surface" />
+    <path
+        android:pathData="M150,86 L150,102 L166,102 L166,86 Z"
+        android:strokeColor="@color/neuro_green"
+        android:strokeWidth="2"
+        android:fillColor="@color/glass_surface" />
+    <path
+        android:pathData="M174,86 L182,86 L182,94 L190,94 L190,102 L174,102 Z"
+        android:fillColor="@color/neuro_green" />
+    <!-- Ground line -->
+    <path
+        android:pathData="M14,124 L206,124"
+        android:strokeColor="@color/illus_line_soft"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+</vector>

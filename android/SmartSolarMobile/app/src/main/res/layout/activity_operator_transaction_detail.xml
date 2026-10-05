@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: activity_operator_transaction_detail.xml
+     Description: Grid Operator Historical Transaction in transfer-history style —
+                  collapsing bg4 header with TXN id, white sheet below.
+     ============================================================================ -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/login_deep">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:background="@color/login_deep"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="@color/login_deep"
+            app:titleEnabled="false">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/bg4"
+                android:scaleType="centerCrop"
+                android:contentDescription="Settlement record"
+                app:layout_collapseMode="parallax" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#80063127"
+                app:layout_collapseMode="parallax" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingHorizontal="48dp"
+                app:layout_collapseMode="parallax">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SETTLEMENT RECORD"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.14"
+                    android:textColor="@color/transfer_teal_pale"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/tv_transaction_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TXN-ID: —"
+                    android:textSize="20sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_transaction_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Historical Transaction"
+                    android:textSize="12sp"
+                    android:textColor="#CBD5E1"
+                    android:gravity="center"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- White sheet: scrolls up above the image -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_register_sheet"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:overScrollMode="never"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:behavior_overlapTop="48dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
+
+            <com.smartsolar.mobile.ui.common.LoadingDotsView
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Read-Only Status Banner -->
+            <TextView
+                android:id="@+id/tv_transaction_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HISTORICAL TRANSACTION RECORD (READ-ONLY)"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/text_mid"
+                android:background="@drawable/bg_neuro_inner_card"
+                android:padding="10dp"
+                android:gravity="center"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Historical Booking Entity Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BOOKING ORIGIN"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/text_mid"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/tv_booking_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Booking ID: —"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/text_brand"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tv_prosumer_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Prosumer: —"
+                    android:textSize="14sp"
+                    android:textColor="@color/neuro_text_secondary"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:id="@+id/tv_prosumer_nic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NIC: —"
+                    android:textSize="13sp"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="12dp" />
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tv_node_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Node: —"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_brand"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_scheduled_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Originally Scheduled: —"
+                    android:textSize="13sp"
+                    android:textColor="@color/neuro_text_muted" />
+            </LinearLayout>
+
+            <!-- Settled Transaction Parameters Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SETTLEMENT PARAMETERS"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/text_mid"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Status"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_transaction_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="COMPLETED"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_teal" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Energy Transferred"
+                        android:textColor="@color/neuro_text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_energy_transferred"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0.0 kWh"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_brand" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/glass_divider" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Completion Timestamp"
+                        android:textSize="12sp"
+                        android:textColor="@color/neuro_text_muted"
+                        android:layout_marginBottom="2dp" />
+                    <TextView
+                        android:id="@+id/tv_completion_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="@color/neuro_text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Historical QR Reference View Layer -->
+            <TextView
+                android:id="@+id/tv_qr_header_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="QR REFERENCE (HISTORICAL)"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/text_mid"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_neuro_card"
+                android:padding="20dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_qr_sub_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="COMPLETED TRANSACTION QR"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/neuro_text_muted"
+                    android:layout_marginBottom="16dp" />
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_neuro_inner_card"
+                    android:padding="12dp">
+                    <ImageView
+                        android:id="@+id/iv_historical_qr"
+                        android:layout_width="180dp"
+                        android:layout_height="180dp"
+                        android:contentDescription="Historical Transaction QR" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tv_qr_payload"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="—"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-monospace"
+                    android:textColor="@color/neuro_text_muted"
+                    android:gravity="center" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Back button (fixed on top) -->
+    <FrameLayout
+        android:id="@+id/btn_back_header"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_neuro_icon_circle"
+        android:clickable="true"
+        android:focusable="true">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_line_back_arrow"
+            android:contentDescription="Back" />
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

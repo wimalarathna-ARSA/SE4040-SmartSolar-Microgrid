@@ -6,7 +6,7 @@
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -30,13 +30,13 @@ import BookingsMonitor from './pages/operator/BookingsMonitor';
 import QrVerification from './pages/operator/QrVerification';
 import EnergyTransferHistory from './pages/operator/EnergyTransferHistory';
 
-function App() {
+function Shell() {
+  const location = useLocation();
+  const hideChrome = location.pathname === '/' || location.pathname === '/login';
   return (
-    <AuthProvider>
-      <Router>
-        <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: '#020202', color: '#e2e8f0' }}>
-          <Navbar />
-          <main className="flex-grow-1">
+    <div className={hideChrome ? 'd-flex flex-column min-vh-100 bg-white' : 'd-flex flex-column min-vh-100 bg-[#020202] text-slate-200'}>
+      {!hideChrome && <Navbar />}
+      <main className="flex-grow-1">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
@@ -84,7 +84,49 @@ function App() {
                 }
               />
 
-{/* Staff profile (Backoffice + Grid Operator) */}
+              {/* Grid Operator Protected Routes */}
+              <Route
+                path="/operator"
+                element={
+                  <ProtectedRoute allowedRoles={['GridOperator']}>
+                    <OperatorDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/slots"
+                element={
+                  <ProtectedRoute allowedRoles={['GridOperator']}>
+                    <StationSlots />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/bookings"
+                element={
+                  <ProtectedRoute allowedRoles={['GridOperator']}>
+                    <BookingsMonitor />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/verify-qr"
+                element={
+                  <ProtectedRoute allowedRoles={['GridOperator']}>
+                    <QrVerification />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/energy-history"
+                element={
+                  <ProtectedRoute allowedRoles={['GridOperator']}>
+                    <EnergyTransferHistory />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Staff profile (Backoffice + Grid Operator) */}
               <Route
                 path="/backoffice/profile"
                 element={
@@ -110,13 +152,19 @@ function App() {
                 }
               />
 
-
-
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Shell />
       </Router>
     </AuthProvider>
   );

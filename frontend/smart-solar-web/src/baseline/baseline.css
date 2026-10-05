@@ -1,0 +1,27 @@
+/* ==========================================================================
+   SØLΛR-X island microgrid landing — residual custom CSS.
+   Markup uses Bootstrap 5 + Tailwind CSS utilities; only what utilities
+   cannot express lives here: adaptive root scaling, keyframes, the
+   accordion grid-rows trick, and focus visibility.
+   ========================================================================== */
+
+.bl-font {
+  font-family: "Onest", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Adaptive rem grid (Tailwind spacing is rem-based, so it scales along) */
+html.bl-scale { font-size: 16px; }
+@media (max-width: 1920px) { html.bl-scale { font-size: 0.833333vw; } }
+@media (max-width: 1440px) { html.bl-scale { font-size: 1.111111vw; } }
+@media (max-width: 1024px) { html.bl-scale { font-size: 1.5625vw; } }
+@media (max-width: 640px) { html.bl-scale { font-size: 4.444444vw; } }
+
+/* Scroll lock while the loader is visible */
+html.bl-locked { position: relative; overflow: hidden; height: 100%; }
+
+.bl-font :focus-visible { outline: 2px solid #8FB3A9; outline-offset: 2px; }
+
+/* Keyframes */
+@keyframes bl-slide-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes bl-spin { to { transform: rotate(360deg); } }

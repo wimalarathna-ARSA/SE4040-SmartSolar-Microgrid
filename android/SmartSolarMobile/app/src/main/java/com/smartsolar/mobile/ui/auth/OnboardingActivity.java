@@ -41,11 +41,11 @@ public class OnboardingActivity extends AppCompatActivity {
         View btnSkip = findViewById(R.id.btn_onboarding_skip);
         if (btnSkip != null) btnSkip.setOnClickListener(v -> finishOnboarding());
 
-        // Screen 2 actions
-        View btnBack = findViewById(R.id.btn_onboarding_back);
-        if (btnBack != null) btnBack.setOnClickListener(v -> showPage(0));
-        View btnGetStarted = findViewById(R.id.btn_onboarding_get_started);
-        if (btnGetStarted != null) btnGetStarted.setOnClickListener(v -> finishOnboarding());
+        // Screen 2 actions: Sign in -> Login, Sign up -> Register
+        View btnSignIn = findViewById(R.id.btn_onboarding_back);
+        if (btnSignIn != null) btnSignIn.setOnClickListener(v -> finishTo(LoginActivity.class));
+        View btnSignUp = findViewById(R.id.btn_onboarding_get_started);
+        if (btnSignUp != null) btnSignUp.setOnClickListener(v -> finishTo(RegisterActivity.class));
 
         updateDots(flipper.getDisplayedChild());
     }
@@ -70,8 +70,14 @@ public class OnboardingActivity extends AppCompatActivity {
     /** Marks onboarding complete and routes to the existing Login screen. */
     private void finishOnboarding() {
         // Persist onboarding completion flag and navigate to Login with cleared back stack
+        finishTo(LoginActivity.class);
+    }
+
+    /** Marks onboarding complete and routes to the given auth screen. */
+    private void finishTo(Class<?> destination) {
+        // Persist onboarding completion flag and navigate with cleared back stack
         OnboardingPrefs.setCompleted(this, true);
-        Intent intent = new Intent(this, LoginActivity.class);
+        Intent intent = new Intent(this, destination);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

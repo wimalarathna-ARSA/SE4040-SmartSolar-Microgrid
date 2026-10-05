@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Outer sharp lightning bolt with arrow head -->
+    <path android:pathData="M25,95 L48,52 L38,52 L78,5 L58,45 L68,45 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="25"
+                android:startY="95"
+                android:endX="78"
+                android:endY="5"
+                android:type="linear">
+                <item android:offset="0.0" android:color="@color/neuro_blue" /> <!-- Baby-blue base -->
+                <item android:offset="0.5" android:color="@color/illus_line" /> <!-- Electric-aqua middle -->
+                <item android:offset="1.0" android:color="@color/glass_mint" /> <!-- Tea-green top -->
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Internal Low-Poly / Network lines -->
+    <path
+        android:strokeColor="@color/neuro_text_primary"
+        android:strokeWidth="0.3"
+        android:strokeAlpha="0.55"
+        android:pathData="M25,95 L40,70 L55,50 M48,52 L60,30 L78,5 M38,52 L50,48 L68,45 M40,70 L50,48 M55,50 L60,30 M25,95 L50,48 M78,5 L50,48" />
+
+    <!-- Subtle Glow Layer -->
+    <path
+        android:strokeColor="@color/neuro_blue"
+        android:strokeWidth="1.5"
+        android:strokeAlpha="0.25"
+        android:pathData="M25,95 L48,52 L38,52 L78,5 L58,45 L68,45 Z" />
+</vector>

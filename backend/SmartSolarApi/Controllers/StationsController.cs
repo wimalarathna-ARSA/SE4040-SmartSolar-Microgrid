@@ -149,6 +149,51 @@ namespace SmartSolarApi.Controllers
         }
 
         /// <summary>
+        /// Updates a physical battery slot status (busy or free).
+        /// When busy, prosumers cannot book this slot.
+        /// PUT/POST: api/stations/{id}/slots/{slotNumber}/busy
+        /// </summary>
+        [HttpPut("{id}/slots/{slotNumber}/busy")]
+        [HttpPost("{id}/slots/{slotNumber}/busy")]
+        public async Task<IActionResult> SetSlotBusy(string id, int slotNumber, [FromBody] SetSlotBusyDto? dto)
+        {
+            bool isBusy = dto?.IsBusy ?? true;
+            string? reason = dto?.Reason;
+            var result = await _stationService.SetSlotBusyAsync(id, slotNumber, isBusy, reason);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                station = result.Station
+            });
+        }
+
+        /// <summary>
+        /// Releases a slot by clearing busy status or cancelling any active booking on that slot.
+        /// POST: api/stations/{id}/slots/{slotNumber}/release
+        /// </summary>
+        [HttpPost("{id}/slots/{slotNumber}/release")]
+        [HttpPut("{id}/slots/{slotNumber}/release")]
+        public async Task<IActionResult> ReleaseSlot(string id, int slotNumber)
+        {
+            var result = await _stationService.ReleaseSlotAsync(id, slotNumber);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                station = result.Station
+            });
+        }
+
+        /// <summary>
         /// Retrieves available energy booking slots for a given station.
         /// GET: api/stations/{id}/slots
         /// </summary>

@@ -3,133 +3,101 @@
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
 // Description: Navigation bar with role-aware links and authentication state.
-// Architecture: FAT Service Pattern (All business logic centralized in API)
+// Rendering: pure flex-wrap layout (no Bootstrap collapse dependency) so links
+// stay visible on every screen size without JS or icon fonts.
 // ============================================================================
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-  const { user, isAuthenticated, isBackoffice, isOperator } = useAuth();
+  const { user, isAuthenticated, isBackoffice, isOperator, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const isActive = (path) => location.pathname === path ? 'active fw-bold' : '';
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const isActive = (path) => location.pathname === path ? 'active fw-bold bg-white/10 text-white shadow-sm' : '';
+  const initial = ((user?.fullName || 'S').trim().charAt(0) || 'S').toUpperCase();
+
+  const linkClass = 'nav-link text-[0.92rem] text-slate-300 hover:text-white px-3 py-2 rounded-full transition hover:bg-white/10 text-decoration-none';
 
   return (
-    <nav className="navbar navbar-expand-lg freq-navbar sticky-top py-3">
-      <div className="container-fluid px-lg-5 px-3">
-        <Link className="navbar-brand d-flex align-items-center gap-2 fw-bold text-white fs-4" to="/">
-          <img src="/solarx-logo.png" alt="SØLΛR-X Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
-          <span className="text-white fw-bold tracking-tight" style={{ letterSpacing: '-0.02em' }}>SØLΛR<span style={{ color: '#00ffce' }}>-X</span></span>
+    <nav className="sticky-top py-3 bg-[#020202]/90 backdrop-blur-xl border-bottom border-[#65998B]/25 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+      <div className="container-fluid px-lg-5 px-3 d-flex align-items-center flex-wrap gap-2">
+        <Link className="navbar-brand d-flex align-items-center gap-2 fw-bold text-white fs-4 tracking-[-0.02em] text-decoration-none me-2 transition hover:opacity-85" to="/">
+          <img src="/solarx-logo.png" alt="SØLΛR-X Logo" className="w-[36px] h-[36px] object-contain drop-shadow-[0_0_12px_rgba(143,179,169,0.5)]" onError={(e) => e.currentTarget.classList.add('d-none')} />
+          <span className="text-white fw-bold tracking-[-0.02em]">SØLΛR<span className="text-[#8FB3A9]">-X</span></span>
         </Link>
 
-        <button
-          className="navbar-toggler border-0 text-white"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarContent"
-          aria-controls="navbarContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <i className="bi bi-list fs-2 text-white"></i>
-        </button>
+        <div className="d-flex align-items-center flex-wrap gap-x-3 gap-y-1 mx-lg-auto">
+          <Link className={`${linkClass} ${isActive('/')}`} to="/">
+            Home
+          </Link>
 
-        <div className="collapse navbar-collapse" id="navbarContent">
-          <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3">
-            <li className="nav-item">
-              <Link className={`nav-link freq-nav-link ${isActive('/')}`} to="/">
-                Home
+          {isBackoffice && (
+            <>
+              <Link className={`${linkClass} ${isActive('/backoffice')}`} to="/backoffice">
+                Backoffice
               </Link>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link freq-nav-link" href="#hubs">
-                Microgrid Hubs
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link freq-nav-link" href="#digital-twin">
-                3D Digital Twin
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link freq-nav-link" href="#simulator">
-                Yield Simulator
-              </a>
-            </li>
+              <Link className={`${linkClass} ${isActive('/backoffice/stations')}`} to="/backoffice/stations">
+                Hubs Admin
+              </Link>
+            </>
+          )}
 
-            {isBackoffice && (
-              <>
-                <li className="nav-item">
-                  <Link className={`nav-link freq-nav-link ${isActive('/backoffice')}`} to="/backoffice">
-                    Backoffice
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className={`nav-link freq-nav-link ${isActive('/backoffice/stations')}`} to="/backoffice/stations">
-                    Hubs Admin
-                  </Link>
-                </li>
-              </>
-            )}
+          {isOperator && (
+            <>
+              <Link className={`${linkClass} ${isActive('/operator')}`} to="/operator">
+                Grid Monitor
+              </Link>
+              <Link className={`${linkClass} ${isActive('/operator/slots')}`} to="/operator/slots">
+                Slots
+              </Link>
+              <Link className={`${linkClass} ${isActive('/operator/energy-history')}`} to="/operator/energy-history">
+                Transfer History
+              </Link>
+            </>
+          )}
 
-            {isOperator && (
-              <>
-                <li className="nav-item">
-                  <Link className={`nav-link freq-nav-link ${isActive('/operator')}`} to="/operator">
-                    Grid Monitor
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className={`nav-link freq-nav-link ${isActive('/operator/slots')}`} to="/operator/slots">
-                    Slots
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className={`nav-link freq-nav-link ${isActive('/operator/energy-history')}`} to="/operator/energy-history">
-                    Transfer History
-                  </Link>
-                </li>
-              </>
-            )}
-            
-            <li className="nav-item">
-              <a className="nav-link freq-nav-link d-flex align-items-center gap-1" href="#architecture">
-                Docs <span style={{ fontSize: '0.85rem' }}>↗</span>
-              </a>
-            </li>
-          </ul>
+          {isAuthenticated ? (
+            <button type="button" onClick={handleLogout} className={`${linkClass} d-flex align-items-center gap-1 bg-transparent border-0`}>
+              Logout <span className="text-[0.85rem]">↗</span>
+            </button>
+          ) : (
+            <a className={`${linkClass} d-flex align-items-center gap-1`} href="#architecture">
+              Docs <span className="text-[0.85rem]">↗</span>
+            </a>
+          )}
+        </div>
 
-          <div className="d-flex align-items-center gap-3">
-            {isAuthenticated ? (
-              <Link
-                to={isBackoffice ? '/backoffice/profile' : isOperator ? '/operator/profile' : '/profile'}
-                className="d-flex align-items-center gap-3 text-decoration-none"
-                title="Open profile"
-              >
-                <div className="text-end text-light">
-                  <div className="small fw-semibold">{user?.fullName}</div>
-                  <span className={`badge ${isBackoffice ? 'badge-role-backoffice' : 'badge-role-operator'}`}>
-                    {user?.role}
-                  </span>
-                </div>
-                <span
-                  className="d-inline-flex align-items-center justify-content-center rounded-circle fw-bold"
-                  style={{
-                    width: '38px', height: '38px', fontSize: '0.95rem',
-                    background: 'rgba(0,255,206,0.12)', color: '#00ffce',
-                    border: '1.5px solid rgba(0,255,206,0.55)',
-                  }}
-                >
-                  <i className="bi bi-person-fill"></i>
+        <div className="d-flex align-items-center gap-3 ms-lg-auto">
+          {isAuthenticated ? (
+            <Link
+              to={isBackoffice ? '/backoffice/profile' : isOperator ? '/operator/profile' : '/profile'}
+              className="d-flex align-items-center gap-3 text-decoration-none"
+              title="Open profile"
+            >
+              <div className="text-end text-light">
+                <div className="small fw-semibold">{user?.fullName}</div>
+                <span className={`badge text-white ${isBackoffice ? 'bg-[#063127] border border-light border-opacity-25' : 'bg-[#686053]'}`}>
+                  {user?.role}
                 </span>
-              </Link>
-            ) : (
-              <Link to="/login" className="freq-btn-header">
-                Staff Portal <span style={{ fontSize: '0.85rem' }}>↗</span>
-              </Link>
-            )}
-          </div>
+              </div>
+              <span
+                className="d-inline-flex align-items-center justify-content-center rounded-circle fw-bold w-[38px] h-[38px] text-[0.95rem] bg-[rgba(143,179,169,0.15)] text-[#8FB3A9] border-solid border-[1.5px] border-[rgba(143,179,169,0.55)] shadow-[0_0_16px_rgba(143,179,169,0.25)]"
+              >
+                {initial}
+              </span>
+            </Link>
+          ) : (
+            <Link to="/login" className="btn fw-bold d-inline-flex align-items-center gap-2 text-[0.95rem] px-4 py-2 rounded-[10px] bg-[#F8F8F8] text-[#063127] border border-white/20 shadow-lg transition hover:-translate-y-[1px]">
+              Staff Portal <span className="text-[0.85rem]">↗</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

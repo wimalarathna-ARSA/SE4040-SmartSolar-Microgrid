@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Edit Reservation sheet styled like the Pick Date &amp; Time / Adjust Slots sheets:
+     #BFD5D0 card, #8FB3A9 track/handle, #65998B secondary,
+     #3B796A accents, #063127 titles. Date steppers + analog clock + fields. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_edit_sheet_water"
+    android:scrollbars="none"
+    android:clipToPadding="false">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_adjust_handle"
+        android:layout_marginBottom="18dp" />
+
+    <!-- Top status row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/bg_dot_orange" />
+
+        <TextView
+            android:id="@+id/tv_edit_code"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit Reservation"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#3B796A"
+            android:paddingStart="8dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12h notice"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="#063127" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="RESCHEDULE"
+        android:textSize="10sp"
+        android:letterSpacing="0.18"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#65998B" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Edit Reservation"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-semibold"
+        android:textColor="#063127"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Edits require at least 12 hours before the scheduled start time."
+        android:textSize="11sp"
+        android:textColor="#65998B"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Segmented Date|Time control -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_segment_track"
+        android:padding="4dp"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/tv_edit_seg_date"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:background="@drawable/bg_segment_selected"
+            android:text="Date"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="#063127"
+            android:paddingHorizontal="22dp" />
+
+        <TextView
+            android:id="@+id/tv_edit_seg_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Time"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#3B796A"
+            android:paddingHorizontal="22dp"
+            android:minHeight="32dp" />
+    </LinearLayout>
+
+    <!-- Huge day value (Date mode only) -->
+    <TextView
+        android:id="@+id/tv_edit_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="23"
+        android:textSize="72sp"
+        android:fontFamily="sans-serif-light"
+        android:includeFontPadding="false"
+        android:textColor="#063127"
+        android:layout_marginTop="0dp" />
+
+    <TextView
+        android:id="@+id/tv_edit_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Tue, 23 Sep 2026"
+        android:textSize="12sp"
+        android:textColor="#3B796A"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Day stepper row (Date mode only) -->
+    <LinearLayout
+        android:id="@+id/layout_edit_day_stepper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="14dp">
+
+        <FrameLayout
+            android:id="@+id/btn_edit_minus"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bg_stepper_circle"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="−"
+                android:textSize="26sp"
+                android:textColor="#063127"
+                android:includeFontPadding="false" />
+        </FrameLayout>
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="1dp" />
+
+        <FrameLayout
+            android:id="@+id/btn_edit_plus"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bg_stepper_circle"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="+"
+                android:textSize="26sp"
+                android:textColor="#063127"
+                android:includeFontPadding="false" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Analog clock circle (Time mode only) -->
+    <LinearLayout
+        android:id="@+id/layout_edit_clock_wrap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="18dp"
+        android:visibility="gone">
+
+        <TimePicker
+            android:id="@+id/time_picker_edit_clock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:timePickerMode="clock" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap the clock face to set time"
+            android:textSize="12sp"
+            android:textColor="#3B796A"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+
+    <!-- Energy + duration fields -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Energy amount (kWh)"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#063127"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/et_edit_energy"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_qr_input"
+        android:paddingHorizontal="14dp"
+        android:textColor="#063127"
+        android:textColorHint="#65998B"
+        android:textSize="14sp"
+        android:inputType="numberDecimal"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Duration (hours)"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#063127"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/et_edit_duration"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_qr_input"
+        android:paddingHorizontal="14dp"
+        android:textColor="#063127"
+        android:textColorHint="#65998B"
+        android:textSize="14sp"
+        android:inputType="number"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reservation type"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#063127"
+        android:layout_marginBottom="6dp" />
+
+    <Spinner
+        android:id="@+id/spinner_edit_type"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_booking_spinner"
+        android:paddingHorizontal="14dp"
+        android:layout_marginBottom="18dp" />
+
+    <!-- Deep-green pill save -->
+    <FrameLayout
+        android:id="@+id/btn_edit_save"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@drawable/bg_save_dark_pill"
+        android:clickable="true"
+        android:focusable="true">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Save Changes"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#FFFFFF" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/btn_edit_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Cancel"
+        android:textSize="13sp"
+        android:textColor="#3B796A"
+        android:padding="12dp" />
+
+</LinearLayout>
+</ScrollView>

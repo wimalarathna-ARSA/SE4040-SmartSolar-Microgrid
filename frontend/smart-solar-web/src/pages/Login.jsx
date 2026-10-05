@@ -2,171 +2,22 @@
 // File: Login.jsx
 // Author: IT22207418
 // Course: SE4040 - Enterprise Application Development
-// Description: Login page with role-based routing, OTP password reset flow, and strong password validation.
+// Description: Staff login with split-screen marketing panel, role-based
+// routing, OTP password reset flow, and strong password validation.
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 import { evaluatePassword } from '../utils/passwordValidator';
 
-const S = {
-  page: {
-    minHeight: '100vh',
-    width: '100%',
-    backgroundColor: '#080808',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    fontFamily: "'Inter', 'Segoe UI', sans-serif",
-  },
-  blobTopRight: {
-    position: 'absolute',
-    top: '-60px',
-    right: '-80px',
-    width: '520px',
-    height: '420px',
-    background: 'radial-gradient(ellipse 70% 60% at 65% 35%, rgba(140,30,200,0.55) 0%, rgba(80,10,140,0.3) 45%, transparent 75%)',
-    filter: 'blur(2px)',
-    zIndex: 0,
-    animation: 'blobShift 8s ease-in-out infinite alternate',
-  },
-  blobBottomLeft: {
-    position: 'absolute',
-    bottom: '-80px',
-    left: '-60px',
-    width: '420px',
-    height: '360px',
-    background: 'radial-gradient(ellipse 65% 55% at 35% 65%, rgba(30,60,220,0.5) 0%, rgba(10,20,120,0.28) 50%, transparent 78%)',
-    filter: 'blur(2px)',
-    zIndex: 0,
-    animation: 'blobShift2 9s ease-in-out infinite alternate',
-  },
-  card: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    width: '100%',
-    maxWidth: '840px',
-    minHeight: '420px',
-    borderRadius: '20px',
-    background: 'rgba(22, 20, 28, 0.72)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.06) inset',
-    overflow: 'hidden',
-    margin: '20px',
-  },
-  leftPanel: {
-    flex: '1 1 42%',
-    padding: '48px 40px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#0d1526',
-  },
-  leftBgImage: {
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    opacity: 0.45,
-  },
-  leftOverlay: {
-    position: 'absolute',
-    inset: 0,
-    background: 'linear-gradient(180deg, rgba(8,8,12,0.55) 0%, rgba(8,8,12,0.35) 40%, rgba(8,8,12,0.88) 100%), linear-gradient(100deg, rgba(40,10,80,0.35) 0%, transparent 60%)',
-  },
-  leftGlow: {
-    position: 'absolute',
-    bottom: '-40px',
-    left: '-40px',
-    width: '320px',
-    height: '260px',
-    background: 'radial-gradient(ellipse 65% 55% at 30% 75%, rgba(100,20,180,0.45) 0%, transparent 70%)',
-    zIndex: 0,
-    pointerEvents: 'none',
-  },
-  divider: {
-    width: '1px',
-    alignSelf: 'stretch',
-    background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.18) 70%, transparent 100%)',
-    flexShrink: 0,
-  },
-  rightPanel: {
-    flex: '1 1 55%',
-    padding: '52px 44px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  input: {
-    width: '100%',
-    padding: '13px 18px',
-    borderRadius: '50px',
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'rgba(255,255,255,0.06)',
-    color: '#e2e8f0',
-    fontSize: '0.92rem',
-    outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-    backdropFilter: 'blur(6px)',
-  },
-  submitBtn: {
-    width: '100%',
-    padding: '13px',
-    borderRadius: '50px',
-    border: 'none',
-    background: 'linear-gradient(135deg, rgba(100,30,180,0.9) 0%, rgba(60,20,130,0.95) 100%)',
-    color: '#fff',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-    letterSpacing: '0.02em',
-    cursor: 'pointer',
-    transition: 'all 0.25s ease',
-    boxShadow: '0 4px 20px rgba(120,40,200,0.4)',
-  },
-};
-
-const keyframesCSS = `
-  @keyframes blobShift {
-    0%   { transform: translate(0,0) scale(1); }
-    100% { transform: translate(-30px, 30px) scale(1.12); }
-  }
-  @keyframes blobShift2 {
-    0%   { transform: translate(0,0) scale(1); }
-    100% { transform: translate(25px,-25px) scale(1.1); }
-  }
-  @keyframes waveFlow {
-    0%   { stroke-dashoffset: 0; }
-    100% { stroke-dashoffset: -400; }
-  }
-  .login-input::placeholder { color: rgba(200,200,220,0.4); }
-  .login-input:focus {
-    border-color: rgba(160,80,255,0.6) !important;
-    box-shadow: 0 0 0 3px rgba(140,40,220,0.15) !important;
-  }
-  .login-submit-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(130,50,210,0.95) 0%, rgba(80,30,170,1) 100%) !important;
-    box-shadow: 0 6px 28px rgba(140,40,220,0.55) !important;
-    transform: translateY(-1px);
-  }
-  .login-submit-btn:active:not(:disabled) { transform: translateY(0); }
-  .wave-path { stroke-dasharray: 8 6; animation: waveFlow 3s linear infinite; }
-  .wave-path-2 { stroke-dasharray: 6 8; animation: waveFlow 4s linear infinite reverse; }
-`;
-
 const Login = () => {
-  const [emailOrNic, setEmailOrNic] = useState('');
+  const [emailOrNic, setEmailOrNic] = useState(() => localStorage.getItem('rememberedEmail') || '');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('rememberedEmail'));
   const [error, setError] = useState('');
   const [successBanner, setSuccessBanner] = useState('');
   const [loading, setLoading] = useState(false);
@@ -180,6 +31,7 @@ const Login = () => {
   const [forgotOtp, setForgotOtp] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [forgotShowNewPw, setForgotShowNewPw] = useState(false);
   const [forgotMaskedEmail, setForgotMaskedEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotError, setForgotError] = useState('');
@@ -304,6 +156,8 @@ const Login = () => {
       const response = await api.post('/auth/login', { emailOrNic, password });
       const authData = response.data;
       login(authData);
+      if (rememberMe) localStorage.setItem('rememberedEmail', emailOrNic.trim());
+      else localStorage.removeItem('rememberedEmail');
       if (authData.role === 'Backoffice') navigate('/backoffice');
       else if (authData.role === 'GridOperator') navigate('/operator');
       else if (authData.role === 'Prosumer') {
@@ -316,315 +170,211 @@ const Login = () => {
     }
   };
 
-  const wavePathsRight = [0,1,2,3,4,5,6,7,8,9].map(i => ({
-    key: `r${i}`,
-    d: `M ${700+i*12} 0 C ${820+i*8} ${80+i*15}, ${900+i*6} ${200+i*12}, ${860+i*10} ${340+i*8} S ${780+i*14} ${480+i*5}, ${820+i*9} 540`,
-    stroke: i % 2 === 0 ? '#a040e0' : '#6020b0',
-    opacity: 0.7 - i * 0.04,
-  }));
-
-  const wavePathsLeft = [0,1,2,3,4,5,6].map(i => ({
-    key: `l${i}`,
-    d: `M 0 ${350+i*18} C ${80+i*10} ${380+i*12}, ${160+i*8} ${420+i*10}, ${120+i*14} 540`,
-    stroke: i % 2 === 0 ? '#3050e0' : '#2030c0',
-    opacity: 0.6 - i * 0.04,
-  }));
+  const inputClass = 'form-control rounded-[12px] bg-[#F8F8F8] text-[#063127] border border-[#BFD5D0] px-[18px] py-[13px] text-[0.92rem] focus:border-[#2E695A] focus:shadow-[0_0_0_3px_rgba(101,153,139,0.2)]';
+  const labelClass = 'form-label d-block text-[0.78rem] fw-bold text-[#063127] mb-[6px]';
 
   return (
-    <>
-      <style>{keyframesCSS}</style>
-      <div style={S.page}>
+    <div className="min-vh-100 w-100 d-flex font-[Inter,sans-serif] bg-[#F8F8F8]">
 
-        {/* Animated wave lines background */}
-        <svg
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0, opacity: 0.25, pointerEvents: 'none' }}
-          viewBox="0 0 960 540"
-          preserveAspectRatio="xMidYMid slice"
-          fill="none"
-        >
-          {wavePathsRight.map(p => (
-            <path key={p.key} className="wave-path" d={p.d} stroke={p.stroke} strokeWidth="1.2" strokeOpacity={p.opacity} />
-          ))}
-          {wavePathsLeft.map(p => (
-            <path key={p.key} className="wave-path-2" d={p.d} stroke={p.stroke} strokeWidth="1.1" strokeOpacity={p.opacity} />
-          ))}
-        </svg>
-
-        {/* Ambient glow blobs */}
-        <div style={S.blobTopRight} />
-        <div style={S.blobBottomLeft} />
-
-        {/* Main glass card */}
-        <div style={S.card}>
-
-          {/* LEFT: Branding panel */}
-          <div style={S.leftPanel}>
-            <img src="/images/solar-rooftop-home.jpg" alt="" aria-hidden="true" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={S.leftBgImage} />
-            <div style={S.leftOverlay} />
-            <div style={S.leftGlow} />
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              {/* Logo */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '36px' }}>
-                <img src="/solarx-logo.png" alt="SOLARX" style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
-                <span style={{ fontSize: '1.7rem', fontWeight: '800', color: '#fff', letterSpacing: '-0.03em' }}>
-                  SOLARX
-                </span>
-              </div>
-              {/* Tagline */}
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.16em', color: 'rgba(200,180,255,0.7)', marginBottom: '10px' }}>
-                  Staff Portal
-                </div>
-                <h2 style={{ fontSize: 'clamp(1.6rem, 2.4vw, 2rem)', fontWeight: '800', color: '#fff', lineHeight: '1.2', letterSpacing: '-0.03em', marginBottom: '14px' }}>
-                  Welcome<br /><span style={{ fontWeight: '900' }}>Back</span>
-                </h2>
-                <p style={{ fontSize: '0.84rem', color: 'rgba(200,200,220,0.65)', lineHeight: '1.65', maxWidth: '240px', marginBottom: '0' }}>
-                  Securely access the SOLARX enterprise dispatch platform. Backoffice and Grid Operator accounts only.
-                </p>
-              </div>
-            </div>
-            {/* Footer link */}
-            <div style={{ position: 'relative', zIndex: 1, fontSize: '0.78rem', color: 'rgba(200,200,220,0.55)', letterSpacing: '0.02em' }}>
-              solarx.energy
-            </div>
+      {/* LEFT: showcase panel */}
+      <div className="d-none d-md-flex flex-column justify-content-between position-relative overflow-hidden text-white p-5 w-[55%]">
+        <img src="/images/solar-hero-panels.jpg" alt="" aria-hidden="true" onError={(e) => { e.currentTarget.classList.add('d-none'); }} className="position-absolute top-0 start-0 w-100 h-100 object-fit-cover animate-[bl-kenburns_24s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
+        <div className="position-absolute top-0 start-0 w-100 h-100 bg-[linear-gradient(180deg,rgba(6,49,39,0.55)_0%,rgba(6,49,39,0.25)_45%,rgba(6,49,39,0.85)_100%)]" />
+        <div className="position-relative d-flex align-items-center justify-content-between animate-[bl-fade-in_600ms_ease-out_100ms_both] motion-reduce:animate-none">
+          <span className="d-flex align-items-center gap-2 fw-extrabold text-[1.15rem] tracking-[-0.02em]">
+            <img src="/solarx-logo.png" alt="SOLARX" className="object-fit-contain w-[32px] h-[32px]" onError={(e) => { e.currentTarget.classList.add('d-none'); }} />
+            SØLΛR-X
+          </span>
+          <Link to="/" className="text-white/85 text-decoration-none text-[0.85rem] fw-semibold hover:text-white">
+            &larr; Back to Website
+          </Link>
+        </div>
+        <div className="position-relative">
+          <h1 className="fw-extrabold text-white lh-[1.08] tracking-[-0.02em] mb-3 text-[clamp(1.9rem,3vw,2.9rem)] animate-[bl-fade-up_700ms_cubic-bezier(0.16,1,0.3,1)_150ms_both] motion-reduce:animate-none">
+            Trade Smarter. Charge Faster.<br />Power Anywhere.
+          </h1>
+          <p className="text-white/70 text-[0.92rem] lh-[1.65] max-w-[420px] mb-4 animate-[bl-fade-up_700ms_cubic-bezier(0.16,1,0.3,1)_250ms_both] motion-reduce:animate-none">
+            From island microgrid hubs to rooftop prosumer arrays, our platform lets field teams monitor, verify, and finalize energy trades seamlessly.
+          </p>
+          <div className="d-flex align-items-center gap-2 animate-[bl-fade-in_600ms_ease-out_350ms_both] motion-reduce:animate-none" aria-hidden="true">
+            <span className="d-inline-block rounded-full bg-white w-[28px] h-[4px]"></span>
+            <span className="d-inline-block rounded-full bg-white/40 w-[8px] h-[4px]"></span>
           </div>
+        </div>
+      </div>
 
-          {/* Vertical divider */}
-          <div style={S.divider} />
+      {/* RIGHT: login card */}
+      <div className="d-flex align-items-center justify-content-center flex-fill bg-[#F8F8F8] p-4">
+        <div className="card border-0 rounded-[24px] shadow-lg bg-white p-[40px] w-100 max-w-[440px] animate-[bl-fade-up_700ms_cubic-bezier(0.16,1,0.3,1)_100ms_both] motion-reduce:animate-none">
+          <div className="d-md-none text-center mb-3">
+            <img src="/solarx-logo.png" alt="SOLARX" className="object-fit-contain w-[44px] h-[44px] mx-auto" onError={(e) => { e.currentTarget.classList.add('d-none'); }} />
+          </div>
+          <h2 className="fw-extrabold text-[#063127] tracking-[-0.02em] mb-1 text-[1.9rem] animate-[bl-fade-up_700ms_cubic-bezier(0.16,1,0.3,1)_200ms_both] motion-reduce:animate-none">Welcome Back!</h2>
+          <p className="text-[0.88rem] text-[#686053] mb-4 animate-[bl-fade-up_700ms_cubic-bezier(0.16,1,0.3,1)_250ms_both] motion-reduce:animate-none">Log in to manage your solar microgrid operations with ease.</p>
 
-          {/* RIGHT: Form panel */}
-          <div style={S.rightPanel}>
-            <h3 style={{ fontSize: '1.55rem', fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: '28px', letterSpacing: '-0.02em' }}>
-              Login
-            </h3>
+          {error && (
+            <div className="alert alert-danger d-flex gap-2 align-items-start rounded-[10px] text-[0.82rem] lh-[1.5] mb-[16px]">
+              <i className="bi bi-exclamation-triangle-fill flex-shrink-0 mt-[2px]" />
+              <span>{error}</span>
+            </div>
+          )}
 
-            {error && (
-              <div style={{
-                background: 'rgba(220,40,40,0.12)',
-                border: '1px solid rgba(220,40,40,0.3)',
-                borderRadius: '10px',
-                padding: '10px 14px',
-                color: '#fca5a5',
-                fontSize: '0.82rem',
-                lineHeight: '1.5',
-                marginBottom: '16px',
-                display: 'flex',
-                gap: '8px',
-                alignItems: 'flex-start',
-              }}>
-                <i className="bi bi-exclamation-triangle-fill" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>{error}</span>
-              </div>
-            )}
+          {successBanner && (
+            <div className="alert d-flex gap-2 align-items-center rounded-[10px] text-[0.84rem] lh-[1.5] mb-[18px] bg-[#65998B]/20 border border-[#65998B]/50 text-[#063127]">
+              <i className="bi bi-check-circle-fill fs-6 flex-shrink-0" />
+              <span>{successBanner}</span>
+            </div>
+          )}
 
-            {successBanner && (
-              <div style={{
-                background: 'rgba(16,185,129,0.15)',
-                border: '1px solid rgba(16,185,129,0.4)',
-                borderRadius: '10px',
-                padding: '12px 16px',
-                color: '#6ee7b7',
-                fontSize: '0.84rem',
-                lineHeight: '1.5',
-                marginBottom: '18px',
-                display: 'flex',
-                gap: '8px',
-                alignItems: 'center',
-              }}>
-                <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '1.1rem', flexShrink: 0 }} />
-                <span>{successBanner}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '14px' }}>
+          <form onSubmit={handleSubmit} className="animate-[bl-fade-up_700ms_cubic-bezier(0.16,1,0.3,1)_300ms_both] motion-reduce:animate-none">
+            <div className="mb-[14px]">
+              <label htmlFor="login-email" className={labelClass}>Email / NIC</label>
+              <input
+                id="login-email"
+                type="text"
+                className={inputClass}
+                placeholder="Input your email or NIC"
+                value={emailOrNic}
+                onChange={(e) => setEmailOrNic(e.target.value)}
+                required
+                autoComplete="username"
+              />
+            </div>
+            <div className="mb-[12px]">
+              <label htmlFor="login-password" className={labelClass}>Password</label>
+              <div className="position-relative">
                 <input
-                  type="text"
-                  className="login-input"
-                  style={S.input}
-                  placeholder="Username / Email / NIC"
-                  value={emailOrNic}
-                  onChange={(e) => setEmailOrNic(e.target.value)}
-                  required
-                  autoComplete="username"
-                />
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <input
-                  type="password"
-                  className="login-input"
-                  style={S.input}
-                  placeholder="Password"
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  className={`${inputClass} pe-5`}
+                  placeholder="Input your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                 />
-              </div>
-
-              {/* Forgot Password Link */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '18px' }}>
                 <button
                   type="button"
-                  onClick={handleOpenForgot}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#00ffce',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    padding: '2px 0',
-                    outline: 'none',
-                  }}
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="btn border-0 bg-transparent text-[#686053] position-absolute top-50 end-0 translate-middle-y me-2 p-1 hover:text-[#063127]"
                 >
-                  Forgot Password?
+                  <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                 </button>
               </div>
+            </div>
 
+            <div className="d-flex align-items-center justify-content-between mb-[18px]">
+              <div className="form-check d-flex align-items-center gap-2 m-0">
+                <input
+                  id="login-remember"
+                  type="checkbox"
+                  className="form-check-input m-0 accent-[#063127]"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <label htmlFor="login-remember" className="form-check-label text-[0.82rem] text-[#686053]">Remember Me</label>
+              </div>
               <button
-                type="submit"
-                className="login-submit-btn"
-                style={S.submitBtn}
-                disabled={loading}
+                type="button"
+                onClick={handleOpenForgot}
+                className="btn btn-link text-decoration-none p-0 text-[0.82rem] fw-semibold text-[#2E695A] hover:text-[#063127]"
               >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-                    Authenticating...
-                  </>
-                ) : 'Login'}
+                Forgot Password?
               </button>
-            </form>
-          </div>
-        </div>
+            </div>
 
-        {/* ── FORGOT PASSWORD 3-STEP MODAL ── */}
-        {showForgotModal && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(5, 5, 10, 0.82)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 9999,
-              padding: '20px',
-            }}
-            onClick={() => setShowForgotModal(false)}
-          >
-            <div
-              style={{
-                background: 'rgba(24, 22, 34, 0.95)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: '24px',
-                padding: '36px',
-                maxWidth: '480px',
-                width: '100%',
-                boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,255,206,0.1) inset',
-                position: 'relative',
-              }}
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="submit"
+              className={`btn rounded-pill w-100 fw-bold text-[0.95rem] py-[13px] border shadow-sm transition hover:-translate-y-[1px] disabled:opacity-60 ${loading ? 'bg-[#BFD5D0] text-[#063127] border-[#063127]' : 'text-white bg-[#063127] border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127]'}`}
+              disabled={loading}
             >
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                  Authenticating...
+                </>
+              ) : 'Login'}
+            </button>
+          </form>
+
+          <div className="d-flex align-items-center gap-3 my-4 animate-[bl-fade-in_600ms_ease-out_450ms_both] motion-reduce:animate-none" aria-hidden="true">
+            <span className="flex-fill border-top border-[#BFD5D0]"></span>
+            <span className="text-[0.75rem] text-[#686053]">Staff access only</span>
+            <span className="flex-fill border-top border-[#BFD5D0]"></span>
+          </div>
+
+          <p className="text-center text-[0.82rem] text-[#686053] m-0 animate-[bl-fade-in_600ms_ease-out_550ms_both] motion-reduce:animate-none">
+            Need an account? <span className="fw-bold text-[#063127]">Contact your backoffice administrator</span>
+          </p>
+        </div>
+      </div>
+
+      {/* ── FORGOT PASSWORD 3-STEP MODAL ── */}
+      {showForgotModal && (
+        <div
+          className="modal d-block position-fixed top-0 start-0 w-100 h-100 d-flex align-items-start justify-content-center overflow-y-auto bg-black/60 backdrop-blur-sm p-[20px] z-[9999]"
+          onClick={() => setShowForgotModal(false)}
+        >
+          <div
+            className="modal-dialog w-100 max-w-[480px] mx-auto my-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content position-relative bg-white border-0 rounded-[24px] shadow-lg p-[36px]">
               {/* Close Button */}
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
-                style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  background: 'rgba(255,255,255,0.08)',
-                  border: 'none',
-                  color: '#94a3b8',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontSize: '1.2rem',
-                }}
+                className="btn position-absolute top-[20px] end-[20px] bg-[#BFD5D0]/40 border-0 text-[#063127] rounded-full w-[32px] h-[32px] d-flex align-items-center justify-content-center fs-5 p-0 transition hover:bg-[#BFD5D0]/70"
+                aria-label="Close"
               >
                 &times;
               </button>
 
               {/* Header */}
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div
-                  style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, rgba(0,255,206,0.2) 0%, rgba(16,185,129,0.3) 100%)',
-                    border: '1px solid rgba(0,255,206,0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    color: '#00ffce',
-                    margin: '0 auto 14px',
-                  }}
-                >
+              <div className="text-center mb-[24px]">
+                <div className="rounded-[16px] bg-[#063127] d-flex align-items-center justify-content-center fs-4 text-white mx-auto mb-[14px] w-[52px] h-[52px]">
                   <i className="bi bi-shield-lock-fill"></i>
                 </div>
-                <h4 style={{ color: '#ffffff', fontWeight: 800, fontSize: '1.35rem', margin: 0 }}>
+                <h4 className="text-[#063127] fw-extrabold text-[1.35rem] m-0">
                   Reset Account Password
                 </h4>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px' }}>
+                <div className="text-[0.8rem] text-[#686053] mt-[4px]">
                   Gmail OTP Verification (Valid for 5 minutes)
                 </div>
               </div>
 
               {/* Progress Steps Indicator */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '24px' }}>
+              <div className="d-flex align-items-center justify-content-center gap-2 mb-[24px]">
                 {[
                   { num: 1, label: 'Email/NIC' },
                   { num: 2, label: 'Verify OTP' },
                   { num: 3, label: 'New Password' },
                 ].map((s) => (
-                  <div key={s.num} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div key={s.num} className="d-flex align-items-center gap-[6px]">
                     <div
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        background: forgotStep >= s.num ? '#00ffce' : 'rgba(255,255,255,0.1)',
-                        color: forgotStep >= s.num ? '#000' : '#64748b',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
+                      className={`rounded-full d-flex align-items-center justify-content-center text-[0.72rem] fw-extrabold w-[24px] h-[24px] ${forgotStep >= s.num ? 'bg-[#063127] text-white' : 'bg-[#BFD5D0]/40 text-[#686053]'}`}
                     >
                       {forgotStep > s.num ? '✓' : s.num}
                     </div>
-                    <span style={{ fontSize: '0.74rem', color: forgotStep >= s.num ? '#e2e8f0' : '#64748b', fontWeight: 600 }}>
+                    <span className={`text-[0.74rem] fw-semibold ${forgotStep >= s.num ? 'text-[#063127]' : 'text-[#686053]'}`}>
                       {s.label}
                     </span>
-                    {s.num < 3 && <span style={{ color: '#475569', fontSize: '0.7rem' }}>&bull;</span>}
+                    {s.num < 3 && <span className="text-[#686053] text-[0.7rem]">&bull;</span>}
                   </div>
                 ))}
               </div>
 
               {/* Error & Success Messages */}
               {forgotError && (
-                <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px 14px', color: '#fca5a5', fontSize: '0.82rem', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div className="alert alert-danger d-flex gap-2 align-items-center rounded-[10px] text-[0.82rem] mb-[16px]">
                   <i className="bi bi-exclamation-triangle-fill text-danger"></i>
                   <span>{forgotError}</span>
                 </div>
               )}
               {forgotSuccess && (
-                <div style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', borderRadius: '10px', padding: '10px 14px', color: '#6ee7b7', fontSize: '0.82rem', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <i className="bi bi-check-circle-fill text-success"></i>
+                <div className="alert d-flex gap-2 align-items-center rounded-[10px] text-[0.82rem] mb-[16px] bg-[#65998B]/20 border border-[#65998B]/50 text-[#063127]">
+                  <i className="bi bi-check-circle-fill"></i>
                   <span>{forgotSuccess}</span>
                 </div>
               )}
@@ -632,29 +382,27 @@ const Login = () => {
               {/* ── STEP 1: Enter Email or NIC ── */}
               {forgotStep === 1 && (
                 <form onSubmit={handleSendOtp}>
-                  <div style={{ marginBottom: '18px' }}>
-                    <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <div className="mb-[18px]">
+                    <label className="form-label d-block text-[0.78rem] fw-bold text-[#063127] mb-[6px]">
                       Registered Email or NIC *
                     </label>
                     <input
                       type="text"
-                      className="login-input"
-                      style={S.input}
+                      className={inputClass}
                       placeholder="e.g. operator@smartsolar.com or NIC"
                       value={forgotIdentifier}
                       onChange={(e) => setForgotIdentifier(e.target.value)}
                       required
                       autoFocus
                     />
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '6px' }}>
+                    <div className="text-[0.75rem] text-[#686053] mt-[6px]">
                       We will send a 6-digit one-time code to your registered Gmail address.
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="login-submit-btn"
-                    style={{ ...S.submitBtn, marginTop: '8px' }}
+                    className="btn rounded-pill w-100 fw-bold text-white text-[0.95rem] py-[13px] mt-[8px] bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] shadow-sm transition hover:-translate-y-[1px] disabled:opacity-60"
                     disabled={forgotLoading || !forgotIdentifier}
                   >
                     {forgotLoading ? (
@@ -673,67 +421,40 @@ const Login = () => {
               {forgotStep === 2 && (
                 <form onSubmit={handleVerifyOtp}>
                   {/* Countdown Timer Badge */}
-                  <div
-                    style={{
-                      background: timerSeconds <= 60 ? 'rgba(239,68,68,0.15)' : 'rgba(0,255,206,0.1)',
-                      border: `1px solid ${timerSeconds <= 60 ? '#ef4444' : '#00ffce'}`,
-                      borderRadius: '12px',
-                      padding: '10px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '18px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className={`bi bi-clock-history ${timerSeconds <= 60 ? 'text-danger' : 'text-success'}`}></i>
-                      <span style={{ fontSize: '0.78rem', color: '#e2e8f0', fontWeight: 600 }}>
+                  <div className="rounded-[12px] px-[16px] py-[10px] d-flex align-items-center justify-content-between mb-[18px] bg-[#BFD5D0]/30 border border-[#65998B]/40">
+                    <div className="d-flex align-items-center gap-2">
+                      <i className="bi bi-clock-history text-[#2E695A]"></i>
+                      <span className="text-[0.78rem] text-[#063127] fw-semibold">
                         Code Validity Window:
                       </span>
                     </div>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontWeight: 900,
-                        fontSize: '1rem',
-                        color: timerSeconds <= 60 ? '#ef4444' : '#00ffce',
-                      }}
-                    >
+                    <span className={`font-monospace fw-extrabold text-[1rem] ${timerSeconds <= 60 ? 'text-danger' : 'text-[#063127]'}`}>
                       {formatTimer(timerSeconds)}
                     </span>
                   </div>
 
-                  <div style={{ marginBottom: '18px' }}>
-                    <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <div className="mb-[18px]">
+                    <label className="form-label d-block text-[0.78rem] fw-bold text-[#063127] mb-[6px]">
                       Enter 6-Digit Verification Code *
                     </label>
                     <input
                       type="text"
                       maxLength={6}
-                      className="login-input"
-                      style={{
-                        ...S.input,
-                        textAlign: 'center',
-                        fontSize: '1.5rem',
-                        letterSpacing: '8px',
-                        fontFamily: 'monospace',
-                        fontWeight: 800,
-                      }}
+                      className={`${inputClass} text-center font-monospace fw-extrabold tracking-[8px] text-[1.5rem]`}
                       placeholder="000000"
                       value={forgotOtp}
                       onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))}
                       required
                       autoFocus
                     />
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '6px', textAlign: 'center' }}>
+                    <div className="text-[0.75rem] text-[#686053] mt-[6px] text-center">
                       Code sent to <strong>{forgotMaskedEmail}</strong>
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="login-submit-btn"
-                    style={{ ...S.submitBtn, marginTop: '8px' }}
+                    className="btn rounded-pill w-100 fw-bold text-white text-[0.95rem] py-[13px] mt-[8px] bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] shadow-sm transition hover:-translate-y-[1px] disabled:opacity-60"
                     disabled={forgotLoading || forgotOtp.length !== 6 || timerSeconds <= 0}
                   >
                     {forgotLoading ? (
@@ -746,22 +467,14 @@ const Login = () => {
                     )}
                   </button>
 
-                  <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <div className="text-center mt-[16px]">
                     <button
                       type="button"
                       onClick={handleSendOtp}
                       disabled={forgotLoading}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#00ffce',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                      }}
+                      className="btn btn-link text-[0.78rem] fw-semibold text-[#2E695A] text-decoration-underline hover:text-[#063127] disabled:opacity-60"
                     >
-                      Didn't receive code? Resend OTP
+                      Didn&apos;t receive code? Resend OTP
                     </button>
                   </div>
                 </form>
@@ -770,31 +483,39 @@ const Login = () => {
               {/* ── STEP 3: Enter New Password & Confirm ── */}
               {forgotStep === 3 && (
                 <form onSubmit={handleConfirmReset}>
-                  <div style={{ marginBottom: '14px' }}>
-                    <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <div className="mb-[14px]">
+                    <label className="form-label d-block text-[0.78rem] fw-bold text-[#063127] mb-[6px]">
                       New Password * (Min. 8 chars, Strong)
                     </label>
-                    <input
-                      type="password"
-                      className="login-input"
-                      style={S.input}
-                      placeholder="Enter new password"
-                      value={forgotNewPassword}
-                      onChange={(e) => setForgotNewPassword(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                    <PasswordStrengthIndicator password={forgotNewPassword} isDark={true} />
+                    <div className="position-relative">
+                      <input
+                        type={forgotShowNewPw ? 'text' : 'password'}
+                        className={`${inputClass} pe-5`}
+                        placeholder="Enter new password"
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        required
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setForgotShowNewPw((s) => !s)}
+                        aria-label={forgotShowNewPw ? 'Hide password' : 'Show password'}
+                        className="btn border-0 bg-transparent text-[#686053] position-absolute top-50 end-0 translate-middle-y me-2 p-1 hover:text-[#063127]"
+                      >
+                        <i className={`bi ${forgotShowNewPw ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                      </button>
+                    </div>
+                    <PasswordStrengthIndicator password={forgotNewPassword} />
                   </div>
 
-                  <div style={{ marginBottom: '18px' }}>
-                    <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <div className="mb-[18px]">
+                    <label className="form-label d-block text-[0.78rem] fw-bold text-[#063127] mb-[6px]">
                       Confirm New Password *
                     </label>
                     <input
                       type="password"
-                      className="login-input"
-                      style={S.input}
+                      className={inputClass}
                       placeholder="Re-type new password"
                       value={forgotConfirmPassword}
                       onChange={(e) => setForgotConfirmPassword(e.target.value)}
@@ -804,8 +525,7 @@ const Login = () => {
 
                   <button
                     type="submit"
-                    className="login-submit-btn"
-                    style={{ ...S.submitBtn, marginTop: '8px' }}
+                    className="btn rounded-pill w-100 fw-bold text-white text-[0.95rem] py-[13px] mt-[8px] bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] shadow-sm transition hover:-translate-y-[1px] disabled:opacity-60"
                     disabled={forgotLoading || !forgotNewPassword || !forgotConfirmPassword}
                   >
                     {forgotLoading ? (
@@ -821,11 +541,10 @@ const Login = () => {
               )}
             </div>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 };
 
 export default Login;
-

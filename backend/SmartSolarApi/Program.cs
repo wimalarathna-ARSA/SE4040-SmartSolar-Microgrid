@@ -46,6 +46,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<StationService>();
 builder.Services.AddScoped<ReservationService>();
+builder.Services.AddHostedService<MissedReservationBackgroundService>();
 
 // JWT Authentication Configuration
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "SmartSolarSecretKey2026SuperSecureMicrogridEnterpriseSystemToken12345!";

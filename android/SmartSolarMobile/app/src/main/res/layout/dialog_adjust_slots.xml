@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adjust Slots dialog - green shades only:
+     #BFD5D0 card, #8FB3A9 track/handle, #65998B secondary,
+     #3B796A accents, #063127 titles -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:scrollbars="none"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_edit_sheet_water"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp">
+
+        <!-- Drag handle -->
+        <View
+            android:layout_width="48dp"
+            android:layout_height="5dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_adjust_handle"
+            android:layout_marginBottom="18dp" />
+
+        <!-- Top status row (green dot + gauge label) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_dot_orange" />
+
+            <TextView
+                android:id="@+id/tv_adjust_station"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Station Name"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#3B796A"
+                android:paddingStart="8dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_adjust_ratio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8 / 12 free"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="#063127" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="BATTERY SLOTS"
+            android:textSize="10sp"
+            android:letterSpacing="0.18"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#65998B" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Adjust Slots"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="#063127"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Segmented control: Free vs Total display -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_segment_track"
+            android:padding="4dp"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/tv_seg_free"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:background="@drawable/bg_segment_selected"
+                android:text="Free"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="#063127"
+                android:paddingHorizontal="22dp" />
+
+            <TextView
+                android:id="@+id/tv_seg_total"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="Total"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#3B796A"
+                android:paddingHorizontal="22dp" />
+        </LinearLayout>
+
+        <!-- Huge slot count number -->
+        <TextView
+            android:id="@+id/tv_slots_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="8"
+            android:textSize="72sp"
+            android:fontFamily="sans-serif-light"
+            android:includeFontPadding="false"
+            android:textColor="#063127"
+            android:layout_marginTop="0dp" />
+
+        <TextView
+            android:id="@+id/tv_slots_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Max: 12 slots"
+            android:textSize="12sp"
+            android:textColor="#3B796A"
+            android:layout_marginBottom="20dp" />
+
+        <!-- ── Battery Storage Bays ─────────────────────────────── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Battery Storage Bays"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="#063127"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Legend row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_slot_free"
+                android:layout_marginEnd="4dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Free"
+                android:textSize="11sp"
+                android:textColor="#2F6B4F"
+                android:layout_marginEnd="12dp" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_slot_busy"
+                android:layout_marginEnd="4dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Busy (Op)"
+                android:textSize="11sp"
+                android:textColor="#D97706"
+                android:layout_marginEnd="12dp" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_slot_booked"
+                android:layout_marginEnd="4dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Booked"
+                android:textSize="11sp"
+                android:textColor="#F43F5E" />
+        </LinearLayout>
+
+        <!-- Slot grid — populated dynamically from OperatorStationsActivity -->
+        <GridLayout
+            android:id="@+id/grid_dialog_slots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="5"
+            android:useDefaultMargins="false"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Deep-green pill save -->
+        <FrameLayout
+            android:id="@+id/btn_save_slots"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_save_dark_pill"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Save Slots"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#FFFFFF" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/btn_cancel_slots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Cancel"
+            android:textSize="13sp"
+            android:textColor="#3B796A"
+            android:padding="12dp" />
+
+    </LinearLayout>
+</ScrollView>

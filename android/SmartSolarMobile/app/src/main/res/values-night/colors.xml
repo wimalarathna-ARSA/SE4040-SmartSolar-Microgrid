@@ -109,4 +109,10 @@
     <color name="illus_line">#5B6B82</color>
     <color name="illus_line_soft">#33445C</color>
     <color name="illus_fill">#1E2A3C</color>
+    <!-- Brand ink for text: deep green on light, pale on dark -->
+    <color name="text_brand">#BFD5D0</color>
+    <!-- Teal inks converge to pale on dark -->
+    <color name="text_teal">#8FB3A9</color>
+    <color name="text_soft">#8FB3A9</color>
+    <color name="text_mid">#8FB3A9</color>
 </resources>

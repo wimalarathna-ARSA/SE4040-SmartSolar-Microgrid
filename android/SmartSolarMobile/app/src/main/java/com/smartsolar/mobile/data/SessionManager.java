@@ -22,12 +22,12 @@ public class SessionManager {
         dbHelper = new DatabaseHelper(context);
     }
 
-     /** Returns true if a valid JWT session exists in SQLite. */
+    /** Returns true if a valid JWT session exists in SQLite. */
     // Checks if token is non-null and non-empty
     public boolean isLoggedIn() {
         // Verify presence of a non-empty JWT bearer token in the local SQLite session table
         String token = dbHelper.getToken();
-        return token != null && !toAken.isEmpty();
+        return token != null && !token.isEmpty();
     }
 
     /** Returns the logged-in user NIC from SQLite session. */
@@ -64,7 +64,7 @@ public class SessionManager {
         return dbHelper.getToken();
     }
 
-       /** Returns the logged-in user's email from SQLite session. */
+    /** Returns the logged-in user's email from SQLite session. */
     // Used to pre-fill the password reset email field
     public String getEmail() {
         // Query user email address from the active session record in SQLite

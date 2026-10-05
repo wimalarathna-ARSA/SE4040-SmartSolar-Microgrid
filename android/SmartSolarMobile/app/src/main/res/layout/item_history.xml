@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Operator completed-transaction row, modelled on reference "Find Classes" list:
+     Title left + deep-green action chip right, then two-column Energy | Time meta.
+     IDs preserved for OperatorMainActivity.HistoryAdapter. Palette only:
+     #BFD5D0, #8FB3A9, #65998B, #3B796A, #063127 + white. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="14dp">
+
+    <!-- Row 1: prosumer name + status chip (like "Yoga with Bela" + "Book Now") -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_history_prosumer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yoga with Bela"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="#063127" />
+
+            <TextView
+                android:id="@+id/tv_history_txn_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TXN-A1B2C3D4"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#65998B"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/tv_history_booking_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Booking: RES-998877"
+                android:textSize="11sp"
+                android:textColor="#8FB3A9"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_history_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="COMPLETED"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_history_view_btn"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="7dp"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- Row 2: two columns like "Classes Type | Time" -> "Energy | Time" -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Energy"
+                android:textSize="11sp"
+                android:textColor="#8FB3A9" />
+
+            <TextView
+                android:id="@+id/tv_history_energy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15.5 kWh"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#063127"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/tv_history_nic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NIC: 123456789V"
+                android:textSize="11sp"
+                android:textColor="#65998B"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time"
+                android:textSize="11sp"
+                android:textColor="#8FB3A9" />
+
+            <TextView
+                android:id="@+id/tv_history_timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="09:30 - 10:00 am"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#063127"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/tv_history_node"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Node: Solar Hub"
+                android:textSize="11sp"
+                android:textColor="#65998B"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Thin divider like reference list -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#BFD5D0"
+        android:layout_marginTop="14dp" />
+
+</LinearLayout>

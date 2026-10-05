@@ -8,7 +8,6 @@
 //              - QR code verification and Operator finalization
 //              - Live dashboard counts (pending and approved future counts)
 // Architecture: FAT Service Pattern (All business logic centralized in API)
-//
 // ============================================================================
 
 using Microsoft.AspNetCore.Mvc;
@@ -163,6 +162,27 @@ namespace SmartSolarApi.Controllers
             }
 
             var result = await _reservationService.UpdateReservationAsync(id, prosumerNic ?? string.Empty, dto);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new
+            {
+                message = result.Message,
+                reservation = result.Reservation
+            });
+        }
+
+        /// <summary>
+        /// Backoffice officer approves a pending reservation.
+        /// Changes status to "Approved" and generates transaction QR code for prosumer mobile app.
+        /// POST: api/reservations/{id}/approve
+        /// </summary>
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> Approve(string id)
+        {
+            var result = await _reservationService.ApproveReservationAsync(id);
             if (!result.Success)
             {
                 return BadRequest(new { message = result.Message });

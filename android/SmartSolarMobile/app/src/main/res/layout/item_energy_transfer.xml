@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_neuro_inner_card"
+    android:padding="20dp"
+    android:layout_marginBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="14dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tv_transfer_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="23 Sep 2026"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/text_brand" />
+            <TextView
+                android:id="@+id/tv_transfer_hub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Solar Hub A"
+                android:textSize="13sp"
+                android:textColor="@color/text_soft" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_transfer_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10:30 AM"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/text_mid" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/transfer_teal_pale"
+        android:layout_marginBottom="14dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:textSize="11sp"
+                android:textColor="@color/transfer_teal_pale" />
+            <TextView
+                android:id="@+id/tv_transfer_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Completed"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-bold"
+                android:textColor="@color/text_teal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Energy"
+                android:textSize="11sp"
+                android:textColor="@color/transfer_teal_pale" />
+            <TextView
+                android:id="@+id/tv_transfer_energy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8.5 kWh"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-semibold"
+                android:textColor="@color/text_brand" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

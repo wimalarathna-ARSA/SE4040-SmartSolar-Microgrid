@@ -36,6 +36,8 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private List<JSONObject> transferList = new ArrayList<>();
     private TransferAdapter adapter;
+    private TextView tvTabCompleted, tvTabMissed, tvTabOpCancelled, tvHeaderSub;
+    private int currentTab = 0; // 0=Completed, 1=Missed, 2=Operator-cancelled
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,23 +52,65 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_transfers);
         tvEmpty      = findViewById(R.id.tv_empty);
         progressBar   = findViewById(R.id.progress_bar);
+        tvTabCompleted = findViewById(R.id.tv_tab_completed);
+        tvTabMissed = findViewById(R.id.tv_tab_missed);
+        tvTabOpCancelled = findViewById(R.id.tv_tab_opcancelled);
+        tvHeaderSub = findViewById(R.id.tv_header_sub);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TransferAdapter(transferList);
         recyclerView.setAdapter(adapter);
 
+        if (tvTabCompleted != null) tvTabCompleted.setOnClickListener(v -> selectTab(0));
+        if (tvTabMissed != null) tvTabMissed.setOnClickListener(v -> selectTab(1));
+        if (tvTabOpCancelled != null) tvTabOpCancelled.setOnClickListener(v -> selectTab(2));
+        paintTabs();
+
         loadTransfers();
     }
 
+    private void selectTab(int tab) {
+        // Switch Completed / Missed / Operator-cancelled and reload for that slice
+        if (currentTab == tab) return;
+        currentTab = tab;
+        paintTabs();
+        loadTransfers();
+    }
+
+    private void paintTabs() {
+        // Selected tab gets the white pill, others keep the green track text
+        paintOneTab(tvTabCompleted, currentTab == 0);
+        paintOneTab(tvTabMissed, currentTab == 1);
+        paintOneTab(tvTabOpCancelled, currentTab == 2);
+        if (tvHeaderSub != null) {
+            tvHeaderSub.setText(currentTab == 1 ? "Missed bookings"
+                    : currentTab == 2 ? "Cancelled by operator"
+                    : "Completed grid transactions");
+        }
+    }
+
+    private void paintOneTab(TextView tv, boolean selected) {
+        if (tv == null) return;
+        tv.setBackgroundResource(selected ? R.drawable.bg_segment_selected : 0);
+        tv.setTypeface(null, selected
+                ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+    }
+
+    private static boolean isOperatorCancelled(JSONObject b) {
+        // Operator-released bookings carry the stamped release note
+        return b.optString("operatorNotes", "").startsWith("Cancelled by Grid Operator");
+    }
+
     private void loadTransfers() {
-        // GET /api/reservations?prosumerNic={nic}&status=Completed and populate transfer list
+        // Completed: status=Completed · Missed / Op-cancelled: split status=Cancelled by release note
         String nic = sessionManager.getNic();
         progressBar.setVisibility(View.VISIBLE);
+        final int tab = currentTab;
 
         new Thread(() -> {
             try {
-                // Filter for "Completed" reservations only
-                String url = "reservations?prosumerNic=" + nic + "&status=Completed";
+                String url = "reservations?prosumerNic=" + nic
+                        + (tab == 0 ? "&status=Completed" : "&status=Cancelled");
                 Request request = ApiClient.buildAuthRequest(this, url).get().build();
                 Response response = ApiClient.getClient().newCall(request).execute();
                 
@@ -74,12 +118,18 @@ public class EnergyTransferHistoryActivity extends AppCompatActivity {
                     JSONArray array = new JSONArray(response.body().string());
                     transferList.clear();
                     for (int i = 0; i < array.length(); i++) {
-                        transferList.add(array.getJSONObject(i));
+                        JSONObject b = array.getJSONObject(i);
+                        if (tab == 1 && isOperatorCancelled(b)) continue;
+                        if (tab == 2 && !isOperatorCancelled(b)) continue;
+                        transferList.add(b);
                     }
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         adapter.notifyDataSetChanged();
+                        tvEmpty.setText(tab == 1 ? "No missed bookings."
+                                : tab == 2 ? "No operator-cancelled bookings."
+                                : "No energy transfers found.");
                         tvEmpty.setVisibility(transferList.isEmpty() ? View.VISIBLE : View.GONE);
                     });
                 }

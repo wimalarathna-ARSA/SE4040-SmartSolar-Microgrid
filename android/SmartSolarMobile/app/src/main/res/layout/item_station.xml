@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Station Node Fleet Item — professional photo card.
+     Thumbnail cycles house_solar_1..5 via StationAdapter. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginVertical="6dp"
+    android:background="@drawable/bg_neuro_card"
+    android:padding="12dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="92dp"
+        android:layout_height="92dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_thumb_photo">
+
+            <ImageView
+                android:id="@+id/iv_station_photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/house_solar_1"
+                android:scaleType="centerCrop"
+                android:contentDescription="Station solar home" />
+
+            <TextView
+                android:id="@+id/tv_station_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="6dp"
+                android:text="Active"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-bold"
+                android:letterSpacing="0.06"
+                android:textColor="#FFFFFF"
+                android:background="#CC1E293B"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="14dp">
+
+        <TextView
+            android:id="@+id/tv_station_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Station Name [CODE]"
+            android:fontFamily="sans-serif-semibold"
+            android:textSize="15sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/neuro_text_primary" />
+
+        <TextView
+            android:id="@+id/tv_station_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location Address"
+            android:textSize="12sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/neuro_text_secondary"
+            android:layout_marginTop="2dp" />
+
+        <TextView
+            android:id="@+id/tv_station_slots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Battery: 10/12 free"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/neuro_text_green"
+            android:layout_marginTop="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/tv_station_meta"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="2 bookings"
+                android:textSize="11sp"
+                android:textColor="@color/neuro_text_muted" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_update_slots"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Adjust Slots"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-bold"
+                android:textAllCaps="false"
+                android:textColor="@color/text_on_accent"
+                android:background="@drawable/bg_btn_primary"
+                app:backgroundTint="@null"
+                app:cornerRadius="12dp"
+                android:paddingHorizontal="14dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

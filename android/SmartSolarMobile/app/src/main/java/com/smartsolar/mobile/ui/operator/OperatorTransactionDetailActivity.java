@@ -56,7 +56,7 @@ public class OperatorTransactionDetailActivity extends AppCompatActivity {
         fetchHistoricalData();
     }
 
-        private void bindViews() {
+    private void bindViews() {
         // Map all origin booking, financial settlement, and historical QR code display views
         progressBar          = findViewById(R.id.progress_bar);
         tvTransactionTitle   = findViewById(R.id.tv_transaction_title);
@@ -81,7 +81,8 @@ public class OperatorTransactionDetailActivity extends AppCompatActivity {
         tvQrHeaderLabel      = findViewById(R.id.tv_qr_header_label);
         tvQrSubLabel         = findViewById(R.id.tv_qr_sub_label);
     }
- /** Polls the authoritative historical database logs from C# Web API */
+
+    /** Polls the authoritative historical database logs from C# Web API */
     private void fetchHistoricalData() {
         // GET /api/reservations/{id} to retrieve immutable historical transaction record
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
@@ -162,7 +163,8 @@ public class OperatorTransactionDetailActivity extends AppCompatActivity {
 
         } catch (Exception ignored) {}
     }
- /** Renders the historical QR reference visually using ZXing */
+
+    /** Renders the historical QR reference visually using ZXing */
     private void renderQr(String data) {
         // Use ZXing BarcodeEncoder to generate and render 400x400 QR code bitmap from payload
         try {

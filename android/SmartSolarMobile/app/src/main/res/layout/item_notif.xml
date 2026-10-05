@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single prosumer notification row: status dot + texts + chevron. No images. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_neuro_inner_card"
+    android:padding="14dp"
+    android:layout_marginBottom="10dp">
+
+    <View
+        android:id="@+id/view_notif_dot"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:background="@drawable/bg_track_dot_done" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp">
+
+        <TextView
+            android:id="@+id/tv_notif_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Booking completed"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-semibold"
+            android:textColor="#063127" />
+
+        <TextView
+            android:id="@+id/tv_notif_sub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RES-000 · Solar Hub"
+            android:textSize="12sp"
+            android:textColor="#65998B"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="›"
+        android:textSize="22sp"
+        android:textColor="#8FB3A9"
+        android:includeFontPadding="false" />
+</LinearLayout>

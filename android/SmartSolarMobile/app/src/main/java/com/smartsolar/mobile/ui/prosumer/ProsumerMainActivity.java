@@ -53,10 +53,32 @@ public class ProsumerMainActivity extends AppCompatActivity {
     // ── Energy Chart ─────────────────────────────────────────────────────────
     private LineChart lineChart;
 
+    // ── Earnings summary ─────────────────────────────────────────────────────
+    private TextView tvEarningsValue;
+    private TextView tvEarningsDetail;
+
     // ── Nearby Nodes views ───────────────────────────────────────────────────
     private LinearLayout layoutNearbyNodes;
     private LinearLayout layoutNoGpsNotice;
     private View  progressNearby;
+
+    // ── Upcoming booking views ───────────────────────────────────────────────
+    private TextView tvUpcomingHub;
+    private TextView tvUpcomingDate;
+    private TextView tvUpcomingTime;
+    private View btnShowAll;
+    private View btnUpcomingDetails;
+    private android.widget.HorizontalScrollView hubsScroll;
+    private LinearLayout layoutWeekStrip;
+    private String upcomingReservationId = null;
+    private final java.util.Set<String> approvedDateKeys = new java.util.HashSet<>();
+
+    // ── Notifications ────────────────────────────────────────────────────
+    private View btnNotifications;
+    private TextView tvNotifBadge;
+    private View layoutNotifDropdown;
+    private LinearLayout layoutNotifList;
+    private TextView tvNotifEmpty;
 
     // ── Progress + session ───────────────────────────────────────────────────
     private View progressBar;
@@ -75,6 +97,9 @@ public class ProsumerMainActivity extends AppCompatActivity {
         loadDashboardStats();
         loadEnergyTransferHistory(); 
         loadNearbyNodes();          // << NEW: load nearby microgrid nodes
+        loadUpcomingBooking();
+        wireNotifications();
+        loadNotifications();
     }
 
     // ── Bind all views ───────────────────────────────────────────────────────
@@ -89,6 +114,20 @@ public class ProsumerMainActivity extends AppCompatActivity {
         layoutNearbyNodes = findViewById(R.id.layout_nearby_nodes);
         layoutNoGpsNotice = findViewById(R.id.layout_no_gps_notice);
         progressNearby    = findViewById(R.id.progress_nearby);
+        tvUpcomingHub     = findViewById(R.id.tv_upcoming_hub);
+        tvUpcomingDate    = findViewById(R.id.tv_upcoming_date);
+        tvUpcomingTime    = findViewById(R.id.tv_upcoming_time);
+        btnShowAll        = findViewById(R.id.btn_show_all);
+        btnUpcomingDetails = findViewById(R.id.btn_upcoming_details);
+        hubsScroll        = findViewById(R.id.hubs_scroll);
+        layoutWeekStrip   = findViewById(R.id.layout_week_strip);
+        tvEarningsValue   = findViewById(R.id.tv_earnings_value);
+        tvEarningsDetail  = findViewById(R.id.tv_earnings_detail);
+        btnNotifications  = findViewById(R.id.btn_notifications);
+        tvNotifBadge      = findViewById(R.id.tv_notif_badge);
+        layoutNotifDropdown = findViewById(R.id.layout_notif_dropdown);
+        layoutNotifList   = findViewById(R.id.layout_notif_list);
+        tvNotifEmpty      = findViewById(R.id.tv_notif_empty);
     }
 
     // ── Time-sensitive greeting ──────────────────────────────────────────────
@@ -107,15 +146,36 @@ public class ProsumerMainActivity extends AppCompatActivity {
     // ── Wire all click listeners ─────────────────────────────────────────────
     private void wireNavigation() {
         // Attach click listeners to bottom navigation bar items and quick action dashboard buttons
-        // Bottom nav
-        setClick(R.id.nav_bookings,    BookingHistoryActivity.class);
-        setClick(R.id.nav_new_booking, CreateReservationActivity.class);
-        setClick(R.id.nav_map,         StationMapActivity.class);
-        setClick(R.id.nav_profile,     ProfileActivity.class);
+        // Bottom nav with sliding indicator motion
+        setupBottomNavMotion();
 
         // Quick action buttons
         setClick(R.id.btn_analytics,   AnalyticsActivity.class);
         setClick(R.id.btn_transfers,   EnergyTransferHistoryActivity.class);
+
+        if (btnShowAll != null) {
+            btnShowAll.setOnClickListener(v -> startActivity(new Intent(this, BookingHistoryActivity.class)));
+        }
+        if (btnUpcomingDetails != null) {
+            btnUpcomingDetails.setOnClickListener(v -> {
+                if (upcomingReservationId == null) {
+                    startActivity(new Intent(this, BookingHistoryActivity.class));
+                    return;
+                }
+                Intent intent = new Intent(this, BookingDetailActivity.class);
+                intent.putExtra("reservation_id", upcomingReservationId);
+                startActivity(intent);
+            });
+        }
+
+        View hubsPrev = findViewById(R.id.btn_hubs_prev);
+        if (hubsPrev != null && hubsScroll != null) {
+            hubsPrev.setOnClickListener(v -> hubsScroll.smoothScrollBy(-dpToPx(320), 0));
+        }
+        View hubsNext = findViewById(R.id.btn_hubs_next);
+        if (hubsNext != null && hubsScroll != null) {
+            hubsNext.setOnClickListener(v -> hubsScroll.smoothScrollBy(dpToPx(320), 0));
+        }
 
         View btnSettings = findViewById(R.id.btn_settings);
         if (btnSettings != null) {
@@ -128,6 +188,133 @@ public class ProsumerMainActivity extends AppCompatActivity {
         View v = findViewById(viewId);
         if (v != null) v.setOnClickListener(x ->
                 startActivity(new Intent(this, target)));
+    }
+
+    // ── Bottom nav: slow glide tint + scale motion ───────────────────────────
+    private int navSelected = 0;
+    private boolean navLeaving = false;
+    private final int[] navItemIds = { R.id.nav_dashboard, R.id.nav_bookings, R.id.nav_map, R.id.nav_profile };
+    private final int[] navIconIds = { R.id.ic_dashboard, R.id.ic_bookings, R.id.ic_map, R.id.ic_profile };
+
+    private void setupBottomNavMotion() {
+        int[] itemIds = navItemIds;
+        int[] iconIds = navIconIds;
+        Class<?>[] targets = { null, BookingHistoryActivity.class, StationMapActivity.class, ProfileActivity.class };
+
+        paintNavIcons(iconIds, 0);
+
+        for (int i = 0; i < itemIds.length; i++) {
+            final int index = i;
+            final View item = findViewById(itemIds[i]);
+            final Class<?> target = targets[i];
+            if (item == null) continue;
+            item.setOnClickListener(v -> {
+                if (navLeaving) return; // ignore taps while a destination is launching
+                if (target == null) {
+                    // Home tab: snap selection back to dashboard
+                    animateNavSelection(iconIds, navSelected, 0);
+                    navSelected = 0;
+                    return;
+                }
+                animateNavSelection(iconIds, navSelected, index);
+                navSelected = index;
+                navLeaving = true;
+                v.postDelayed(() -> startActivity(new Intent(this, target)), 750);
+            });
+        }
+
+        View fab = findViewById(R.id.nav_new_booking);
+        if (fab != null) {
+            fab.setOnClickListener(v -> {
+                v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(120).withEndAction(() ->
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(220).start()).start();
+                v.postDelayed(() ->
+                        startActivity(new Intent(this, CreateReservationActivity.class)), 150);
+            });
+        }
+    }
+
+    /** Slowly glides tint + scale from previously selected icon to the tapped one. */
+    private void animateNavSelection(int[] iconIds, int from, int to) {
+        if (from == to) {
+            View item = findViewById(iconIds.length > to ? iconIds[to] : 0);
+            if (item != null) {
+                item.animate().scaleX(1.15f).scaleY(1.15f).setDuration(180)
+                        .withEndAction(() -> item.animate().scaleX(1f).scaleY(1f)
+                                .setDuration(300).start()).start();
+            }
+            return;
+        }
+        int deepVal = Color.parseColor("#063127");
+        int softVal = Color.parseColor("#65998B");
+        try {
+            deepVal = ContextCompat.getColor(this, R.color.text_brand);
+            softVal = ContextCompat.getColor(this, R.color.chart_teal_300);
+        } catch (Exception ignored) {}
+        final int deep = deepVal;
+        final int soft = softVal;
+
+        android.widget.ImageView fromIv = findViewById(iconIds[from]);
+        android.widget.ImageView toIv = findViewById(iconIds[to]);
+        View toItem = null;
+        int[] itemIds = { R.id.nav_dashboard, R.id.nav_bookings, R.id.nav_map, R.id.nav_profile };
+        if (to >= 0 && to < itemIds.length) toItem = findViewById(itemIds[to]);
+        final android.widget.ImageView ivFrom = fromIv;
+        final android.widget.ImageView ivTo = toIv;
+        final View itemTo = toItem;
+
+        // Outgoing icon: slow fade tint deep -> soft + shrink
+        if (ivFrom != null) {
+            android.animation.ValueAnimator fadeOut =
+                    android.animation.ValueAnimator.ofObject(new android.animation.ArgbEvaluator(), deep, soft);
+            fadeOut.setDuration(900);
+            fadeOut.setInterpolator(new android.view.animation.DecelerateInterpolator());
+            fadeOut.addUpdateListener(a ->
+                    ivFrom.setColorFilter((int) a.getAnimatedValue()));
+            fadeOut.start();
+            ivFrom.animate().scaleX(0.9f).scaleY(0.9f).alpha(0.85f).setDuration(900)
+                    .withEndAction(() -> ivFrom.animate().scaleX(1f).scaleY(1f)
+                            .setDuration(500).start()).start();
+        }
+        // Incoming icon: slow glide tint soft -> deep + grow
+        if (ivTo != null) {
+            android.animation.ValueAnimator fadeIn =
+                    android.animation.ValueAnimator.ofObject(new android.animation.ArgbEvaluator(), soft, deep);
+            fadeIn.setDuration(900);
+            fadeIn.setStartDelay(120);
+            fadeIn.setInterpolator(new android.view.animation.DecelerateInterpolator());
+            fadeIn.addUpdateListener(a ->
+                    ivTo.setColorFilter((int) a.getAnimatedValue()));
+            fadeIn.start();
+            ivTo.animate().scaleX(0.8f).scaleY(0.8f).setDuration(250).withEndAction(() ->
+                    ivTo.animate().scaleX(1.15f).scaleY(1.15f).alpha(1f).setDuration(550)
+                            .withEndAction(() -> ivTo.animate().scaleX(1f).scaleY(1f)
+                                    .setDuration(500).start()).start()).start();
+        }
+        // Whole tab lifts slowly like a water bob
+        if (itemTo != null) {
+            itemTo.animate().translationY(-8f).setDuration(400).withEndAction(() ->
+                    itemTo.animate().translationY(0f).setDuration(700).start()).start();
+        }
+    }
+
+    private void paintNavIcons(int[] iconIds, int selected) {
+        for (int i = 0; i < iconIds.length; i++) {
+            android.widget.ImageView iv = findViewById(iconIds[i]);
+            if (iv == null) continue;
+            try {
+                // Stop any in-flight glide animation so the reset state sticks
+                iv.animate().cancel();
+                iv.clearAnimation();
+                if (i == selected) {
+                    iv.setColorFilter(ContextCompat.getColor(this, R.color.text_brand));
+                    iv.setAlpha(1f);
+                } else {
+                    iv.setColorFilter(ContextCompat.getColor(this, R.color.chart_teal_300));
+                    iv.setAlpha(0.85f);
+                }
+            } catch (Exception ignored) {}
+        }
     }
 
     // ── Load live stats from API ─────────────────────────────────────────────
@@ -180,6 +367,10 @@ public class ProsumerMainActivity extends AppCompatActivity {
                     if (response.body() != null) {
                         JSONArray array = new JSONArray(response.body().string());
                         Map<String, Float> dailyEnergy = new TreeMap<>();
+                        float monthKwh = 0f;
+                        int monthCount = 0;
+                        String thisMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault())
+                                .format(new Date());
                         
                         for (int i = 0; i < array.length(); i++) {
                             JSONObject item = array.getJSONObject(i);
@@ -188,6 +379,10 @@ public class ProsumerMainActivity extends AppCompatActivity {
                                 String dateKey = isoDate.substring(0, 10);
                                 float energy = (float) item.optDouble("energyAmountKWh", 0);
                                 dailyEnergy.put(dateKey, dailyEnergy.getOrDefault(dateKey, 0f) + energy);
+                                if (dateKey.startsWith(thisMonth)) {
+                                    monthKwh += energy;
+                                    monthCount++;
+                                }
                             }
                         }
 
@@ -199,54 +394,84 @@ public class ProsumerMainActivity extends AppCompatActivity {
                             dates.add(entry.getKey().substring(5)); // MM-DD
                             index++;
                         }
-                        runOnUiThread(() -> setupLineChart(entries, dates));
+                        final float finalMonthKwh = monthKwh;
+                        final int finalMonthCount = monthCount;
+                        runOnUiThread(() -> {
+                            setupLineChart(entries, dates);
+                            renderEarnings(finalMonthKwh, finalMonthCount);
+                        });
                     }
                 }
             } catch (Exception ignored) {}
         }).start();
     }
 
+    // ── Earnings summary: this month kWh -> Rs. at Rs. 45/kWh ────────────────
+    private void renderEarnings(float monthKwh, int monthCount) {
+        // Estimate earnings from completed transfers at the regulated feed-in tariff
+        if (tvEarningsValue == null) return;
+        long earnings = Math.round(monthKwh * 45.0);
+        tvEarningsValue.setText(String.format(Locale.getDefault(),
+                "%.1f kWh → Rs. %,d", monthKwh, earnings));
+        if (tvEarningsDetail != null) {
+            String monthName = new SimpleDateFormat("MMMM", Locale.getDefault()).format(new Date());
+            tvEarningsDetail.setText(monthName + " · " + monthCount
+                    + (monthCount == 1 ? " transfer" : " transfers"));
+        }
+    }
+
     private void setupLineChart(List<Entry> entries, List<String> dates) {
-        // Configure MPAndroidChart LineChart styling, cubic bezier curve, axes and data binding
+        // Professional teal line with soft fill + eased animation
         if (entries.isEmpty()) {
             lineChart.setNoDataText("No transfer history available yet.");
-            lineChart.setNoDataTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
+            lineChart.setNoDataTextColor(ContextCompat.getColor(this, R.color.chart_teal_200));
             lineChart.invalidate();
             return;
         }
 
         LineDataSet dataSet = new LineDataSet(entries, "Energy (kWh)");
-        dataSet.setColor(ContextCompat.getColor(this, R.color.neuro_green));
-        dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.neuro_text_primary));
-        dataSet.setLineWidth(2.5f);
-        dataSet.setCircleRadius(3f);
-        dataSet.setCircleColor(ContextCompat.getColor(this, R.color.neuro_green));
-        dataSet.setCircleHoleColor(ContextCompat.getColor(this, R.color.white));
+        dataSet.setColor(ContextCompat.getColor(this, R.color.chart_teal_500));
+        dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.text_brand));
+        dataSet.setValueTextSize(10f);
+        dataSet.setLineWidth(3f);
+        dataSet.setCircleRadius(4f);
+        dataSet.setCircleColor(ContextCompat.getColor(this, R.color.chart_teal_400));
+        dataSet.setCircleHoleColor(Color.parseColor("#BFD5D0"));
+        dataSet.setDrawCircleHole(true);
         dataSet.setDrawFilled(true);
-        dataSet.setFillColor(ContextCompat.getColor(this, R.color.neuro_green));
-        dataSet.setFillAlpha(28);
+        dataSet.setFillColor(ContextCompat.getColor(this, R.color.chart_teal_400));
+        dataSet.setFillAlpha(55);
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        dataSet.setCubicIntensity(0.18f);
         dataSet.setDrawValues(false);
 
         LineData lineData = new LineData(dataSet);
         lineChart.setData(lineData);
-        
+
         lineChart.getDescription().setEnabled(false);
         lineChart.getLegend().setEnabled(false);
+        lineChart.setPinchZoom(false);
+        lineChart.setDoubleTapToZoomEnabled(false);
 
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
+        xAxis.setDrawAxisLine(false);
         xAxis.setGranularity(1f);
         xAxis.setValueFormatter(new IndexAxisValueFormatter(dates));
-        xAxis.setTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
+        xAxis.setTextColor(ContextCompat.getColor(this, R.color.chart_teal_300));
+        xAxis.setTextSize(10f);
 
-        lineChart.getAxisLeft().setTextColor(ContextCompat.getColor(this, R.color.neuro_text_muted));
-        lineChart.getAxisLeft().setDrawGridLines(true);
-        lineChart.getAxisLeft().setGridColor(ContextCompat.getColor(this, R.color.neuro_shadow_light));
+        lineChart.getAxisLeft().setTextColor(ContextCompat.getColor(this, R.color.chart_teal_200));
+        lineChart.getAxisLeft().setDrawAxisLine(false);
+        lineChart.getAxisLeft().setGridColor(ContextCompat.getColor(this, R.color.chart_teal_100));
+        lineChart.getAxisLeft().enableGridDashedLine(8f, 6f, 0f);
+        lineChart.getAxisLeft().setAxisMinimum(0f);
         lineChart.getAxisRight().setEnabled(false);
-        
-        lineChart.animateX(800);
+
+        try {
+            lineChart.animateX(1200, com.github.mikephil.charting.animation.Easing.EaseOutQuart);
+        } catch (Exception ignored) { lineChart.animateX(800); }
         lineChart.invalidate();
     }
 
@@ -295,11 +520,6 @@ public class ProsumerMainActivity extends AppCompatActivity {
                                 renderNearbyHubCard(st, i + 1);
                             } catch (Exception ignored) {}
                         }
-
-                        // "View All" button that navigates to the map
-                        if (stationsArr.length() > 0) {
-                            renderViewAllButton();
-                        }
                     });
                 }
             } catch (Exception e) {
@@ -308,200 +528,91 @@ public class ProsumerMainActivity extends AppCompatActivity {
         }).start();
     }
 
-    // ── Render a single nearby hub card (professional, structured, no neon) ───
+    // ── Render a single nearby hub as compact horizontal card ───
     private void renderNearbyHubCard(JSONObject st, int rank) {
-        // Inflate and render a structured card view for a nearby microgrid hub with slot meter
+        // Compact 150dp hub card for horizontal scroll: house photo + name + slots
         if (layoutNearbyNodes == null) return;
 
         String name     = st.optString("name", "Microgrid Hub");
-        String location = st.optString("location", "Location unavailable");
         String status   = st.optString("status", "Active");
-        double distKm   = st.optDouble("distanceKm", -1);
         int    avSlots  = st.optInt("availableBatterySlots", 0);
         int    totSlots = st.optInt("totalBatterySlots", 0);
-        boolean hasSlots = avSlots > 0;
         boolean isActive = "Active".equalsIgnoreCase(status);
 
-        int inkPrimary, inkSecondary, inkMuted, chipBg, chipStroke, statusBg, statusInk;
+        int inkPrimary, inkSecondary;
+        int dotColor;
         try {
-            inkPrimary   = getResources().getColor(R.color.neuro_text_primary);
-            inkSecondary = getResources().getColor(R.color.neuro_text_secondary);
-            inkMuted     = getResources().getColor(R.color.neuro_text_muted);
-            statusBg     = getResources().getColor(isActive ? R.color.neuro_green_bg : R.color.neuro_amber_bg);
-            statusInk    = getResources().getColor(isActive ? R.color.neuro_text_green : R.color.neuro_amber);
+            inkPrimary = getResources().getColor(R.color.text_brand);
+            inkSecondary = getResources().getColor(R.color.text_brand);
+            dotColor = getResources().getColor(isActive ? R.color.login_deep : R.color.chart_teal_200);
         } catch (Exception e) {
-            inkPrimary = Color.parseColor("#1E293B");
-            inkSecondary = Color.parseColor("#475569");
-            inkMuted = Color.parseColor("#94A3B8");
-            statusBg = Color.parseColor(isActive ? "#E3EDE6" : "#EFE8D2");
-            statusInk = Color.parseColor(isActive ? "#2F6B4F" : "#7A6514");
+            inkPrimary = Color.parseColor("#063127");
+            inkSecondary = Color.parseColor("#063127");
+            dotColor = Color.parseColor(isActive ? "#063127" : "#8FB3A9");
         }
-        chipBg = Color.parseColor("#F1F5F9");
 
-        // Card container
         LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.HORIZONTAL);
-        card.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        cardParams.setMargins(0, 0, 0, dpToPx(10));
+        card.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dpToPx(150), LinearLayout.LayoutParams.WRAP_CONTENT);
+        cardParams.setMargins(0, 0, dpToPx(12), 0);
         card.setLayoutParams(cardParams);
-        card.setPadding(dpToPx(12), dpToPx(12), dpToPx(14), dpToPx(12));
         card.setClickable(true);
         card.setFocusable(true);
-        try {
-            card.setBackgroundResource(R.drawable.bg_neuro_inner_card);
-        } catch (Exception ignored) {}
-
-        // Thumbnail: professional solar-house photo, cycles 1..5 by rank.
-        // Drop house_solar_1.png … house_solar_5.png into drawable-nodpi/
-        // (delete the .xml placeholders) for the final photography.
-        FrameLayout thumbBox = new FrameLayout(this);
-        LinearLayout.LayoutParams thumbParams = new LinearLayout.LayoutParams(dpToPx(76), dpToPx(76));
-        thumbParams.setMargins(0, 0, dpToPx(12), 0);
-        thumbBox.setLayoutParams(thumbParams);
-        try { thumbBox.setBackgroundResource(R.drawable.bg_thumb_photo); }
-        catch (Exception ignored) { thumbBox.setBackgroundColor(Color.parseColor("#E8EDF2")); }
+        try { card.setBackgroundResource(R.drawable.bg_hub_card); }
+        catch (Exception ignored) {}
 
         ImageView thumb = new ImageView(this);
-        thumb.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
+        LinearLayout.LayoutParams thumbParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(96));
+        thumb.setLayoutParams(thumbParams);
         thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        thumb.setClipToOutline(true);
         int[] houseArt = {
                 R.drawable.house_solar_1, R.drawable.house_solar_2,
                 R.drawable.house_solar_3, R.drawable.house_solar_4,
                 R.drawable.house_solar_5 };
         try { thumb.setImageResource(houseArt[(rank - 1) % houseArt.length]); }
         catch (Exception ignored) {}
-        thumbBox.addView(thumb);
+        card.addView(thumb);
 
-        TextView tvRankChip = new TextView(this);
-        tvRankChip.setText(String.format(Locale.getDefault(), "%02d", rank));
-        tvRankChip.setTextSize(9f);
-        tvRankChip.setTypeface(null, Typeface.BOLD);
-        tvRankChip.setTextColor(Color.WHITE);
-        tvRankChip.setGravity(Gravity.CENTER);
-        FrameLayout.LayoutParams chipParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT);
-        chipParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-        chipParams.setMargins(0, 0, 0, dpToPx(4));
-        tvRankChip.setLayoutParams(chipParams);
-        tvRankChip.setPadding(dpToPx(6), dpToPx(1), dpToPx(6), dpToPx(1));
-        try { tvRankChip.setBackgroundResource(R.drawable.bg_status_chip); }
-        catch (Exception ignored) { tvRankChip.setBackgroundColor(Color.parseColor("#CC1E293B")); }
-        thumbBox.addView(tvRankChip);
-        card.addView(thumbBox);
-
-        // Right column: title block + divider + meter row
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        card.addView(body);
-
-        // Row 1: title block + distance
-        LinearLayout row1 = new LinearLayout(this);
-        row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.setGravity(Gravity.CENTER_VERTICAL);
-        row1.setLayoutParams(new LinearLayout.LayoutParams(
+        body.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(10));
+        body.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        LinearLayout nameCol = new LinearLayout(this);
-        nameCol.setOrientation(LinearLayout.VERTICAL);
-        nameCol.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        card.addView(body);
 
         TextView tvName = new TextView(this);
         tvName.setText(name);
-        tvName.setTextSize(14f);
+        tvName.setTextSize(13f);
         tvName.setTypeface(null, Typeface.BOLD);
         tvName.setTextColor(inkPrimary);
         tvName.setMaxLines(1);
         tvName.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        body.addView(tvName);
 
-        TextView tvLoc = new TextView(this);
-        tvLoc.setText(location);
-        tvLoc.setTextSize(12f);
-        tvLoc.setTextColor(inkSecondary);
-        tvLoc.setMaxLines(1);
-        tvLoc.setEllipsize(android.text.TextUtils.TruncateAt.END);
-
-        nameCol.addView(tvName);
-        nameCol.addView(tvLoc);
-
-        TextView tvDist = new TextView(this);
-        tvDist.setText(distKm >= 0
-                ? String.format(Locale.getDefault(), "%.1f km", distKm)
-                : "Distance N/A");
-        tvDist.setTextSize(11f);
-        tvDist.setTypeface(null, Typeface.BOLD);
-        tvDist.setTextColor(inkSecondary);
-        tvDist.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
-        try { tvDist.setBackgroundResource(R.drawable.bg_status_chip); }
-        catch (Exception ignored) { tvDist.setBackgroundColor(chipBg); }
-
-        row1.addView(nameCol);
-        row1.addView(tvDist);
-        body.addView(row1);
-
-        // Divider
-        View divider = new View(this);
-        LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(1));
-        divParams.setMargins(0, dpToPx(10), 0, dpToPx(10));
-        divider.setLayoutParams(divParams);
-        try { divider.setBackgroundColor(getResources().getColor(R.color.glass_divider)); }
-        catch (Exception e) { divider.setBackgroundColor(Color.parseColor("#E8EDF2")); }
-        body.addView(divider);
-
-        // Row 2: availability meter + status chip
-        LinearLayout row2 = new LinearLayout(this);
-        row2.setOrientation(LinearLayout.HORIZONTAL);
-        row2.setGravity(Gravity.CENTER_VERTICAL);
-        row2.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        LinearLayout slotsCol = new LinearLayout(this);
-        slotsCol.setOrientation(LinearLayout.VERTICAL);
-        slotsCol.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        LinearLayout slotRow = new LinearLayout(this);
+        slotRow.setOrientation(LinearLayout.HORIZONTAL);
+        slotRow.setGravity(Gravity.CENTER_VERTICAL);
+        slotRow.setPadding(0, dpToPx(4), 0, 0);
+        View dot = new View(this);
+        LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dpToPx(8), dpToPx(8));
+        dotParams.setMargins(0, 0, dpToPx(6), 0);
+        dot.setLayoutParams(dotParams);
+        dot.setBackgroundResource(R.drawable.bg_loading_dot);
+        try { dot.getBackground().setTint(dotColor); } catch (Exception ignored) {}
+        slotRow.addView(dot);
 
         TextView tvSlots = new TextView(this);
-        tvSlots.setText("Available slots  " + avSlots + " / " + totSlots);
-        tvSlots.setTextSize(12f);
-        tvSlots.setTextColor(hasSlots ? inkPrimary : inkMuted);
+        tvSlots.setText(avSlots + "/" + totSlots + " slots");
+        tvSlots.setTextSize(11f);
+        tvSlots.setTextColor(inkSecondary);
+        slotRow.addView(tvSlots);
+        body.addView(slotRow);
 
-        ProgressBar meter = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        LinearLayout.LayoutParams meterParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(5));
-        meterParams.setMargins(0, dpToPx(6), dpToPx(12), 0);
-        meter.setLayoutParams(meterParams);
-        meter.setMax(Math.max(totSlots, 1));
-        meter.setProgress(Math.min(avSlots, Math.max(totSlots, 1)));
-        meter.setProgressTintList(android.content.res.ColorStateList.valueOf(
-                hasSlots ? statusInk : inkMuted));
-        meter.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                Color.parseColor("#E8EDF2")));
-
-        slotsCol.addView(tvSlots);
-        slotsCol.addView(meter);
-
-        TextView tvStatus = new TextView(this);
-        tvStatus.setText(isActive ? "ACTIVE" : status.toUpperCase(Locale.getDefault()));
-        tvStatus.setTextSize(10f);
-        tvStatus.setTypeface(null, Typeface.BOLD);
-        tvStatus.setTextColor(statusInk);
-        tvStatus.setBackgroundColor(statusBg);
-        tvStatus.setPadding(dpToPx(10), dpToPx(5), dpToPx(10), dpToPx(5));
-
-        row2.addView(slotsCol);
-        row2.addView(tvStatus);
-        body.addView(row2);
-
-        // Subtle press feedback
         card.setOnTouchListener((v, event) -> {
             if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                v.animate().scaleX(0.985f).scaleY(0.985f).setDuration(90).start();
+                v.animate().scaleX(0.96f).scaleY(0.96f).setDuration(90).start();
             } else if (event.getAction() == android.view.MotionEvent.ACTION_UP
                     || event.getAction() == android.view.MotionEvent.ACTION_CANCEL) {
                 v.animate().scaleX(1f).scaleY(1f).setDuration(160).start();
@@ -509,7 +620,6 @@ public class ProsumerMainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Tap card → open map showing ONLY this node and user's installation address
         String stationId = st.optString("id");
         card.setOnClickListener(v -> {
             Intent intent = new Intent(this, StationMapActivity.class);
@@ -517,10 +627,9 @@ public class ProsumerMainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Staggered entrance motion
         card.setAlpha(0f);
-        card.setTranslationY(dpToPx(14));
-        card.animate().alpha(1f).translationY(0f)
+        card.setTranslationX(dpToPx(24));
+        card.animate().alpha(1f).translationX(0f)
                 .setDuration(320)
                 .setStartDelay(Math.min(rank, 5) * 70L)
                 .start();
@@ -552,7 +661,7 @@ public class ProsumerMainActivity extends AppCompatActivity {
         tvTitle.setTextSize(14f);
         tvTitle.setTypeface(null, Typeface.BOLD);
         tvTitle.setGravity(Gravity.CENTER);
-        try { tvTitle.setTextColor(getResources().getColor(R.color.neuro_text_primary)); }
+        try { tvTitle.setTextColor(getResources().getColor(R.color.text_brand)); }
         catch (Exception ignored) {}
         box.addView(tvTitle);
 
@@ -560,7 +669,7 @@ public class ProsumerMainActivity extends AppCompatActivity {
         tv.setText(msg);
         tv.setTextSize(12f);
         tv.setGravity(Gravity.CENTER);
-        try { tv.setTextColor(getResources().getColor(R.color.neuro_text_secondary)); }
+        try { tv.setTextColor(getResources().getColor(R.color.chart_teal_300)); }
         catch (Exception ignored) {}
         box.addView(tv);
 
@@ -569,28 +678,141 @@ public class ProsumerMainActivity extends AppCompatActivity {
         layoutNearbyNodes.addView(box);
     }
 
-    // ── "View All on Map" structured button ──────────────────────────────────
-    private void renderViewAllButton() {
-        // Append "View all on map" button linking directly to the full interactive station map
-        if (layoutNearbyNodes == null) return;
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(48));
-        params.setMargins(0, dpToPx(4), 0, 0);
-        Button btn = new Button(this);
-        btn.setText("View all on map");
-        btn.setTextSize(13f);
-        btn.setAllCaps(false);
-        try {
-            btn.setTextColor(getResources().getColor(R.color.white));
-            btn.setBackgroundResource(R.drawable.bg_btn_primary);
-        } catch (Exception e) {
-            btn.setTextColor(Color.WHITE);
-            btn.setBackgroundResource(R.drawable.bg_btn_primary);
+    // ── Upcoming approved booking + week strip ───────────────────────────────
+    private void loadUpcomingBooking() {
+        String nic = sessionManager.getNic();
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this,
+                        "reservations?prosumerNic=" + nic).get().build();
+                try (Response response = ApiClient.getClient().newCall(request).execute()) {
+                    if (response.body() == null) return;
+                    JSONArray array = new JSONArray(response.body().string());
+                    java.text.SimpleDateFormat parser =
+                            new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+                    java.text.SimpleDateFormat dayKey =
+                            new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    Date now = new Date();
+                    JSONObject best = null;
+                    Date bestDate = null;
+                    approvedDateKeys.clear();
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject item = array.getJSONObject(i);
+                        if (!"Approved".equalsIgnoreCase(item.optString("status"))) continue;
+                        String iso = item.optString("scheduledDateTime");
+                        if (iso.length() < 10) continue;
+                        try {
+                            Date d = parser.parse(iso.length() > 19 ? iso.substring(0, 19) : iso);
+                            approvedDateKeys.add(dayKey.format(d));
+                            if (!d.before(now) && (bestDate == null || d.before(bestDate))) {
+                                bestDate = d;
+                                best = item;
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                    JSONObject finalBest = best;
+                    Date finalBestDate = bestDate;
+                    runOnUiThread(() -> {
+                        renderUpcoming(finalBest, finalBestDate);
+                        renderWeekStrip();
+                    });
+                }
+            } catch (Exception ignored) {
+                runOnUiThread(this::renderWeekStrip);
+            }
+        }).start();
+    }
+
+    private void renderUpcoming(JSONObject booking, Date date) {
+        if (tvUpcomingHub == null) return;
+        if (booking == null || date == null) {
+            tvUpcomingHub.setText("No approved bookings");
+            if (tvUpcomingDate != null) tvUpcomingDate.setText("Book a solar slot to get started");
+            if (tvUpcomingTime != null) tvUpcomingTime.setText("");
+            upcomingReservationId = null;
+            return;
         }
-        btn.setTypeface(null, Typeface.BOLD);
-        btn.setLayoutParams(params);
-        btn.setOnClickListener(v -> startActivity(new Intent(this, StationMapActivity.class)));
-        layoutNearbyNodes.addView(btn);
+        upcomingReservationId = booking.optString("id");
+        tvUpcomingHub.setText(booking.optString("stationName", "Solar Hub"));
+        try {
+            String dateStr = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(date);
+            String timeStr = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(date);
+            if (tvUpcomingDate != null) tvUpcomingDate.setText(dateStr);
+            if (tvUpcomingTime != null) tvUpcomingTime.setText(timeStr + " • " + booking.optDouble("energyAmountKWh", 0) + " kWh");
+        } catch (Exception ignored) {}
+    }
+
+    private void renderWeekStrip() {
+        if (layoutWeekStrip == null) return;
+        layoutWeekStrip.removeAllViews();
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+        // Force Monday start like reference
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        java.text.SimpleDateFormat dayName = new java.text.SimpleDateFormat("EEE", Locale.getDefault());
+        java.text.SimpleDateFormat dayNum = new java.text.SimpleDateFormat("d", Locale.getDefault());
+        java.text.SimpleDateFormat dayKey = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        int todayNum = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+        for (int i = 0; i < 7; i++) {
+            Date d = cal.getTime();
+            boolean isApproved = approvedDateKeys.contains(dayKey.format(d));
+            boolean isToday = cal.get(Calendar.DAY_OF_YEAR) == todayNum;
+            layoutWeekStrip.addView(buildDayCell(
+                    dayName.format(d), dayNum.format(d), isApproved, isToday));
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+        }
+    }
+
+    private View buildDayCell(String day, String num, boolean highlighted, boolean isToday) {
+        LinearLayout cell = new LinearLayout(this);
+        cell.setOrientation(LinearLayout.VERTICAL);
+        cell.setGravity(Gravity.CENTER_HORIZONTAL);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        cell.setLayoutParams(params);
+
+        TextView tvDay = new TextView(this);
+        tvDay.setText(day);
+        tvDay.setTextSize(11f);
+        tvDay.setGravity(Gravity.CENTER);
+        try {
+            tvDay.setTextColor(getResources().getColor(highlighted
+                    ? R.color.text_brand : R.color.chart_teal_200));
+        } catch (Exception ignored) {}
+        cell.addView(tvDay);
+
+        FrameLayout circle = new FrameLayout(this);
+        LinearLayout.LayoutParams circleParams = new LinearLayout.LayoutParams(dpToPx(36), dpToPx(36));
+        circleParams.setMargins(0, dpToPx(6), 0, 0);
+        circle.setLayoutParams(circleParams);
+        if (highlighted) {
+            try { circle.setBackgroundResource(R.drawable.bg_week_selected); }
+            catch (Exception ignored) {}
+        } else if (isToday) {
+            try { circle.setBackgroundResource(R.drawable.bg_neuro_icon_circle); }
+            catch (Exception ignored) {}
+        }
+
+        TextView tvNum = new TextView(this);
+        tvNum.setText(num);
+        tvNum.setTextSize(14f);
+        tvNum.setTypeface(null, Typeface.BOLD);
+        tvNum.setGravity(Gravity.CENTER);
+        FrameLayout.LayoutParams numParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        tvNum.setLayoutParams(numParams);
+        tvNum.setGravity(Gravity.CENTER);
+        try {
+            tvNum.setTextColor(getResources().getColor(highlighted
+                    ? R.color.chart_teal_100 : R.color.text_brand));
+        } catch (Exception ignored) {}
+        circle.addView(tvNum);
+        cell.addView(circle);
+
+        cell.setAlpha(0f);
+        cell.setTranslationY(dpToPx(8));
+        cell.animate().alpha(1f).translationY(0f).setDuration(280).start();
+        return cell;
     }
 
     private void hideProgress() {
@@ -611,7 +833,7 @@ public class ProsumerMainActivity extends AppCompatActivity {
                     android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_in);
             android.view.animation.Animation rise =
                     android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up);
-            int[] fadeViews = { R.id.dashboard_banner, R.id.energy_card, R.id.slots_card };
+            int[] fadeViews = { R.id.dashboard_banner, R.id.energy_card, R.id.earnings_card, R.id.slots_card };
             for (int i = 0; i < fadeViews.length; i++) {
                 View v = findViewById(fadeViews[i]);
                 if (v != null) {
@@ -636,12 +858,121 @@ public class ProsumerMainActivity extends AppCompatActivity {
         return Math.round(dp * density);
     }
 
+    // ── Booking notifications (completed + operator-cancelled) ─────────────
+    private void wireNotifications() {
+        // Bell toggles the dropdown card under the top bar
+        if (btnNotifications != null && layoutNotifDropdown != null) {
+            btnNotifications.setOnClickListener(v ->
+                    layoutNotifDropdown.setVisibility(
+                            layoutNotifDropdown.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
+        }
+    }
+
+    private java.util.Set<String> getReadNotifIds() {
+        // Per-prosumer read set: only a tap marks a notification read, never auto-clear
+        String key = "read_" + sessionManager.getNic();
+        return new java.util.HashSet<>(getSharedPreferences("prosumer_notif_read", MODE_PRIVATE)
+                .getStringSet(key, new java.util.HashSet<>()));
+    }
+
+    private void markNotifRead(String reservationId) {
+        String key = "read_" + sessionManager.getNic();
+        java.util.Set<String> read = getReadNotifIds();
+        if (read.add(reservationId)) {
+            getSharedPreferences("prosumer_notif_read", MODE_PRIVATE)
+                    .edit().putStringSet(key, read).apply();
+        }
+    }
+
+    private void loadNotifications() {
+        // Completed bookings + bookings cancelled by the operator stay listed until tapped
+        String nic = sessionManager.getNic();
+        new Thread(() -> {
+            try {
+                Request request = ApiClient.buildAuthRequest(this,
+                        "reservations?prosumerNic=" + nic).get().build();
+                try (Response response = ApiClient.getClient().newCall(request).execute()) {
+                    if (response.body() == null) return;
+                    JSONArray array = new JSONArray(response.body().string());
+                    java.util.Set<String> read = getReadNotifIds();
+                    List<JSONObject> unread = new ArrayList<>();
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject b = array.getJSONObject(i);
+                        String id = b.optString("id", "");
+                        if (id.isEmpty() || read.contains(id)) continue;
+                        String status = b.optString("status", "");
+                        boolean completed = "Completed".equalsIgnoreCase(status);
+                        boolean missed = "Missed".equalsIgnoreCase(status);
+                        boolean opCancelled = ("Cancelled".equalsIgnoreCase(status)
+                                || "Canceled".equalsIgnoreCase(status))
+                                && b.optString("operatorNotes", "")
+                                        .startsWith("Cancelled by Grid Operator");
+                        if (completed || missed || opCancelled) unread.add(b);
+                    }
+                    runOnUiThread(() -> renderNotifications(unread));
+                }
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
+    private void renderNotifications(List<JSONObject> unread) {
+        if (tvNotifBadge != null) {
+            tvNotifBadge.setVisibility(unread.isEmpty() ? View.GONE : View.VISIBLE);
+            tvNotifBadge.setText(String.valueOf(Math.min(unread.size(), 99)));
+        }
+        if (layoutNotifList == null) return;
+        layoutNotifList.removeAllViews();
+        if (tvNotifEmpty != null) {
+            tvNotifEmpty.setVisibility(unread.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (int i = unread.size() - 1; i >= 0; i--) {
+            JSONObject b = unread.get(i);
+            String status = b.optString("status", "");
+            boolean completed = "Completed".equalsIgnoreCase(status);
+            boolean missed = "Missed".equalsIgnoreCase(status);
+            View row = inflater.inflate(R.layout.item_notif, layoutNotifList, false);
+            TextView tvTitle = row.findViewById(R.id.tv_notif_title);
+            TextView tvSub = row.findViewById(R.id.tv_notif_sub);
+            View dot = row.findViewById(R.id.view_notif_dot);
+            tvTitle.setText(completed ? "Booking completed"
+                    : missed ? "Missed booking" : "Cancelled by operator");
+            tvSub.setText(b.optString("reservationCode", "RES-?")
+                    + " · " + b.optString("stationName", "Solar Hub")
+                    + " · " + b.optDouble("energyAmountKWh", 0) + " kWh");
+            if (dot != null) {
+                dot.setBackgroundResource(completed
+                        ? R.drawable.bg_track_dot_done
+                        : missed ? R.drawable.bg_track_dot_todo
+                        : R.drawable.bg_track_dot_current);
+            }
+            final String bookingId = b.optString("id", "");
+            row.setClickable(true);
+            row.setFocusable(true);
+            row.setOnClickListener(v -> {
+                // Mark read only on tap, then open that booking pass
+                markNotifRead(bookingId);
+                loadNotifications();
+                Intent intent = new Intent(this, BookingDetailActivity.class);
+                intent.putExtra("reservation_id", bookingId);
+                startActivity(intent);
+            });
+            layoutNotifList.addView(row);
+        }
+    }
+
     @Override
     protected void onResume() {
         // Refresh dashboard statistics, energy history graph, and nearby nodes on screen resume
         super.onResume();
+        // Back from a sub-page (back button) lands here: snap navbar back to home
+        navSelected = 0;
+        navLeaving = false;
+        paintNavIcons(navIconIds, 0);
         loadDashboardStats();
         loadEnergyTransferHistory();
         loadNearbyNodes();
+        loadUpcomingBooking();
+        loadNotifications();
     }
 }

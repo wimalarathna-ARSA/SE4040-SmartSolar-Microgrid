@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single bouncing dot for the 3-dot loading indicator (brand slate-teal). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/neuro_green" />
+    <size
+        android:width="7dp"
+        android:height="7dp" />
+</shape>

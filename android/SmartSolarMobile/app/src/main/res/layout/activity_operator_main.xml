@@ -1,0 +1,1567 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     File: activity_operator_main.xml
+     Description: Grid Operator Console - Styled with Soft Light Glassmorphism UI
+     Includes persistent Bottom Navigation Bar for Grid Operator
+     ============================================================================ -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_glass_canvas">
+
+    <!-- Content Container for Operator Sections -->
+    <FrameLayout
+        android:id="@+id/operator_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- 1. HOME SECTION (Current Operator Dashboard) -->
+        <ScrollView
+            android:id="@+id/view_operator_home"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="100dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="32dp">
+
+                <!-- =============================================================
+                     TOP HEADER BAR
+                     ============================================================= -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_welcome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Operator: Dispatch Specialist"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="@color/neuro_text_secondary"
+                            android:layout_marginBottom="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Field Operator"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="@color/text_brand" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Operational Console"
+                            android:textSize="20sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="@color/neuro_text_green" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btn_settings"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_neuro_icon_circle"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_line_settings"
+                            android:contentDescription="Settings" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <!-- =============================================================
+                     OPERATOR PHOTO HERO — real solar-house imagery + slate scrim.
+                     Swap house_solar_3.xml placeholder for house_solar_3.png
+                     (your wide-rooftop shot) in drawable-nodpi/ for final look.
+                     ============================================================= -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/operator_hero"
+                    android:layout_width="match_parent"
+                    android:layout_height="178dp"
+                    android:layout_marginBottom="20dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipChildren="true">
+
+                    <ImageView
+                        android:id="@+id/iv_operator_hero"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg6"
+                        android:scaleType="centerCrop"
+                        android:background="@drawable/bg_thumb_photo"
+                        android:contentDescription="Microgrid homes under management" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_photo_scrim" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="GRID OPERATIONS · LIVE"
+                            android:textColor="#CBD5E1"
+                            android:textSize="10sp"
+                            android:letterSpacing="0.14"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Rooftop fleet at a glance"
+                            android:textColor="#FFFFFF"
+                            android:textSize="19sp"
+                            android:fontFamily="sans-serif-semibold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Verify QR tokens, inspect nodes, clear today's queue"
+                            android:textColor="#E2E8F0"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- =============================================================
+                     GRID OVERVIEW: one cohesive frosted glass KPI section
+                     ============================================================= -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/bg_neuro_card"
+                    android:padding="16dp">
+
+                    <!-- Row 1: Monitored Hubs & Active Bookings -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false"
+                        android:layout_marginBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:padding="16dp"
+                            android:orientation="vertical"
+                            android:layout_marginEnd="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="MONITORED HUBS"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/neuro_text_muted" />
+
+                            <TextView
+                                android:id="@+id/tv_station_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 Stations"
+                                android:textSize="16sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="@color/neuro_green"
+                                android:layout_marginTop="6dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:padding="16dp"
+                            android:orientation="vertical"
+                            android:layout_marginStart="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="ACTIVE BOOKINGS"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/neuro_text_muted" />
+
+                            <TextView
+                                android:id="@+id/tv_active_bookings"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 Active"
+                                android:textSize="16sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="@color/neuro_amber"
+                                android:layout_marginTop="6dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Row 2: Approved Future & Completed Jobs -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:padding="16dp"
+                            android:orientation="vertical"
+                            android:layout_marginEnd="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="APPROVED INCOMING"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/neuro_text_muted" />
+
+                            <TextView
+                                android:id="@+id/tv_approved_future"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 Future"
+                                android:textSize="16sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="@color/neuro_blue"
+                                android:layout_marginTop="6dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:padding="16dp"
+                            android:orientation="vertical"
+                            android:layout_marginStart="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="COMPLETED JOBS"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/neuro_text_muted" />
+
+                            <TextView
+                                android:id="@+id/tv_completed_jobs"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 Completed"
+                                android:textSize="16sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="@color/neuro_text_primary"
+                                android:layout_marginTop="6dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- =============================================================
+                     PRIMARY ACTIONS
+                     ============================================================= -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_scan_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:text="Scan &amp; Verify Prosumer QR Token"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="@color/text_on_accent"
+                    android:background="@drawable/bg_btn_solid_deep"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="16dp"
+                    android:elevation="4dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_stations"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:text="Inspect Microgrid Node Fleet"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="#063127"
+                    android:background="@drawable/bg_btn_white_green_outline"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="16dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_analytics"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:text="View Fleet Analytics"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="#063127"
+                    android:background="@drawable/bg_btn_white_green_outline"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="16dp"
+                    android:layout_marginBottom="24dp"/>
+
+                <!-- =============================================================
+                     LIVE STATIONS SECTION
+                     ============================================================= -->
+                <!-- =============================================================
+                     LIVE STATIONS SECTION (horizontal like prosumer home)
+                     ============================================================= -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Station Battery Slot Status"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_brand" />
+
+                    <FrameLayout
+                        android:id="@+id/btn_stations_prev"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_arrow_teal"
+                        android:layout_marginEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="‹"
+                            android:textSize="20sp"
+                            android:textColor="@color/white" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btn_stations_next"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_arrow_teal"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="›"
+                            android:textSize="20sp"
+                            android:textColor="@color/white" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <com.smartsolar.mobile.ui.common.LoadingDotsView
+                    android:id="@+id/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginBottom="12dp"/>
+
+                <HorizontalScrollView
+                    android:id="@+id/stations_scroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:id="@+id/layout_stations"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical" />
+                </HorizontalScrollView>
+
+                <!-- =============================================================
+                     TODAY'S BOOKINGS SECTION
+                     ============================================================= -->
+                <!-- =============================================================
+                     TODAY'S BOOKINGS BANNER (bg7) + SECTION
+                     ============================================================= -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="130dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipChildren="true">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg7"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Bookings queue" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#80063127" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TODAY'S QUEUE · LIVE"
+                            android:textColor="#8FB3A9"
+                            android:textSize="10sp"
+                            android:letterSpacing="0.14"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bookings due for verification"
+                            android:textColor="#FFFFFF"
+                            android:textSize="17sp"
+                            android:fontFamily="sans-serif-semibold" />
+                    </LinearLayout>
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today's Scheduled Bookings"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_brand"
+                    android:layout_marginBottom="12dp"/>
+
+                <LinearLayout
+                    android:id="@+id/layout_today_bookings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_neuro_card"
+                    android:padding="16dp"/>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- 2. NODES SECTION - professional fleet map: search, legend, hub strip -->
+        <FrameLayout
+            android:id="@+id/view_operator_nodes"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="100dp"
+            android:visibility="gone">
+
+            <org.osmdroid.views.MapView
+                android:id="@+id/operator_all_nodes_map"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <com.smartsolar.mobile.ui.common.LoadingDotsView
+                android:id="@+id/map_progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"                android:visibility="gone" />
+
+            <!-- Back to home (map runs full-screen without bottom nav) -->
+            <FrameLayout
+                android:id="@+id/btn_nodes_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="16dp"
+                android:background="@drawable/bg_qr_back_circle"
+                android:clickable="true"
+                android:focusable="true"
+                android:elevation="4dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="‹"
+                    android:textSize="26sp"
+                    android:textColor="#063127"
+                    android:includeFontPadding="false" />
+            </FrameLayout>
+
+            <!-- Floating top panel: title + live counts + search -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_booking_card"
+                android:padding="16dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="72dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Node Fleet Map"
+                            android:textSize="18sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="#063127" />
+                        <TextView
+                            android:id="@+id/tv_nodes_sub"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Loading hubs…"
+                            android:textSize="12sp"
+                            android:textColor="#65998B"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/btn_nodes_recenter"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_booking_filter_circle"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="◎"
+                            android:textSize="20sp"
+                            android:textColor="#FFFFFF"
+                            android:includeFontPadding="false" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_booking_search_bar"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="6dp"
+                    android:paddingVertical="2dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⌕"
+                        android:textSize="18sp"
+                        android:textColor="#65998B" />
+
+                    <EditText
+                        android:id="@+id/et_nodes_search"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Search hub name or code…"
+                        android:textSize="14sp"
+                        android:textColor="#063127"
+                        android:textColorHint="#8FB3A9"
+                        android:singleLine="true"
+                        android:paddingStart="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Bottom overlay: legend + hub quick strip -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_booking_card"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp"
+                    android:layout_marginBottom="8dp"
+                    android:elevation="4dp">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/bg_track_dot_done" />
+                    <TextView
+                        android:id="@+id/tv_legend_active"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Active"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#063127"
+                        android:paddingStart="6dp"
+                        android:paddingEnd="12dp" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/bg_track_dot_current" />
+                    <TextView
+                        android:id="@+id/tv_legend_low"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Full"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#063127"
+                        android:paddingStart="6dp"
+                        android:paddingEnd="12dp" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/bg_track_dot_todo" />
+                    <TextView
+                        android:id="@+id/tv_legend_offline"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Offline"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#063127"
+                        android:paddingStart="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tap pin for details ›"
+                        android:textSize="10sp"
+                        android:textColor="#8FB3A9" />
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false">
+
+                    <LinearLayout
+                        android:id="@+id/layout_nodes_strip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical" />
+                </HorizontalScrollView>
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- 3. BOOKINGS SECTION - reservations style, greens only, no images -->
+        <FrameLayout
+            android:id="@+id/view_operator_bookings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:paddingBottom="100dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="20dp">
+
+                <!-- Deep-green balance-style header like reference black card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_booking_header_card"
+                    android:padding="18dp"
+                    android:layout_marginBottom="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Active Reservations"
+                                android:textSize="12sp"
+                                android:textColor="#8FB3A9" />
+                            <TextView
+                                android:id="@+id/tv_bookings_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Verify reservations"
+                                android:textSize="20sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="#FFFFFF"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/btn_bookings_scan"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Scan QR"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="#063127"
+                            android:background="@drawable/bg_booking_white_pill"
+                            android:paddingHorizontal="18dp"
+                            android:paddingVertical="10dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Search bar like reference, text glyphs only -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_booking_search_bar"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="6dp"
+                    android:paddingVertical="6dp"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⌕"
+                        android:textSize="18sp"
+                        android:textColor="#65998B" />
+
+                    <EditText
+                        android:id="@+id/et_booking_search"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Search by ID"
+                        android:textSize="14sp"
+                        android:textColor="#063127"
+                        android:textColorHint="#8FB3A9"
+                        android:singleLine="true"
+                        android:paddingStart="10dp" />
+
+                    <FrameLayout
+                        android:id="@+id/btn_booking_filter"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@drawable/bg_booking_filter_circle"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="≡"
+                            android:textSize="18sp"
+                            android:textColor="#FFFFFF"
+                            android:includeFontPadding="false" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <!-- Status drop-down filter -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Filter by status:"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#65998B"
+                        android:layout_marginEnd="8dp" />
+
+                    <Spinner
+                        android:id="@+id/spinner_status_filter"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_booking_spinner"
+                        android:paddingHorizontal="14dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Reservations"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-semibold"
+                    android:textColor="#063127"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="4dp" />
+
+                <com.smartsolar.mobile.ui.common.LoadingDotsView
+                    android:id="@+id/bookings_progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_margin="16dp" />
+
+                <TextView
+                    android:id="@+id/tv_bookings_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="No transactions matching filter criteria."
+                    android:textColor="#65998B"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_operator_bookings"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="16dp"
+                    android:scrollbars="none" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- 4. HISTORY SECTION - Find-Classes style: deep-green header + white sheet list -->
+        <FrameLayout
+            android:id="@+id/view_operator_history"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:paddingBottom="100dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="#FFFFFF">
+
+                <!-- Deep-green header like reference red header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_operator_history_header"
+                    android:paddingHorizontal="20dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="52dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Completed"
+                                android:textSize="24sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="#FFFFFF" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Transactions"
+                                android:textSize="24sp"
+                                android:fontFamily="sans-serif-semibold"
+                                android:textColor="#FFFFFF" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- White search bar with leading search icon -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_history_search_pill"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingVertical="4dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_line_search"
+                            android:contentDescription="Search" />
+
+                        <EditText
+                            android:id="@+id/et_history_search"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="Search NIC, TxID, Node, or Date..."
+                            android:textSize="14sp"
+                            android:textColor="#063127"
+                            android:textColorHint="#65998B"
+                            android:singleLine="true"
+                            android:inputType="text"
+                            android:paddingStart="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="›"
+                            android:textSize="22sp"
+                            android:textColor="#65998B"
+                            android:paddingStart="8dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- White sheet overlapping header, holds the list like reference -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_history_list_sheet"
+                    android:layout_marginTop="-28dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="16dp">
+
+                    <com.smartsolar.mobile.ui.common.LoadingDotsView
+                        android:id="@+id/history_progress_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        android:layout_margin="16dp" />
+
+                    <TextView
+                        android:id="@+id/tv_history_empty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No completed transactions found."
+                        android:textColor="#65998B"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:padding="24dp"
+                        android:visibility="gone" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_operator_history"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:paddingBottom="16dp"
+                        android:scrollbars="none" />
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- 5. PROFILE SECTION (View-Only Operator Profile & Console Settings) -->
+        <FrameLayout
+            android:id="@+id/view_operator_profile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="100dp"
+            android:visibility="gone">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Title block like prosumer profile -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Operator profile"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="@color/text_brand"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Keep your console identity and contact details current"
+                            android:textSize="12sp"
+                            android:textColor="#65998B"/>
+                    </LinearLayout>
+
+                    <!-- Identity header: deep-green account overview like prosumer -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_profile_identity"
+                        android:padding="20dp"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="ACCOUNT OVERVIEW"
+                            android:textColor="#8FB3A9"
+                            android:textSize="10sp"
+                            android:letterSpacing="0.12"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Console identity and access"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <!-- Profile Info Card like prosumer -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_neuro_card"
+                        android:padding="20dp"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="20dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <FrameLayout
+                                android:layout_width="60dp"
+                                android:layout_height="60dp"
+                                android:background="@drawable/bg_neuro_icon_circle">
+                                <TextView
+                                    android:id="@+id/tv_operator_avatar"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="OP"
+                                    android:textColor="@color/text_brand"
+                                    android:textSize="18sp"
+                                    android:fontFamily="sans-serif-medium"/>
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="16dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+                                    <TextView
+                                        android:id="@+id/tv_operator_name"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="Operator Name"
+                                        android:textSize="18sp"
+                                        android:fontFamily="sans-serif-semibold"
+                                        android:textColor="@color/text_brand"/>
+                                    <View
+                                        android:layout_width="8dp"
+                                        android:layout_height="8dp"
+                                        android:background="@drawable/bg_neuro_fab"
+                                        android:layout_marginEnd="6dp"/>
+                                    <TextView
+                                        android:id="@+id/tv_operator_status"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="On Duty"
+                                        android:textColor="#3B796A"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold"/>
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tv_operator_role"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Grid Operator"
+                                    android:textColor="@color/white"
+                                    android:textSize="11sp"
+                                    android:background="@drawable/bg_role_pill"
+                                    android:paddingHorizontal="10dp"
+                                    android:paddingVertical="2dp"
+                                    android:layout_marginTop="4dp"/>
+
+                                <TextView
+                                    android:id="@+id/tv_operator_nic"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="NIC: —"
+                                    android:textColor="#65998B"
+                                    android:textSize="12sp"
+                                    android:layout_marginTop="6dp"/>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="54dp"
+                            android:background="@drawable/bg_neuro_inner_card"
+                            android:layout_marginTop="20dp"
+                            android:paddingHorizontal="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_line_mail"
+                                app:tint="#3B796A"
+                                android:contentDescription="Email" />
+                            <TextView
+                                android:id="@+id/tv_operator_email_inline"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="—"
+                                android:textColor="@color/text_brand"
+                                android:textSize="13sp"/>
+                            <TextView
+                                android:id="@+id/tv_operator_copy_email"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Copy"
+                                android:textColor="#65998B"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Your details (view-only) like prosumer details card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_neuro_card"
+                        android:padding="20dp"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="24dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your details"
+                            android:textSize="18sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="@color/text_brand"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="These details identify your operator console."
+                            android:textSize="12sp"
+                            android:textColor="#65998B"
+                            android:layout_marginBottom="20dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Username / Primary Email"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-bold"
+                            android:textColor="@color/text_brand"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Used to sign in to the console"
+                            android:textSize="11sp"
+                            android:textColor="#65998B"
+                            android:layout_marginBottom="6dp"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:background="@drawable/bg_neuro_inner_card"
+                            android:paddingHorizontal="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_line_mail"
+                                app:tint="#3B796A"
+                                android:contentDescription="Email" />
+                            <TextView
+                                android:id="@+id/tv_operator_username"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="—"
+                                android:textColor="@color/text_brand"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Operational Phone"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-bold"
+                            android:textColor="@color/text_brand"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Used for field coordination"
+                            android:textSize="11sp"
+                            android:textColor="#65998B"
+                            android:layout_marginBottom="6dp"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:background="@drawable/bg_neuro_inner_card"
+                            android:paddingHorizontal="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_line_phone"
+                                app:tint="#3B796A"
+                                android:contentDescription="Phone" />
+                            <TextView
+                                android:id="@+id/tv_operator_phone"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="—"
+                                android:textColor="@color/text_brand"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Base Station / Address"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-bold"
+                            android:textColor="@color/text_brand"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your assigned operating base"
+                            android:textSize="11sp"
+                            android:textColor="#65998B"
+                            android:layout_marginBottom="6dp"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:background="@drawable/bg_neuro_inner_card"
+                            android:paddingHorizontal="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_line_location"
+                                app:tint="#3B796A"
+                                android:contentDescription="Address" />
+                            <TextView
+                                android:id="@+id/tv_operator_address"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="—"
+                                android:textColor="@color/text_brand"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Console Settings -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CONSOLE SETTINGS"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-semibold"
+                        android:textColor="@color/neuro_text_muted"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_neuro_card"
+                        android:padding="20dp"
+                        android:orientation="vertical">
+
+                        <!-- Logout Button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_operator_logout"
+                            android:layout_width="match_parent"
+                            android:layout_height="54dp"
+                            android:text="Sign Out of Console"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-semibold"
+                            android:textColor="@color/text_on_danger"
+                            android:background="@drawable/bg_btn_danger"
+                            app:backgroundTint="@null"
+                            app:cornerRadius="16dp"
+                            android:elevation="4dp"/>
+                    </LinearLayout>
+
+                    <com.smartsolar.mobile.ui.common.LoadingDotsView
+                        android:id="@+id/profile_progress_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"                        android:visibility="gone"
+                        android:layout_marginTop="20dp" />
+
+                </LinearLayout>
+            </ScrollView>
+        </FrameLayout>
+
+    </FrameLayout>
+
+    <!-- ============================================================================
+         FLOATING BOTTOM NAVIGATION LIKE PROSUMER: pill + separate scan FAB
+         ============================================================================ -->
+    <LinearLayout
+        android:id="@+id/operator_bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="20dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_prosumer_nav_water"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="8dp"
+            android:elevation="6dp">
+            <LinearLayout
+                android:id="@+id/operator_bottom_nav_container"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- 1. Home -->
+                <LinearLayout
+                    android:id="@+id/nav_operator_home"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:id="@+id/iv_nav_home"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:src="@drawable/ic_nav_home"
+                        android:contentDescription="Home" />
+                </LinearLayout>
+
+                <!-- 2. Nodes -->
+                <LinearLayout
+                    android:id="@+id/nav_operator_nodes"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:id="@+id/iv_nav_nodes"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:src="@drawable/ic_nav_nodes"
+                        android:contentDescription="Nodes" />
+                </LinearLayout>
+
+                <!-- 3. Bookings -->
+                <LinearLayout
+                    android:id="@+id/nav_operator_bookings"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:id="@+id/iv_nav_bookings"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:src="@drawable/ic_nav_bookings"
+                        android:contentDescription="Bookings" />
+                </LinearLayout>
+
+                <!-- 4. History -->
+                <LinearLayout
+                    android:id="@+id/nav_operator_history"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:id="@+id/iv_nav_history"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:src="@drawable/ic_nav_history"
+                        android:contentDescription="History" />
+                </LinearLayout>
+
+                <!-- 5. Profile -->
+                <LinearLayout
+                    android:id="@+id/nav_operator_profile"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:id="@+id/iv_nav_profile"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:src="@drawable/ic_nav_profile"
+                        android:contentDescription="Profile" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </FrameLayout>
+        <FrameLayout
+            android:id="@+id/nav_scan_fab"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/bg_prosumer_nav_water"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Scan QR"
+            android:elevation="6dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:translationY="-2dp"
+                android:text="+"
+                android:textColor="@color/login_deep"
+                android:textSize="32sp"
+                android:fontFamily="sans-serif-light" />
+        </FrameLayout>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

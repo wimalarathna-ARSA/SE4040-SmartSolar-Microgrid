@@ -8,6 +8,8 @@
 package com.smartsolar.mobile.ui.prosumer;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -41,7 +43,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
     private BookingHistoryAdapter adapter;
     private String currentStatusFilter = "";
 
-    private TextView tabAll, tabCompleted, tabApproved, tabPending;
+    private TextView tabAll, tabCompleted, tabApproved, tabPending, tabCancelled;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +66,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
         tabCompleted  = findViewById(R.id.tab_completed);
         tabApproved   = findViewById(R.id.tab_approved);
         tabPending    = findViewById(R.id.tab_pending);
+        tabCancelled  = findViewById(R.id.tab_cancelled);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new BookingHistoryAdapter(bookingList, booking -> {
@@ -85,24 +88,27 @@ public class BookingHistoryActivity extends AppCompatActivity {
     }
 
     private void setupTabs() {
-        // Attach click listeners to All, Completed, Approved, and Pending tabs with selection styles
+        // Attach click listeners to All, Completed, Approved, Pending and Cancelled tabs
         View.OnClickListener listener = v -> {
             tabAll.setBackground(null);
             tabCompleted.setBackground(null);
             tabApproved.setBackground(null);
             tabPending.setBackground(null);
-            tabAll.setTextColor(getResources().getColor(R.color.neuro_text_muted));
-            tabCompleted.setTextColor(getResources().getColor(R.color.neuro_text_muted));
-            tabApproved.setTextColor(getResources().getColor(R.color.neuro_text_muted));
-            tabPending.setTextColor(getResources().getColor(R.color.neuro_text_muted));
+            tabCancelled.setBackground(null);
+            tabAll.setTextColor(getResources().getColor(R.color.white));
+            tabCompleted.setTextColor(getResources().getColor(R.color.white));
+            tabApproved.setTextColor(getResources().getColor(R.color.white));
+            tabPending.setTextColor(getResources().getColor(R.color.white));
+            tabCancelled.setTextColor(getResources().getColor(R.color.white));
 
-            v.setBackgroundResource(R.drawable.bg_neuro_tab_selected);
-            ((TextView)v).setTextColor(getResources().getColor(R.color.neuro_green));
+            v.setBackgroundResource(R.drawable.bg_tab_selected_pale);
+            ((TextView)v).setTextColor(getResources().getColor(R.color.white));
 
             if (v.getId() == R.id.tab_all) currentStatusFilter = "";
             else if (v.getId() == R.id.tab_completed) currentStatusFilter = "Completed";
             else if (v.getId() == R.id.tab_approved) currentStatusFilter = "Approved";
             else if (v.getId() == R.id.tab_pending) currentStatusFilter = "Pending";
+            else if (v.getId() == R.id.tab_cancelled) currentStatusFilter = "Cancelled";
 
             loadBookings();
         };
@@ -111,6 +117,7 @@ public class BookingHistoryActivity extends AppCompatActivity {
         tabCompleted.setOnClickListener(listener);
         tabApproved.setOnClickListener(listener);
         tabPending.setOnClickListener(listener);
+        tabCancelled.setOnClickListener(listener);
     }
 
     private void loadBookings() {
@@ -136,6 +143,13 @@ public class BookingHistoryActivity extends AppCompatActivity {
 
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject booking = array.getJSONObject(i);
+                    // Cancelled tab shows plain cancellations only; operator-released
+                    // bookings live in the transfer-history Op. Cancelled tab
+                    if ("Cancelled".equalsIgnoreCase(currentStatusFilter)
+                            && booking.optString("operatorNotes", "")
+                                    .startsWith("Cancelled by Grid Operator")) {
+                        continue;
+                    }
                     bookingList.add(booking);
                         DatabaseHelper db = new DatabaseHelper(BookingHistoryActivity.this);
                         db.cacheEnergyReservation(
@@ -146,10 +160,12 @@ public class BookingHistoryActivity extends AppCompatActivity {
                             booking.optString("reservationType"), booking.optString("status"),
                             booking.optString("qrCodeData"));
                         db.close();
-                    if (booking.optString("status").equalsIgnoreCase("Completed")) {
-                        totalTraded += booking.optDouble("energyAmountKWh", 0);
-                        totalValue += booking.optDouble("totalCost", 0);
-                    }
+                    // Totals follow the visible tab: Completed-only on All/Completed tabs,
+                    // the tab's own bookings on Pending/Approved tabs (never stuck at zero)
+                    boolean isCompleted = booking.optString("status").equalsIgnoreCase("Completed");
+                    if (currentStatusFilter.isEmpty() && !isCompleted) continue;
+                    totalTraded += booking.optDouble("energyAmountKWh", 0);
+                    totalValue += booking.optDouble("totalCost", 0);
                 }
 
                 final double fTotalTraded = totalTraded;
@@ -191,6 +207,16 @@ public class BookingHistoryActivity extends AppCompatActivity {
             
             String status = item.optString("status");
             holder.tvStatus.setText(status);
+            styleStatusTag(holder.tvStatus, status);
+            // Operator-released bookings show who cancelled them
+            String opNotes = item.optString("operatorNotes", "");
+            if (("Cancelled".equalsIgnoreCase(status) || "Canceled".equalsIgnoreCase(status))
+                    && opNotes.startsWith("Cancelled by Grid Operator")) {
+                holder.tvStatus.setText("Cancelled by operator");
+            }
+            if ("Missed".equalsIgnoreCase(status)) {
+                holder.tvStatus.setText("Missed — No Show");
+            }
             
             String scheduled = item.optString("scheduledDateTime");
             try {
@@ -209,6 +235,38 @@ public class BookingHistoryActivity extends AppCompatActivity {
             holder.itemView.setOnClickListener(v -> listener.onClick(item));
         }
         @Override public int getItemCount() { return items.size(); }
+
+        /** Status pill in its own palette color: Completed darkest … Cancelled lightest. */
+        static void styleStatusTag(TextView tv, String status) {
+            int bg;
+            int fg;
+            if ("Completed".equalsIgnoreCase(status)) {
+                bg = Color.parseColor("#063127");
+                fg = Color.WHITE;
+            } else if ("Approved".equalsIgnoreCase(status)) {
+                bg = Color.parseColor("#3B796A");
+                fg = Color.WHITE;
+            } else if ("Pending".equalsIgnoreCase(status)) {
+                bg = Color.parseColor("#8FB3A9");
+                fg = Color.parseColor("#063127");
+            } else if ("Cancelled".equalsIgnoreCase(status) || "Canceled".equalsIgnoreCase(status)) {
+                bg = Color.parseColor("#BFD5D0");
+                fg = Color.parseColor("#063127");
+            } else if ("Missed".equalsIgnoreCase(status)) {
+                bg = Color.parseColor("#D97706"); // amber-600
+                fg = Color.WHITE;
+            } else {
+                bg = Color.parseColor("#65998B");
+                fg = Color.WHITE;
+            }
+            float density = tv.getResources().getDisplayMetrics().density;
+            GradientDrawable pill = new GradientDrawable();
+            pill.setShape(GradientDrawable.RECTANGLE);
+            pill.setCornerRadius(20f * density);
+            pill.setColor(bg);
+            tv.setBackground(pill);
+            tv.setTextColor(fg);
+        }
         static class VH extends RecyclerView.ViewHolder {
             TextView tvCode, tvStation, tvEnergy, tvStatus, tvDate, tvCost;
             VH(View v) {

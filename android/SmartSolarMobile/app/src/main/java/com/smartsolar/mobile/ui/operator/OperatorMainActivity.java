@@ -21,6 +21,7 @@ import android.widget.*;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -54,6 +55,7 @@ public class OperatorMainActivity extends AppCompatActivity {
 
     private TextView tvStationCount, tvActiveBookings, tvApprovedFuture, tvCompletedJobs;
     private LinearLayout layoutStations, layoutTodayBookings;
+    private HorizontalScrollView stationsScroll;
     private View progressBar;
     private SessionManager sessionManager;
 
@@ -84,6 +86,17 @@ public class OperatorMainActivity extends AppCompatActivity {
         layoutStations       = findViewById(R.id.layout_stations);
         layoutTodayBookings = findViewById(R.id.layout_today_bookings);
         progressBar          = findViewById(R.id.progress_bar);
+        stationsScroll       = findViewById(R.id.stations_scroll);
+
+        // Horizontal strip arrows like prosumer home
+        View stationsPrev = findViewById(R.id.btn_stations_prev);
+        if (stationsPrev != null && stationsScroll != null) {
+            stationsPrev.setOnClickListener(v -> stationsScroll.smoothScrollBy(-dpToPx(320), 0));
+        }
+        View stationsNext = findViewById(R.id.btn_stations_next);
+        if (stationsNext != null && stationsScroll != null) {
+            stationsNext.setOnClickListener(v -> stationsScroll.smoothScrollBy(dpToPx(320), 0));
+        }
 
         if (tvWelcome != null) {
             tvWelcome.setText(getString(R.string.operator_welcome, sessionManager.getFullName()));
@@ -110,6 +123,12 @@ public class OperatorMainActivity extends AppCompatActivity {
             btnStations.setOnClickListener(v -> startActivity(new Intent(this, OperatorStationsActivity.class)));
         }
 
+        // Fleet analytics (same charts as prosumer analytics, fleet-wide)
+        MaterialButton btnAnalytics = findViewById(R.id.btn_analytics);
+        if (btnAnalytics != null) {
+            btnAnalytics.setOnClickListener(v -> startActivity(new Intent(this, OperatorAnalyticsActivity.class)));
+        }
+
         // Settings (Theme & Logout)
         View btnSettings = findViewById(R.id.btn_settings);
         if (btnSettings != null) {
@@ -117,7 +136,6 @@ public class OperatorMainActivity extends AppCompatActivity {
         }
     }
 
-    
     // ── Bind Bottom Navigation & Section Containers ──────────────────────────
     private void bindBottomNavigation() {
         // Resolve section containers, nav layout items, icons and labels from layout XML
@@ -142,12 +160,12 @@ public class OperatorMainActivity extends AppCompatActivity {
         ivNavHistory  = findViewById(R.id.iv_nav_history);
         ivNavProfile  = findViewById(R.id.iv_nav_profile);
 
-        // Nav Labels
-        tvNavHome     = findViewById(R.id.tv_nav_home);
-        tvNavNodes    = findViewById(R.id.tv_nav_nodes);
-        tvNavBookings = findViewById(R.id.tv_nav_bookings);
-        tvNavHistory  = findViewById(R.id.tv_nav_history);
-        tvNavProfile  = findViewById(R.id.tv_nav_profile);
+        // Nav Labels removed in prosumer-style pill (icons only); fields stay null
+        tvNavHome     = null;
+        tvNavNodes    = null;
+        tvNavBookings = null;
+        tvNavHistory  = null;
+        tvNavProfile  = null;
     }
 
     // ── Setup Bottom Navigation Click Handlers ──────────────────────────────
@@ -161,6 +179,17 @@ public class OperatorMainActivity extends AppCompatActivity {
 
         // Default section is Home (index 0)
         selectSection(0);
+
+        // Separate scan FAB like prosumer: pop animation then open the QR scanner
+        View fab = findViewById(R.id.nav_scan_fab);
+        if (fab != null) {
+            fab.setOnClickListener(v -> {
+                v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(120).withEndAction(() ->
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(220).start()).start();
+                v.postDelayed(() ->
+                        startActivity(new Intent(this, QrScannerActivity.class)), 150);
+            });
+        }
     }
 
     // ── Switch Section View & Active Navigation State ───────────────────────
@@ -179,6 +208,15 @@ public class OperatorMainActivity extends AppCompatActivity {
         updateNavItemState(navBookings, ivNavBookings, tvNavBookings, index == 2);
         updateNavItemState(navHistory,  ivNavHistory,  tvNavHistory,  index == 3);
         updateNavItemState(navProfile,  ivNavProfile,  tvNavProfile,  index == 4);
+
+        // Map page runs full-screen: hide bottom nav and reclaim its padding there
+        View bottomNav = findViewById(R.id.operator_bottom_nav);
+        if (bottomNav != null) bottomNav.setVisibility(index == 1 ? View.GONE : View.VISIBLE);
+        if (viewNodes != null) {
+            int pb = (index == 1) ? 0 : dpToPx(100);
+            viewNodes.setPadding(viewNodes.getPaddingLeft(), viewNodes.getPaddingTop(),
+                    viewNodes.getPaddingRight(), pb);
+        }
 
         if (index == 1) {
             loadAllNodesMapOverlay();
@@ -216,6 +254,20 @@ public class OperatorMainActivity extends AppCompatActivity {
                             .show();
                 });
             }
+            // Copy email to clipboard like prosumer profile Copy label
+            View btnCopy = findViewById(R.id.tv_operator_copy_email);
+            if (btnCopy != null) {
+                btnCopy.setOnClickListener(v -> {
+                    TextView tvEmail = findViewById(R.id.tv_operator_username);
+                    String email = tvEmail != null ? tvEmail.getText().toString() : "";
+                    android.content.ClipboardManager cm =
+                            (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    if (cm != null) {
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("email", email));
+                        Toast.makeText(this, "Email copied", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
             isProfileInitialized = true;
         }
 
@@ -251,13 +303,14 @@ public class OperatorMainActivity extends AppCompatActivity {
         }).start();
     }
 
-       private void renderProfileData(JSONObject user) {
+    private void renderProfileData(JSONObject user) {
         // Populate name, avatar initials, role, NIC, email, phone and address TextViews from JSON
         TextView tvName     = findViewById(R.id.tv_operator_name);
         TextView tvAvatar   = findViewById(R.id.tv_operator_avatar);
         TextView tvRole     = findViewById(R.id.tv_operator_role);
         TextView tvNic      = findViewById(R.id.tv_operator_nic);
         TextView tvUsername = findViewById(R.id.tv_operator_username);
+        TextView tvEmailInline = findViewById(R.id.tv_operator_email_inline);
         TextView tvPhone    = findViewById(R.id.tv_operator_phone);
         TextView tvAddress  = findViewById(R.id.tv_operator_address);
 
@@ -278,6 +331,7 @@ public class OperatorMainActivity extends AppCompatActivity {
         if (tvRole != null)     tvRole.setText(user.optString("role", "Grid Operator"));
         if (tvNic != null)      tvNic.setText("NIC Identifier: " + user.optString("nic", "—"));
         if (tvUsername != null) tvUsername.setText(user.optString("email", "—"));
+        if (tvEmailInline != null) tvEmailInline.setText(user.optString("email", "—"));
         if (tvPhone != null)    tvPhone.setText(user.optString("phoneNumber", "N/A"));
         if (tvAddress != null)  tvAddress.setText(user.optString("address", "Not Specified"));
     }
@@ -387,7 +441,7 @@ public class OperatorMainActivity extends AppCompatActivity {
         }
     }
 
-        /** Historical logs Adapter architecture mapping authoritative transaction records */
+    /** Historical logs Adapter architecture mapping authoritative transaction records */
     private class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.VH> {
         private final List<JSONObject> items;
         HistoryAdapter(List<JSONObject> items) { this.items = items; }
@@ -413,21 +467,22 @@ public class OperatorMainActivity extends AppCompatActivity {
                 
                 holder.tvNode.setText("Node: " + h.optString("stationName", "Solar Hub"));
                 
-                String scheduled = h.optString("scheduledDateTime", "").replace("T", " ").substring(0, 16);
-                holder.tvTimestamp.setText("Completed: " + scheduled);
+                // Time column value only (label "Time" is static in layout, like reference)
+                String scheduledRaw = h.optString("scheduledDateTime", "").replace("T", " ");
+                String scheduled = scheduledRaw.length() >= 16 ? scheduledRaw.substring(0, 16) : scheduledRaw;
+                holder.tvTimestamp.setText(scheduled.isEmpty() ? "—" : scheduled);
                 
                 holder.tvEnergy.setText(h.optDouble("energyAmountKWh", 0.0) + " kWh");
 
-                String status = h.optString("status", "Pending");
-                if ("Completed".equalsIgnoreCase(status)) {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_text_green));
-                    holder.tvStatus.setText(status.toUpperCase());
-                } else if ("Approved".equalsIgnoreCase(status)) {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_blue));
-                    holder.tvStatus.setText(status.toUpperCase());
+                // Find-Classes style chip: solid deep-green button like "Book Now".
+                // Palette: #063127 completed, #3B796A approved.
+                String status = h.optString("status", "Completed");
+                holder.tvStatus.setText(status.toUpperCase());
+                holder.tvStatus.setTextColor(0xFFFFFFFF);
+                if ("Approved".equalsIgnoreCase(status)) {
+                    holder.tvStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF3B796A));
                 } else {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_text_muted));
-                    holder.tvStatus.setText(status.toUpperCase());
+                    holder.tvStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF063127));
                 }
 
                 // Navigate to historical transaction audit details on tap
@@ -456,6 +511,7 @@ public class OperatorMainActivity extends AppCompatActivity {
             }
         }
     }
+
     private final List<JSONObject> allBookingsList = new ArrayList<>();
     private final List<JSONObject> filteredBookingsList = new ArrayList<>();
     private BookingsAdapter operatorBookingsAdapter;
@@ -463,7 +519,7 @@ public class OperatorMainActivity extends AppCompatActivity {
 
     /** Wire and fetch full database collection logs matching operational bookings */
     private void setupBookingsSection() {
-        // Initialise RecyclerView, status spinner, search watcher, and load all reservations
+        // Initialise RecyclerView, status drop-down, search watcher, header scan shortcut
         final RecyclerView rv = findViewById(R.id.recycler_operator_bookings);
         final EditText etSearch = findViewById(R.id.et_booking_search);
         final Spinner spinnerStatus = findViewById(R.id.spinner_status_filter);
@@ -475,7 +531,7 @@ public class OperatorMainActivity extends AppCompatActivity {
             operatorBookingsAdapter = new BookingsAdapter(filteredBookingsList);
             rv.setAdapter(operatorBookingsAdapter);
 
-            // Populate status filters mapping project criteria (All, Pending, Approved, Cancelled, Completed)
+            // Status filter state lives in hidden spinner (All, Pending, Approved, Cancelled, Completed)
             List<String> options = Arrays.asList("All Statuses", "Pending", "Approved", "Cancelled", "Completed");
             ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, options);
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -485,6 +541,18 @@ public class OperatorMainActivity extends AppCompatActivity {
                     @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { performBookingsFilter(); }
                     @Override public void onNothingSelected(AdapterView<?> p) {}
                 });
+            }
+
+            // Header Scan QR shortcut
+            View btnScan = findViewById(R.id.btn_bookings_scan);
+            if (btnScan != null) {
+                btnScan.setOnClickListener(v -> startActivity(new Intent(this, QrScannerActivity.class)));
+            }
+
+            // 3-line filter icon opens the status drop-down list
+            View btnFilter = findViewById(R.id.btn_booking_filter);
+            if (btnFilter != null && spinnerStatus != null) {
+                btnFilter.setOnClickListener(v -> spinnerStatus.performClick());
             }
 
             if (etSearch != null) {
@@ -566,9 +634,13 @@ public class OperatorMainActivity extends AppCompatActivity {
         if (tvEmpty != null) {
             tvEmpty.setVisibility(filteredBookingsList.isEmpty() ? View.VISIBLE : View.GONE);
         }
+        final TextView tvCount = findViewById(R.id.tv_bookings_count);
+        if (tvCount != null) {
+            tvCount.setText(filteredBookingsList.size() + " reservations");
+        }
     }
 
-        /** View Holder / Adapter architecture for dynamic operator reservations listing */
+    /** View Holder / Adapter architecture for dynamic operator reservations listing */
     private class BookingsAdapter extends RecyclerView.Adapter<BookingsAdapter.VH> {
         private final List<JSONObject> items;
         BookingsAdapter(List<JSONObject> items) { this.items = items; }
@@ -585,10 +657,14 @@ public class OperatorMainActivity extends AppCompatActivity {
                 
                 String resCode = b.optString("reservationCode", "RES-" + bId.substring(0, Math.min(bId.length(), 6)));
                 holder.tvCode.setText(resCode);
-                
+
+                // From = prosumer, To = station node
                 String prosumer = b.optString("prosumerName", "Prosumer Agent");
                 String nic = b.optString("prosumerNic", "N/A");
-                holder.tvStation.setText(prosumer + " (" + nic + ")\nNode: " + b.optString("stationName"));
+                String node = b.optString("stationName", "Solar Hub");
+                if (holder.tvFrom != null) holder.tvFrom.setText(prosumer);
+                holder.tvStation.setText(nic);
+                if (holder.tvTo != null) holder.tvTo.setText(node);
 
                 String scheduled = b.optString("scheduledDateTime", "");
                 String time = scheduled.length() >= 16 ? scheduled.substring(11, 16) : "N/A";
@@ -600,17 +676,45 @@ public class OperatorMainActivity extends AppCompatActivity {
                     holder.tvCost.setVisibility(View.GONE);
                 }
 
+                // Status chip + 3-step tracker: Requested > Approved > Completed
                 String status = b.optString("status", "Pending");
                 holder.tvStatus.setText(status);
+                int step = 0; // 0 pending, 1 approved, 2 completed
+                if ("Completed".equalsIgnoreCase(status)) step = 2;
+                else if ("Approved".equalsIgnoreCase(status)) step = 1;
+                else if ("Cancelled".equalsIgnoreCase(status)) step = -1;
 
-                if ("Completed".equalsIgnoreCase(status)) {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_text_green));
-                } else if ("Pending".equalsIgnoreCase(status)) {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_amber));
-                } else if ("Cancelled".equalsIgnoreCase(status)) {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_danger));
+                if (step == 2) {
+                    holder.tvStatus.setTextColor(0xFFFFFFFF);
+                    holder.tvStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF063127));
+                } else if (step == 1) {
+                    holder.tvStatus.setTextColor(0xFFFFFFFF);
+                    holder.tvStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF3B796A));
+                } else if (step == -1) {
+                    holder.tvStatus.setTextColor(0xFF063127);
+                    holder.tvStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF8FB3A9));
                 } else {
-                    holder.tvStatus.setTextColor(ContextCompat.getColor(OperatorMainActivity.this, R.color.neuro_blue));
+                    holder.tvStatus.setTextColor(0xFF063127);
+                    holder.tvStatus.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFBFD5D0));
+                }
+
+                // Dots: done / current / todo
+                if (holder.dot1 != null && holder.dot2 != null && holder.dot3 != null
+                        && holder.line1 != null && holder.line2 != null) {
+                    if (step == -1) {
+                        holder.dot1.setBackgroundResource(R.drawable.bg_track_dot_todo);
+                        holder.dot2.setBackgroundResource(R.drawable.bg_track_dot_todo);
+                        holder.dot3.setBackgroundResource(R.drawable.bg_track_dot_todo);
+                        holder.line1.setBackgroundColor(0xFFBFD5D0);
+                        holder.line2.setBackgroundColor(0xFFBFD5D0);
+                    } else {
+                        holder.dot1.setBackgroundResource(R.drawable.bg_track_dot_done);
+                        holder.dot2.setBackgroundResource(step >= 1 ? R.drawable.bg_track_dot_done : R.drawable.bg_track_dot_todo);
+                        if (step == 0) holder.dot2.setBackgroundResource(R.drawable.bg_track_dot_current);
+                        holder.dot3.setBackgroundResource(step >= 2 ? R.drawable.bg_track_dot_done : R.drawable.bg_track_dot_todo);
+                        holder.line1.setBackgroundColor(step >= 1 ? 0xFF063127 : 0xFFBFD5D0);
+                        holder.line2.setBackgroundColor(step >= 2 ? 0xFF063127 : 0xFFBFD5D0);
+                    }
                 }
 
                 // Redirect operator to Booking Detail insight screen when specific cell is tapped
@@ -626,7 +730,8 @@ public class OperatorMainActivity extends AppCompatActivity {
         @Override public int getItemCount() { return items.size(); }
 
         class VH extends RecyclerView.ViewHolder {
-            TextView tvCode, tvStation, tvEnergy, tvStatus, tvDate, tvCost;
+            TextView tvCode, tvStation, tvEnergy, tvStatus, tvDate, tvCost, tvFrom, tvTo;
+            View dot1, dot2, dot3, line1, line2;
             VH(View v) { super(v);
                 tvCode = v.findViewById(R.id.tv_booking_code);
                 tvStation = v.findViewById(R.id.tv_booking_station);
@@ -634,12 +739,24 @@ public class OperatorMainActivity extends AppCompatActivity {
                 tvStatus = v.findViewById(R.id.tv_booking_status);
                 tvDate = v.findViewById(R.id.tv_booking_date);
                 tvCost = v.findViewById(R.id.tv_booking_cost);
+                tvFrom = v.findViewById(R.id.tv_booking_from);
+                tvTo = v.findViewById(R.id.tv_booking_to);
+                dot1 = v.findViewById(R.id.view_dot_1);
+                dot2 = v.findViewById(R.id.view_dot_2);
+                dot3 = v.findViewById(R.id.view_dot_3);
+                line1 = v.findViewById(R.id.view_line_1);
+                line2 = v.findViewById(R.id.view_line_2);
             }
         }
     }
-  /** Orchestrates and triggers lazy rendering allocation pipelines for OpenStreetMap fleet markers layout */
+
+    private final List<JSONObject> allNodesStations = new ArrayList<>();
+    private boolean isNodesInitialized = false;
+    private boolean isNodesCameraInit = false;
+
+    /** Fleet map: search, live counts, legend and hub quick-strip over OpenStreetMap markers */
     private void loadAllNodesMapOverlay() {
-        // Fetch all stations and plot OSMDroid map markers with slot count and tap-to-detail
+        // Fetch all stations once per visit, plot markers, and keep search/strip/legend in sync
         final MapView mapView = findViewById(R.id.operator_all_nodes_map);
         final View mapProgress = findViewById(R.id.map_progress_bar);
         if (mapView == null) return;
@@ -648,8 +765,36 @@ public class OperatorMainActivity extends AppCompatActivity {
         Configuration.getInstance().setUserAgentValue(getPackageName());
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
-        mapView.getController().setZoom(7.5);
-        mapView.getController().setCenter(new GeoPoint(7.8731, 80.7718));
+
+        if (!isNodesInitialized) {
+            View btnNodesBack = findViewById(R.id.btn_nodes_back);
+            if (btnNodesBack != null) {
+                btnNodesBack.setOnClickListener(v -> selectSection(0));
+            }
+            final EditText etNodesSearch = findViewById(R.id.et_nodes_search);
+            if (etNodesSearch != null) {
+                etNodesSearch.addTextChangedListener(new TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyNodesFilter(); }
+                    @Override public void afterTextChanged(Editable s) {}
+                });
+            }
+            View btnRecenter = findViewById(R.id.btn_nodes_recenter);
+            if (btnRecenter != null) {
+                btnRecenter.setOnClickListener(v -> {
+                    mapView.getController().setZoom(7.5);
+                    mapView.getController().setCenter(new GeoPoint(7.8731, 80.7718));
+                    mapView.invalidate();
+                });
+            }
+            isNodesInitialized = true;
+        }
+
+        if (!isNodesCameraInit) {
+            mapView.getController().setZoom(7.5);
+            mapView.getController().setCenter(new GeoPoint(7.8731, 80.7718));
+            isNodesCameraInit = true;
+        }
 
         if (mapProgress != null) mapProgress.setVisibility(View.VISIBLE);
 
@@ -660,40 +805,16 @@ public class OperatorMainActivity extends AppCompatActivity {
                     if (res.body() != null) {
                         String body = res.body().string();
                         final JSONArray array = new JSONArray(body);
-
+                        synchronized (allNodesStations) {
+                            allNodesStations.clear();
+                            for (int i = 0; i < array.length(); i++) {
+                                allNodesStations.add(array.getJSONObject(i));
+                            }
+                        }
                         runOnUiThread(() -> {
                             if (mapProgress != null) mapProgress.setVisibility(View.GONE);
-                            mapView.getOverlays().clear();
-
-                            for (int i = 0; i < array.length(); i++) {
-                                try {
-                                    JSONObject station = array.getJSONObject(i);
-                                    final String sId = station.optString("id");
-                                    double lat = station.getDouble("latitude");
-                                    double lng = station.getDouble("longitude");
-                                    String name = station.getString("name");
-                                    String code = station.optString("stationCode");
-                                    int freeSlots = station.optInt("availableBatterySlots");
-                                    String status = station.optString("status");
-
-                                    Marker marker = new Marker(mapView);
-                                    marker.setPosition(new GeoPoint(lat, lng));
-                                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                                    marker.setTitle(name + " [" + code + "]");
-                                    marker.setSnippet("Status: " + status + " | " + freeSlots + " slots available");
-
-                                    // Clicking marker redirects operator straight to that exact node's insight metrics
-                                    marker.setOnMarkerClickListener((m, mv) -> {
-                                        Intent intent = new Intent(OperatorMainActivity.this, OperatorNodeDetailActivity.class);
-                                        intent.putExtra("station_id", sId);
-                                        startActivity(intent);
-                                        return true;
-                                    });
-
-                                    mapView.getOverlays().add(marker);
-                                } catch (Exception ignored) {}
-                            }
-                            mapView.invalidate();
+                            updateNodesLegend();
+                            applyNodesFilter();
                         });
                     }
                 }
@@ -706,24 +827,170 @@ public class OperatorMainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void updateNavItemState(LinearLayout container, ImageView icon, TextView label, boolean isSelected) {
-        // Toggle background, tint colour and font weight of a bottom navigation tab item
-        if (container == null || icon == null || label == null) return;
+    /** Re-plot markers and hub strip for the current nodes search query. */
+    private void applyNodesFilter() {
+        final MapView mapView = findViewById(R.id.operator_all_nodes_map);
+        final EditText etSearch = findViewById(R.id.et_nodes_search);
+        final TextView tvSub = findViewById(R.id.tv_nodes_sub);
+        if (mapView == null) return;
 
-        if (isSelected) {
-            container.setBackgroundResource(R.drawable.bg_neuro_nav_item_selected);
-            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.neuro_green));
-            label.setTextColor(ContextCompat.getColor(this, R.color.neuro_green));
-            label.setTypeface(null, Typeface.BOLD);
-        } else {
-            container.setBackground(null);
-            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.neuro_nav_unselected));
-            label.setTextColor(ContextCompat.getColor(this, R.color.neuro_nav_unselected));
-            label.setTypeface(null, Typeface.NORMAL);
+        String query = etSearch != null ? etSearch.getText().toString().trim().toLowerCase() : "";
+        List<JSONObject> filtered = new ArrayList<>();
+        int totalFree = 0;
+        synchronized (allNodesStations) {
+            for (JSONObject s : allNodesStations) {
+                totalFree += s.optInt("availableBatterySlots", 0);
+                String name = s.optString("name", "").toLowerCase();
+                String code = s.optString("stationCode", "").toLowerCase();
+                if (query.isEmpty() || name.contains(query) || code.contains(query)) {
+                    filtered.add(s);
+                }
+            }
+            if (tvSub != null) {
+                if (query.isEmpty()) {
+                    tvSub.setText(allNodesStations.size() + " hubs · " + totalFree + " slots free");
+                } else {
+                    tvSub.setText(filtered.size() + " of " + allNodesStations.size() + " hubs match");
+                }
+            }
+        }
+
+        mapView.getOverlays().clear();
+        for (JSONObject station : filtered) {
+            try {
+                final String sId = station.optString("id");
+                double lat = station.getDouble("latitude");
+                double lng = station.getDouble("longitude");
+                String name = station.getString("name");
+                String code = station.optString("stationCode");
+                int freeSlots = station.optInt("availableBatterySlots");
+                String status = station.optString("status");
+
+                Marker marker = new Marker(mapView);
+                marker.setPosition(new GeoPoint(lat, lng));
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                marker.setTitle(name + " [" + code + "]");
+                marker.setSnippet("Status: " + status + " | " + freeSlots + " slots available");
+                android.graphics.drawable.Drawable hubIcon =
+                        ResourcesCompat.getDrawable(getResources(), R.drawable.ic_map_hub, null);
+                if (hubIcon != null) marker.setIcon(hubIcon);
+
+                // Clicking marker redirects operator straight to that exact node's insight metrics
+                marker.setOnMarkerClickListener((m, mv) -> {
+                    Intent intent = new Intent(OperatorMainActivity.this, OperatorNodeDetailActivity.class);
+                    intent.putExtra("station_id", sId);
+                    startActivity(intent);
+                    return true;
+                });
+
+                mapView.getOverlays().add(marker);
+            } catch (Exception ignored) {}
+        }
+        mapView.invalidate();
+
+        renderNodesStrip(filtered);
+    }
+
+    /** Hub quick-strip chips: tap glides the camera to that node. */
+    private void renderNodesStrip(List<JSONObject> stations) {
+        LinearLayout strip = findViewById(R.id.layout_nodes_strip);
+        final MapView mapView = findViewById(R.id.operator_all_nodes_map);
+        if (strip == null) return;
+        strip.removeAllViews();
+
+        if (stations.isEmpty()) {
+            TextView tvNone = new TextView(this);
+            tvNone.setText("No hubs match this search.");
+            tvNone.setTextSize(12);
+            tvNone.setTextColor(0xFFFFFFFF);
+            tvNone.setPadding(dpToPx(4), dpToPx(8), dpToPx(4), dpToPx(8));
+            strip.addView(tvNone);
+            return;
+        }
+
+        int show = Math.min(stations.size(), 20);
+        for (int i = 0; i < show; i++) {
+            JSONObject s = stations.get(i);
+            String name = s.optString("name", "Hub");
+            String code = s.optString("stationCode", "");
+            int free = s.optInt("availableBatterySlots", 0);
+            int total = s.optInt("totalBatterySlots", 0);
+
+            TextView chip = new TextView(this);
+            chip.setText(name + " · " + free + "/" + total);
+            chip.setTextSize(12);
+            chip.setSingleLine(true);
+            chip.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            chip.setMaxWidth(dpToPx(210));
+            chip.setTextColor(0xFF063127);
+            chip.setBackgroundResource(R.drawable.bg_node_chip);
+            chip.setPadding(dpToPx(14), dpToPx(9), dpToPx(14), dpToPx(9));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            params.rightMargin = dpToPx(8);
+            chip.setLayoutParams(params);
+            chip.setClickable(true);
+            chip.setFocusable(true);
+
+            try {
+                final double lat = s.getDouble("latitude");
+                final double lng = s.getDouble("longitude");
+                chip.setOnClickListener(v -> {
+                    if (mapView != null) {
+                        mapView.getController().setZoom(14.0);
+                        mapView.getController().setCenter(new GeoPoint(lat, lng));
+                        mapView.invalidate();
+                    }
+                });
+            } catch (Exception ignored) {}
+
+            strip.addView(chip);
         }
     }
 
- /** Fetches global dashboard stats from C# Web API. */
+    /** Legend counts: Active vs Full vs Offline hubs. */
+    private void updateNodesLegend() {
+        int active = 0, full = 0, offline = 0;
+        synchronized (allNodesStations) {
+            for (JSONObject s : allNodesStations) {
+                boolean isActive = "Active".equalsIgnoreCase(s.optString("status", ""));
+                int free = s.optInt("availableBatterySlots", 0);
+                if (!isActive) offline++;
+                else if (free <= 0) full++;
+                else active++;
+            }
+        }
+        TextView tvA = findViewById(R.id.tv_legend_active);
+        TextView tvF = findViewById(R.id.tv_legend_low);
+        TextView tvO = findViewById(R.id.tv_legend_offline);
+        if (tvA != null) tvA.setText("Active " + active);
+        if (tvF != null) tvF.setText("Full " + full);
+        if (tvO != null) tvO.setText("Offline " + offline);
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    private void updateNavItemState(LinearLayout container, ImageView icon, TextView label, boolean isSelected) {
+        // Prosumer-style floating pill: icons only, deep-green selected, soft unselected + tap pop
+        if (container == null || icon == null) return;
+        if (label != null) label.setVisibility(View.GONE);
+        container.setBackground(null);
+        int tint = isSelected ? 0xFF063127 : 0xFF65998B;
+        icon.setImageTintList(android.content.res.ColorStateList.valueOf(tint));
+        icon.animate().cancel();
+        icon.setScaleX(1f);
+        icon.setScaleY(1f);
+        if (isSelected) {
+            icon.animate().scaleX(1.15f).scaleY(1.15f).setDuration(180)
+                    .withEndAction(() -> icon.animate().scaleX(1f).scaleY(1f)
+                            .setDuration(300).start()).start();
+        }
+    }
+
+    /** Fetches global dashboard stats from C# Web API. */
     private void loadDashboardStats() {
         // GET /api/reservations/dashboard-stats and update KPI counter TextViews on main thread
         new Thread(() -> {
@@ -775,6 +1042,11 @@ public class OperatorMainActivity extends AppCompatActivity {
                                     try {
                                         JSONObject s = array.getJSONObject(i);
                                         View row = inflater.inflate(R.layout.item_station, layoutStations, false);
+                                        // Fixed card width for the horizontal strip
+                                        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                                                dpToPx(300), LinearLayout.LayoutParams.WRAP_CONTENT);
+                                        rowParams.rightMargin = dpToPx(12);
+                                        row.setLayoutParams(rowParams);
 
                                         TextView tvName = row.findViewById(R.id.tv_station_name);
                                         TextView tvLoc = row.findViewById(R.id.tv_station_location);

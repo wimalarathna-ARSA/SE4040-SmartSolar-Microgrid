@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Professional dashboard banner: deep slate-teal gradient with restrained
+     geometric highlights. Used as a header image on the prosumer dashboard. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:startColor="#2F5D62"
+                android:centerColor="#334E5C"
+                android:endColor="#1E293B"
+                android:type="linear" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <item android:left="180dp" android:top="-60dp" android:right="-60dp" android:bottom="40dp">
+        <shape android:shape="oval">
+            <solid android:color="#14FFFFFF" />
+        </shape>
+    </item>
+    <item android:left="-50dp" android:top="60dp" android:right="200dp" android:bottom="-60dp">
+        <shape android:shape="oval">
+            <solid android:color="#0FFFFFFF" />
+        </shape>
+    </item>
+    <item android:left="220dp" android:top="60dp" android:right="20dp" android:bottom="16dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#1FFFFFFF" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</layer-list>

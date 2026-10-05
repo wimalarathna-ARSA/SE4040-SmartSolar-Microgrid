@@ -1,325 +1,390 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ============================================================================
-     File: activity_register.xml
-     Description: Prosumer Registration Screen - Styled with Soft Light Glassmorphism UI
-     ============================================================================ -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Register: reference style — register.jpeg header with Back, white sheet
+     with rounded top, Get Started title, existing form fields unchanged. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_glass_canvas"
-    android:scrollbars="none">
+    android:background="@drawable/bg_glass_canvas">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="36dp"
-        android:paddingBottom="36dp">
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:fillViewport="true">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Prosumer Registration"
-            android:textSize="26sp"
-            android:fontFamily="sans-serif-semibold"
-            android:textColor="@color/neuro_text_primary"
-            android:layout_marginBottom="6dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Register using your National Identity Card (NIC) as primary identifier."
-            android:textSize="13sp"
-            android:textColor="@color/neuro_text_secondary"
-            android:layout_marginBottom="20dp"/>
-
-        <!-- Error & Success Banners -->
-        <TextView android:id="@+id/tv_error" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:textColor="@color/neuro_danger"
-            android:background="@color/neuro_danger_bg" android:padding="12dp" android:layout_marginBottom="16dp"
-            android:visibility="gone" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-
-        <TextView android:id="@+id/tv_success" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:textColor="@color/neuro_text_green"
-            android:background="@color/neuro_green_bg" android:padding="12dp" android:layout_marginBottom="16dp"
-            android:visibility="gone" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
-
-        <!-- Raised Glassmorphic Form Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_neuro_card"
-            android:padding="20dp"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical">
 
-            <!-- NIC -->
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:hint="NIC Identifier (Primary Key)"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="@color/neuro_input_bg"
-                app:boxStrokeColor="@color/neuro_green"
-                app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-                app:boxCornerRadiusBottomStart="14dp" app:boxCornerRadiusBottomEnd="14dp"
-                app:hintTextColor="@color/neuro_text_green"
-                android:textColorHint="@color/neuro_text_muted"
-                android:layout_marginBottom="16dp">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_nic"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textColor="@color/neuro_text_primary"
-                    android:inputType="text" android:imeOptions="actionNext"/>
-            </com.google.android.material.textfield.TextInputLayout>
+            <!-- Top header over register image -->
+            <FrameLayout
+                android:id="@+id/register_header"
+                android:layout_width="match_parent"
+                android:layout_height="220dp">
 
-            <!-- Full Name -->
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:hint="Full Name"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="@color/neuro_input_bg"
-                app:boxStrokeColor="@color/neuro_green"
-                app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-                app:boxCornerRadiusBottomStart="14dp" app:boxCornerRadiusBottomEnd="14dp"
-                app:hintTextColor="@color/neuro_text_green"
-                android:textColorHint="@color/neuro_text_muted"
-                android:layout_marginBottom="16dp">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_full_name"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textColor="@color/neuro_text_primary"
-                    android:inputType="textPersonName" android:imeOptions="actionNext"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/register"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Solar registration" />
 
-            <!-- Email -->
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:hint="Email Address"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="@color/neuro_input_bg"
-                app:boxStrokeColor="@color/neuro_green"
-                app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-                app:boxCornerRadiusBottomStart="14dp" app:boxCornerRadiusBottomEnd="14dp"
-                app:hintTextColor="@color/neuro_text_green"
-                android:textColorHint="@color/neuro_text_muted"
-                android:layout_marginBottom="16dp">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_email"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textColor="@color/neuro_text_primary"
-                    android:inputType="textEmailAddress" android:imeOptions="actionNext"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#33000000" />
 
-            <!-- Password -->
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:hint="Password (min 8 chars, strong)"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="@color/neuro_input_bg"
-                app:boxStrokeColor="@color/neuro_green"
-                app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-                app:boxCornerRadiusBottomStart="14dp" app:boxCornerRadiusBottomEnd="14dp"
-                app:hintTextColor="@color/neuro_text_green"
-                android:textColorHint="@color/neuro_text_muted"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/neuro_text_secondary"
-                android:layout_marginBottom="8dp">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_password"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textColor="@color/neuro_text_primary"
-                    android:inputType="textPassword" android:imeOptions="actionNext"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                <TextView
+                    android:id="@+id/btn_register_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|start"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="16dp"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp"
+                    android:text="‹ Back"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </FrameLayout>
 
-            <!-- Password Strength Box -->
+            <!-- White sheet overlapping header -->
             <LinearLayout
-                android:id="@+id/layout_password_strength"
+                android:id="@+id/register_sheet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:background="@drawable/bg_neuro_inner_card"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp">
+                android:gravity="center_horizontal"
+                android:background="@drawable/bg_register_sheet"
+                android:layout_marginTop="-32dp"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="28dp">
 
+                <!-- Transparent app logo above Get Started -->
+                <FrameLayout
+                    android:id="@+id/register_logo_badge"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@android:color/transparent"
+                    android:layout_marginBottom="4dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_launcher_foreground"
+                        android:contentDescription="@string/app_name" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/register_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Get Started"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/login_deep"
+                    android:gravity="center"
+                    android:layout_marginBottom="18dp" />
+
+                <!-- Error & Success Banners -->
+                <TextView android:id="@+id/tv_error" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textColor="@color/neuro_danger"
+                    android:background="@color/neuro_danger_bg" android:padding="12dp" android:layout_marginBottom="12dp"
+                    android:visibility="gone" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+
+                <TextView android:id="@+id/tv_success" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textColor="@color/neuro_text_green"
+                    android:background="@color/neuro_green_bg" android:padding="12dp" android:layout_marginBottom="12dp"
+                    android:visibility="gone" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+
+                <!-- NIC (lined style like login) -->
+                <EditText android:id="@+id/et_nic"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:background="@android:color/transparent"
+                    android:hint="NIC Identifier (Primary Key)"
+                    android:textColor="@color/login_deep"
+                    android:textColorHint="@color/neuro_text_muted"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:inputType="text" android:imeOptions="actionNext"
+                    android:singleLine="true"
+                    android:textCursorDrawable="@null" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#40063127"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Full Name -->
+                <EditText android:id="@+id/et_full_name"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Full Name"
+                    android:textColor="@color/login_deep"
+                    android:textColorHint="@color/neuro_text_muted"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:inputType="textPersonName" android:imeOptions="actionNext"
+                    android:singleLine="true"
+                    android:textCursorDrawable="@null" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#40063127"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Email -->
+                <EditText android:id="@+id/et_email"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Email Address"
+                    android:textColor="@color/login_deep"
+                    android:textColorHint="@color/neuro_text_muted"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:inputType="textEmailAddress" android:imeOptions="actionNext"
+                    android:singleLine="true"
+                    android:textCursorDrawable="@null" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#40063127"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Password -->
+                <EditText android:id="@+id/et_password"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Password (min 8 chars, strong)"
+                    android:textColor="@color/login_deep"
+                    android:textColorHint="@color/neuro_text_muted"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:inputType="textPassword" android:imeOptions="actionNext"
+                    android:singleLine="true"
+                    android:textCursorDrawable="@null" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#40063127"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Password Strength Box -->
+                <LinearLayout
+                    android:id="@+id/layout_password_strength"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:background="@drawable/bg_neuro_inner_card"
+                    android:padding="12dp"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:id="@+id/tv_password_strength_label"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Strength: "
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/neuro_text_primary"/>
+
+                        <ProgressBar
+                            android:id="@+id/pb_password_strength"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="100dp"
+                            android:layout_height="6dp"
+                            android:max="5"
+                            android:progress="0"
+                            android:progressTint="@color/neuro_green"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_rule_length"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="○ At least 8 characters"
+                        android:textSize="11sp"
+                        android:textColor="@color/neuro_text_muted"
+                        android:layout_marginBottom="2dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_rule_upper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="○ Uppercase letter (A-Z)"
+                        android:textSize="11sp"
+                        android:textColor="@color/neuro_text_muted"
+                        android:layout_marginBottom="2dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_rule_lower"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="○ Lowercase letter (a-z)"
+                        android:textSize="11sp"
+                        android:textColor="@color/neuro_text_muted"
+                        android:layout_marginBottom="2dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_rule_digit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="○ Number (0-9)"
+                        android:textSize="11sp"
+                        android:textColor="@color/neuro_text_muted"
+                        android:layout_marginBottom="2dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_rule_special"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="○ Special character (!@#$%...)"
+                        android:textSize="11sp"
+                        android:textColor="@color/neuro_text_muted"/>
+                </LinearLayout>
+
+                <!-- Phone (lined style like login) -->
+                <EditText android:id="@+id/et_phone"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Phone Number"
+                    android:textColor="@color/login_deep"
+                    android:textColorHint="@color/neuro_text_muted"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:inputType="phone" android:imeOptions="actionNext"
+                    android:singleLine="true"
+                    android:textCursorDrawable="@null" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#40063127"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Address -->
+                <EditText android:id="@+id/et_address"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:minHeight="52dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Solar Installation Address (type or use map)"
+                    android:textColor="@color/login_deep"
+                    android:textColorHint="@color/neuro_text_muted"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:inputType="textPostalAddress|textMultiLine" android:lines="2"
+                    android:textCursorDrawable="@null" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#40063127"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Solar Installation Location Card -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="6dp">
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_neuro_inner_card"
+                    android:padding="16dp"
+                    android:layout_marginBottom="16dp">
 
                     <TextView
-                        android:id="@+id/tv_password_strength_label"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Strength: "
-                        android:textSize="12sp"
+                        android:text="Solar installation location"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="@color/neuro_text_primary"/>
+                        android:textColor="@color/neuro_text_primary"
+                        android:layout_marginBottom="4dp"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Select your solar panel installation site on the map. This is used to show you nearby microgrid nodes."
+                        android:textSize="12sp"
+                        android:textColor="@color/neuro_text_secondary"
+                        android:layout_marginBottom="12dp"/>
 
-                    <ProgressBar
-                        android:id="@+id/pb_password_strength"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="100dp"
-                        android:layout_height="6dp"
-                        android:max="5"
-                        android:progress="0"
-                        android:progressTint="@color/neuro_green"/>
+                    <org.osmdroid.views.MapView
+                        android:id="@+id/map_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_selected_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No location selected — tap below to pick on map"
+                        android:textSize="12sp"
+                        android:textColor="@color/neuro_text_muted"
+                        android:background="@drawable/bg_neuro_card"
+                        android:padding="10dp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_pick_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="Pick installation location on map"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_on_violet"
+                        android:background="@drawable/bg_btn_violet"
+                        app:backgroundTint="@null"
+                        app:cornerRadius="12dp"/>
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_rule_length"
+                <com.smartsolar.mobile.ui.common.LoadingDotsView android:id="@+id/progress_bar" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="12dp" android:visibility="gone"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="○ At least 8 characters"
-                    android:textSize="11sp"
-                    android:textColor="@color/neuro_text_muted"
-                    android:layout_marginBottom="2dp"/>
+                    android:layout_height="54dp"
+                    android:text="Sign up"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/white"
+                    android:background="@drawable/bg_btn_register_deep"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="12dp"
+                    android:layout_marginBottom="16dp"/>
 
                 <TextView
-                    android:id="@+id/tv_rule_upper"
+                    android:id="@+id/tv_login_link"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="○ Uppercase letter (A-Z)"
-                    android:textSize="11sp"
-                    android:textColor="@color/neuro_text_muted"
-                    android:layout_marginBottom="2dp"/>
+                    android:text="Already have an account? Sign In"
+                    android:textSize="12sp"
+                    android:textColor="@color/neuro_text_secondary"
+                    android:gravity="center"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
 
-                <TextView
-                    android:id="@+id/tv_rule_lower"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="○ Lowercase letter (a-z)"
-                    android:textSize="11sp"
-                    android:textColor="@color/neuro_text_muted"
-                    android:layout_marginBottom="2dp"/>
-
-                <TextView
-                    android:id="@+id/tv_rule_digit"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="○ Number (0-9)"
-                    android:textSize="11sp"
-                    android:textColor="@color/neuro_text_muted"
-                    android:layout_marginBottom="2dp"/>
-
-                <TextView
-                    android:id="@+id/tv_rule_special"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="○ Special character (!@#$%...)"
-                    android:textSize="11sp"
-                    android:textColor="@color/neuro_text_muted"/>
             </LinearLayout>
-
-            <!-- Phone -->
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:hint="Phone Number"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="@color/neuro_input_bg"
-                app:boxStrokeColor="@color/neuro_green"
-                app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-                app:boxCornerRadiusBottomStart="14dp" app:boxCornerRadiusBottomEnd="14dp"
-                app:hintTextColor="@color/neuro_text_green"
-                android:textColorHint="@color/neuro_text_muted"
-                android:layout_marginBottom="16dp">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_phone"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textColor="@color/neuro_text_primary"
-                    android:inputType="phone" android:imeOptions="actionNext"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Address -->
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:hint="Solar Installation Address (type or use map)"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="@color/neuro_input_bg"
-                app:boxStrokeColor="@color/neuro_green"
-                app:boxCornerRadiusTopStart="14dp" app:boxCornerRadiusTopEnd="14dp"
-                app:boxCornerRadiusBottomStart="14dp" app:boxCornerRadiusBottomEnd="14dp"
-                app:hintTextColor="@color/neuro_text_green"
-                android:textColorHint="@color/neuro_text_muted"
-                android:layout_marginBottom="16dp">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_address"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textColor="@color/neuro_text_primary"
-                    android:inputType="textPostalAddress|textMultiLine" android:lines="2"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
         </LinearLayout>
-
-        <!-- Solar Installation Location Card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_neuro_card"
-            android:padding="20dp"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Solar installation location"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/neuro_text_primary"
-                android:layout_marginBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select your solar panel installation site on the map. This is used to show you nearby microgrid nodes."
-                android:textSize="12sp"
-                android:textColor="@color/neuro_text_secondary"
-                android:layout_marginBottom="14dp"/>
-
-            <!-- OSMDroid mini map preview -->
-            <org.osmdroid.views.MapView
-                android:id="@+id/map_preview"
-                android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:layout_marginBottom="12dp"/>
-
-            <!-- Selected location badge -->
-            <TextView
-                android:id="@+id/tv_selected_location"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="No location selected — tap below to pick on map"
-                android:textSize="12sp"
-                android:textColor="@color/neuro_text_muted"
-                android:background="@drawable/bg_neuro_inner_card"
-                android:padding="10dp"
-                android:layout_marginBottom="12dp"/>
-
-            <!-- Map Picker Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_pick_location"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="Pick installation location on map"
-                android:textSize="13sp"
-                android:textColor="@color/text_on_violet"
-                android:background="@drawable/bg_btn_violet"
-                app:backgroundTint="@null"
-                app:cornerRadius="14dp"/>
-        </LinearLayout>
-
-        <!-- Progress Spinner -->
-        <com.smartsolar.mobile.ui.common.LoadingDotsView android:id="@+id/progress_bar" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_gravity="center"            android:layout_marginBottom="16dp" android:visibility="gone"/>
-
-        <!-- Register Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_register"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="Register Prosumer Account"
-            android:textSize="15sp"
-            android:fontFamily="sans-serif-semibold"
-            android:textColor="@color/text_on_accent"
-            android:background="@drawable/bg_btn_primary"
-            app:backgroundTint="@null"
-            app:cornerRadius="16dp"
-            android:elevation="4dp"
-            android:layout_marginBottom="32dp"/>
-
-    </LinearLayout>
-</ScrollView>
-
+    </ScrollView>
+</FrameLayout>

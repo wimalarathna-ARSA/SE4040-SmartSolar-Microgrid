@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_neuro_card"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <FrameLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/bg_neuro_icon_circle"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:id="@+id/iv_success_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_line_check_circle"
+            app:tint="@color/neuro_green" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Success!"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-semibold"
+        android:textColor="@color/neuro_text_primary"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_dialog_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your profile has been updated."
+        android:textSize="14sp"
+        android:textColor="@color/neuro_text_secondary"
+        android:gravity="center"
+        android:layout_marginBottom="24dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_dialog_ok"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Got it"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-bold"
+        android:textColor="@color/text_on_accent"
+        android:background="@drawable/bg_btn_primary"
+        app:backgroundTint="@null"
+        app:cornerRadius="12dp"
+        android:textAllCaps="false" />
+
+</LinearLayout>

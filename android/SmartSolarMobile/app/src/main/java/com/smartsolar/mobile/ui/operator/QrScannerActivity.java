@@ -28,8 +28,9 @@ import org.json.JSONObject;
 /** QR Scanner and job finalization screen for Grid Operators. */
 public class QrScannerActivity extends AppCompatActivity {
 
-    private EditText etQrManual, etOperatorNotes;
+    private EditText etOperatorNotes;
     private TextView tvScanResult, tvError, tvSuccess;
+    private View fakeQrGrid;
     private MaterialButton btnScanCamera, btnVerifyFinalize;
     private View progressBar;
     private SessionManager sessionManager;
@@ -39,7 +40,6 @@ public class QrScannerActivity extends AppCompatActivity {
     private final ActivityResultLauncher<ScanOptions> qrLauncher = registerForActivityResult(
             new ScanContract(), this::onQrScanResult);
 
-    
     /** Initializes QR scanner UI with camera and manual entry options. */
     // Sets up ZXing scanner launcher and verify button
     @Override
@@ -50,9 +50,9 @@ public class QrScannerActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
-        etQrManual     = findViewById(R.id.et_qr_manual);
         etOperatorNotes = findViewById(R.id.et_operator_notes);
         tvScanResult   = findViewById(R.id.tv_scan_result);
+        fakeQrGrid     = findViewById(R.id.fake_qr_grid);
         tvError        = findViewById(R.id.tv_error);
         tvSuccess      = findViewById(R.id.tv_success);
         btnScanCamera  = findViewById(R.id.btn_scan_camera);
@@ -71,12 +71,10 @@ public class QrScannerActivity extends AppCompatActivity {
             qrLauncher.launch(options);
         });
 
-        // Verify and finalize job with API
+        // Verify and finalize job with API (camera scan only, no manual input)
         btnVerifyFinalize.setOnClickListener(v -> {
-            scannedQrData = etQrManual.getText().toString().trim().isEmpty()
-                    ? scannedQrData : etQrManual.getText().toString().trim();
             if (scannedQrData.isEmpty()) {
-                tvError.setText("Please scan or enter a QR code.");
+                tvError.setText("Please scan a QR code first.");
                 tvError.setVisibility(View.VISIBLE);
                 return;
             }
@@ -84,19 +82,20 @@ public class QrScannerActivity extends AppCompatActivity {
         });
     }
 
-        /** Handles ZXing scan result and populates QR field. */
+    /** Handles ZXing scan result. */
     // Called by ZXing after camera capture with decoded string
     private void onQrScanResult(ScanIntentResult result) {
-        // Receive decoded barcode payload from ZXing scanner and update input fields
+        // Receive decoded payload from camera only
         if (result.getContents() != null) {
             scannedQrData = result.getContents();
-            etQrManual.setText(scannedQrData);
             tvScanResult.setText("QR Scanned: " + scannedQrData);
             tvScanResult.setVisibility(View.VISIBLE);
+            if (fakeQrGrid != null) fakeQrGrid.setVisibility(View.GONE);
             tvError.setVisibility(View.GONE);
         }
     }
- /** Verifies QR code against central C# Web API and finalizes energy transfer job. */
+
+    /** Verifies QR code against central C# Web API and finalizes energy transfer job. */
     // Calls POST /api/reservations/verify-qr?operatorNic=... with QR payload
     private void verifyAndFinalizeJob() {
         // POST /api/reservations/verify-qr with QR payload and operator notes to finalize job
@@ -141,7 +140,9 @@ public class QrScannerActivity extends AppCompatActivity {
                                 "Energy Transferred: " + energy + " kWh\n" +
                                 "Transaction Value: Rs. " + String.format("%.2f", cost));
                         tvSuccess.setVisibility(View.VISIBLE);
-                        etQrManual.setText("");
+                        tvScanResult.setText("");
+                        tvScanResult.setVisibility(View.GONE);
+                        if (fakeQrGrid != null) fakeQrGrid.setVisibility(View.VISIBLE);
                         scannedQrData = "";
                     });
                 } else {

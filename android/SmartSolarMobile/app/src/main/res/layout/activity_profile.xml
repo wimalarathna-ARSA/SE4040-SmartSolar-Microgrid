@@ -46,66 +46,44 @@
                     android:text="Prosumer profile"
                     android:textSize="24sp"
                     android:fontFamily="sans-serif-semibold"
-                    android:textColor="@color/neuro_text_primary"/>
+                    android:textColor="@color/text_brand"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Keep your contact and installation details current"
                     android:textSize="12sp"
-                    android:textColor="@color/neuro_text_muted"/>
+                    android:textColor="#65998B"/>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Profile cover: solar-house photo + scrim (was flat gradient).
-             Swap placeholder for house_solar_5.png in drawable-nodpi/. -->
-        <FrameLayout
+        <!-- Identity header: deep-green account overview (photo cover removed) -->
+        <LinearLayout
             android:id="@+id/profile_cover"
             android:layout_width="match_parent"
-            android:layout_height="148dp"
-            android:background="@drawable/bg_neuro_card"
-            android:layout_marginBottom="16dp"
-            android:clipChildren="true">
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_profile_identity"
+            android:padding="20dp"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
 
-            <ImageView
-                android:id="@+id/iv_profile_cover"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/house_solar_5"
-                android:scaleType="centerCrop"
-                android:background="@drawable/bg_thumb_photo"
-                android:contentDescription="Solar installation cover" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_photo_scrim" />
-
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:text="ACCOUNT OVERVIEW"
+                android:textColor="#8FB3A9"
+                android:textSize="10sp"
+                android:letterSpacing="0.12"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="4dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ACCOUNT OVERVIEW"
-                    android:textColor="#CBD5E1"
-                    android:textSize="10sp"
-                    android:letterSpacing="0.12"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="4dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Profile and installation settings"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp"
-                    android:fontFamily="sans-serif-medium" />
-            </LinearLayout>
-        </FrameLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Profile and installation settings"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
 
         <!-- Profile Info Card -->
         <LinearLayout
@@ -133,7 +111,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:text="AW"
-                        android:textColor="@color/neuro_green"
+                        android:textColor="@color/text_brand"
                         android:textSize="18sp"
                         android:fontFamily="sans-serif-medium"/>
                 </FrameLayout>
@@ -158,7 +136,7 @@
                             android:text="ARSA Wimalarathna"
                             android:textSize="18sp"
                             android:fontFamily="sans-serif-semibold"
-                            android:textColor="@color/neuro_text_primary"/>
+                            android:textColor="@color/text_brand"/>
                         <View
                             android:layout_width="8dp"
                             android:layout_height="8dp"
@@ -169,7 +147,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Active"
-                            android:textColor="@color/neuro_green"
+                            android:textColor="#3B796A"
                             android:textSize="12sp"
                             android:textStyle="bold"/>
                     </LinearLayout>
@@ -179,9 +157,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Prosumer"
-                        android:textColor="@color/neuro_text_green"
+                        android:textColor="@color/white"
                         android:textSize="11sp"
-                        android:background="@drawable/bg_neuro_badge_pill"
+                        android:background="@drawable/bg_role_pill"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="2dp"
                         android:layout_marginTop="4dp"/>
@@ -191,7 +169,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="NIC: 200155600616"
-                        android:textColor="@color/neuro_text_muted"
+                        android:textColor="#65998B"
                         android:textSize="12sp"
                         android:layout_marginTop="6dp"/>
                 </LinearLayout>
@@ -209,6 +187,7 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:src="@drawable/ic_line_mail"
+                    app:tint="#3B796A"
                     android:contentDescription="Email" />
                 <TextView
                     android:id="@+id/tv_email_display"
@@ -217,13 +196,13 @@
                     android:layout_weight="1"
                     android:layout_marginStart="12dp"
                     android:text="wwimalarathnasammani@gmail.com"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:textSize="13sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Copy"
-                    android:textColor="@color/neuro_text_muted"
+                    android:textColor="#65998B"
                     android:textSize="11sp"
                     android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
@@ -254,7 +233,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_line_mail"
-                        app:tint="@color/neuro_text_primary"
+                        app:tint="@color/text_brand"
                         android:contentDescription="Mail" />
                 </FrameLayout>
 
@@ -271,7 +250,7 @@
                         android:text="Account email address"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-semibold"
-                        android:textColor="@color/neuro_text_primary"/>
+                        android:textColor="@color/text_brand"/>
 
                     <TextView
                         android:id="@+id/tv_email_rate_limit_info"
@@ -279,7 +258,7 @@
                         android:layout_height="wrap_content"
                         android:text="Updates in last 24h: 0 / 3"
                         android:textSize="11sp"
-                        android:textColor="@color/neuro_text_muted"/>
+                        android:textColor="#65998B"/>
                 </LinearLayout>
 
                 <TextView
@@ -308,7 +287,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Current: "
-                    android:textColor="@color/neuro_text_muted"
+                    android:textColor="#65998B"
                     android:textSize="12sp"
                     android:textStyle="bold"/>
                 <TextView
@@ -318,7 +297,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:text="prosumer@solar.lk"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:textSize="13sp"
                     android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
@@ -378,7 +357,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Pending review"
-                        android:textColor="@color/neuro_text_primary"
+                        android:textColor="@color/text_brand"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif-bold"/>
                     <TextView
@@ -431,7 +410,7 @@
                     android:text="New email address"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-bold"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:layout_marginBottom="4dp"/>
 
                 <LinearLayout
@@ -445,6 +424,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:src="@drawable/ic_line_mail"
+                        app:tint="#3B796A"
                         android:contentDescription="Mail" />
                     <EditText
                         android:id="@+id/et_new_email"
@@ -452,7 +432,7 @@
                         android:layout_height="match_parent"
                         android:background="@null"
                         android:layout_marginStart="12dp"
-                        android:textColor="@color/neuro_text_primary"
+                        android:textColor="@color/text_brand"
                         android:textSize="14sp"
                         android:hint="Enter new email address..."
                         android:inputType="textEmailAddress"/>
@@ -466,7 +446,7 @@
                     android:textSize="13sp"
                     android:fontFamily="sans-serif-bold"
                     android:textColor="@color/text_on_accent"
-                    android:background="@drawable/bg_btn_primary"
+                    android:background="@drawable/bg_btn_solid_deep"
                     app:backgroundTint="@null"
                     app:cornerRadius="26dp"
                     android:textAllCaps="false"/>
@@ -481,7 +461,7 @@
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-bold"
                 android:textColor="@color/text_on_accent"
-                android:background="@drawable/bg_btn_primary"
+                android:background="@drawable/bg_btn_solid_deep"
                 app:backgroundTint="@null"
                 app:cornerRadius="12dp"
                 android:textAllCaps="false"/>
@@ -502,13 +482,13 @@
                 android:text="Your details"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-semibold"
-                android:textColor="@color/neuro_text_primary"/>
+                android:textColor="@color/text_brand"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="These details help us manage your energy reservations."
                 android:textSize="12sp"
-                android:textColor="@color/neuro_text_muted"
+                android:textColor="#65998B"
                 android:layout_marginBottom="20dp"/>
 
             <TextView
@@ -517,13 +497,13 @@
                 android:text="Full name"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-bold"
-                android:textColor="@color/neuro_text_primary"/>
+                android:textColor="@color/text_brand"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="As shown on your account"
                 android:textSize="11sp"
-                android:textColor="@color/neuro_text_muted"
+                android:textColor="#65998B"
                 android:layout_marginBottom="6dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -536,6 +516,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_line_person"
+                    app:tint="#3B796A"
                     android:contentDescription="Name" />
                 <EditText
                     android:id="@+id/et_full_name"
@@ -543,7 +524,7 @@
                     android:layout_height="match_parent"
                     android:background="@null"
                     android:layout_marginStart="12dp"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:textSize="14sp"
                     android:hint="ARSA wimalarathna"/>
             </LinearLayout>
@@ -554,13 +535,13 @@
                 android:text="Phone number"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-bold"
-                android:textColor="@color/neuro_text_primary"/>
+                android:textColor="@color/text_brand"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Used for important reservation updates"
                 android:textSize="11sp"
-                android:textColor="@color/neuro_text_muted"
+                android:textColor="#65998B"
                 android:layout_marginBottom="6dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -573,6 +554,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_line_phone"
+                    app:tint="#3B796A"
                     android:contentDescription="Phone" />
                 <EditText
                     android:id="@+id/et_phone"
@@ -580,7 +562,7 @@
                     android:layout_height="match_parent"
                     android:background="@null"
                     android:layout_marginStart="12dp"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:textSize="14sp"
                     android:hint="0741187495"/>
             </LinearLayout>
@@ -591,13 +573,13 @@
                 android:text="Solar installation address"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-bold"
-                android:textColor="@color/neuro_text_primary"/>
+                android:textColor="@color/text_brand"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="The location connected to your solar hub"
                 android:textSize="11sp"
-                android:textColor="@color/neuro_text_muted"
+                android:textColor="#65998B"
                 android:layout_marginBottom="6dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -610,6 +592,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_line_location"
+                    app:tint="#3B796A"
                     android:contentDescription="Address" />
                 <EditText
                     android:id="@+id/et_address"
@@ -617,7 +600,7 @@
                     android:layout_height="match_parent"
                     android:background="@null"
                     android:layout_marginStart="12dp"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:textSize="14sp"
                     android:hint="waragoda, kelaniya"/>
             </LinearLayout>
@@ -628,7 +611,7 @@
                 android:layout_height="48dp"
                 android:text="Choose location on map / Search"
                 android:textAllCaps="false"
-                android:textColor="@color/neuro_text_primary"
+                android:textColor="@color/text_brand"
                 android:background="@drawable/bg_btn_glass"
                 app:backgroundTint="@null"
                 app:cornerRadius="16dp"
@@ -643,7 +626,7 @@
                 android:textSize="14sp"
                 android:fontFamily="sans-serif-bold"
                 android:textColor="@color/text_on_accent"
-                android:background="@drawable/bg_btn_primary"
+                android:background="@drawable/bg_btn_solid_deep"
                 app:backgroundTint="@null"
                 app:cornerRadius="28dp"
                 android:textAllCaps="false"/>
@@ -714,7 +697,7 @@
                     android:layout_height="wrap_content"
                     android:background="@null"
                     android:layout_marginStart="12dp"
-                    android:textColor="@color/neuro_text_primary"
+                    android:textColor="@color/text_brand"
                     android:textSize="13sp"
                     android:hint="Reason for deactivation..."
                     android:gravity="top"
@@ -747,7 +730,7 @@
             android:id="@+id/tv_success"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/neuro_green"
+            android:textColor="#3B796A"
             android:gravity="center"
             android:visibility="gone"
             android:layout_marginBottom="8dp"/>

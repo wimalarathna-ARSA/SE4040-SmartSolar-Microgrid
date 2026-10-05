@@ -87,23 +87,37 @@ public class LoginActivity extends AppCompatActivity {
         applyEntranceMotion();
     }
 
-    /** Structured entrance motion: logo fades, form card and actions rise. */
+    /** Structured entrance motion: logo pops, brand text rises, form card and actions rise. */
     private void applyEntranceMotion() {
         // [IT22106292] - Applies animated entrance transitions for login UI
-        // Load and start fade/rise view animations for logo, brand block, form card and login button
+        // Logo pop-in, staggered rise for brand text, form card and login button
         try {
-            android.view.animation.Animation fade =
-                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_in);
+            android.view.animation.Animation logoPop =
+                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.login_logo_pop);
+            android.view.animation.Animation textRise =
+                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.login_text_rise);
             android.view.animation.Animation rise =
                     android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up);
             View logo = findViewById(R.id.login_logo_badge);
-            if (logo != null) logo.startAnimation(fade);
+            if (logo != null) logo.startAnimation(logoPop);
             View brand = findViewById(R.id.login_brand_block);
-            if (brand != null) brand.startAnimation(fade);
-            int[] risingViews = { R.id.login_form_card, R.id.btn_login };
-            for (int id : risingViews) {
-                View v = findViewById(id);
-                if (v != null) v.startAnimation(rise);
+            if (brand != null) {
+                textRise.setStartOffset(150);
+                brand.startAnimation(textRise);
+            }
+            View form = findViewById(R.id.login_form_card);
+            if (form != null) {
+                android.view.animation.Animation formRise =
+                        android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up);
+                formRise.setStartOffset(250);
+                form.startAnimation(formRise);
+            }
+            View loginBtn = findViewById(R.id.btn_login);
+            if (loginBtn != null) {
+                android.view.animation.Animation btnRise =
+                        android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up);
+                btnRise.setStartOffset(350);
+                loginBtn.startAnimation(btnRise);
             }
         } catch (Exception ignored) {}
     }
@@ -384,4 +398,3 @@ public class LoginActivity extends AppCompatActivity {
         if (forgotDialog != null && forgotDialog.isShowing()) forgotDialog.dismiss();
     }
 }
-

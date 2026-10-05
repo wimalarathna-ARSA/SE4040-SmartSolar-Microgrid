@@ -12,34 +12,6 @@ import { useAuth } from '../context/AuthContext';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 import { evaluatePassword } from '../utils/passwordValidator';
 
-const inputStyle = {
-  width: '100%',
-  padding: '11px 16px',
-  borderRadius: '12px',
-  border: '1px solid rgba(255,255,255,0.12)',
-  background: 'rgba(255,255,255,0.05)',
-  color: '#e2e8f0',
-  fontSize: '0.9rem',
-  outline: 'none',
-};
-
-const labelStyle = {
-  display: 'block',
-  fontSize: '0.72rem',
-  fontWeight: 700,
-  color: '#94a3b8',
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  marginBottom: '6px',
-};
-
-const cardStyle = {
-  background: 'rgba(12, 18, 28, 0.85)',
-  border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '18px',
-  boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
-};
-
 const StaffProfile = () => {
   const { user, updateUser, logout, isBackoffice } = useAuth();
   const navigate = useNavigate();
@@ -184,45 +156,40 @@ const StaffProfile = () => {
 
   const initials = (user?.fullName || 'S X').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   const dashboardPath = isBackoffice ? '/backoffice' : '/operator';
-  const accent = isBackoffice ? '#7c3aed' : '#10b981';
+  const accentGradient = 'bg-[#063127]';
 
   const msgBox = (m) => m.text && (
-    <div style={{
-      borderRadius: '10px', padding: '10px 14px', fontSize: '0.83rem', marginBottom: '14px',
-      background: m.type === 'danger' ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)',
-      border: `1px solid ${m.type === 'danger' ? 'rgba(239,68,68,0.35)' : 'rgba(16,185,129,0.35)'}`,
-      color: m.type === 'danger' ? '#fca5a5' : '#6ee7b7',
-    }}>{m.text}</div>
+    <div className={`rounded-[10px] px-[14px] py-[10px] text-[0.83rem] mb-[14px] border ${m.type === 'danger' ? 'bg-danger/10 border-danger/30 text-danger' : 'bg-[#063127]/10 border-[#063127]/30 text-[#063127]'}`}>{m.text}</div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#020202', color: '#e2e8f0', padding: '36px 20px 60px' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+    <div className="min-vh-100 bg-[#F8F8F8] text-[#063127] px-[20px] pt-[36px] pb-[60px]">
+      <div className="mx-auto max-w-[960px]">
 
         {/* Header card */}
-        <div className="position-relative overflow-hidden mb-4" style={{ ...cardStyle, padding: 0 }}>
-          <div style={{ height: '150px', position: 'relative' }}>
-            <img src="/images/Solar_1.jpg" alt="" aria-hidden="true" onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55 }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(2,6,12,0.25) 0%, rgba(2,6,12,0.88) 100%)' }} />
-            <Link to={dashboardPath} style={{ position: 'absolute', top: '14px', left: '16px', zIndex: 2, color: '#cbd5e1', fontSize: '0.82rem', textDecoration: 'none', fontWeight: 600 }}>
+        <div className="card bg-white border rounded-[18px] shadow p-0 position-relative overflow-hidden mb-4">
+          <div className="position-relative h-[150px] bg-[#063127]">
+            <img
+              src="/images/solar-hero-panels.jpg"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              onError={(e) => { e.currentTarget.classList.add('d-none'); }}
+              className="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-25"
+            />
+            <div className="position-absolute top-0 start-0 w-100 h-100 bg-gradient-to-r from-[#063127] via-[#063127]/60 to-transparent" />
+            <Link to={dashboardPath} className="position-absolute top-[14px] start-[16px] z-[2] text-[#F8F8F8] opacity-75 text-[0.82rem] text-decoration-none fw-semibold transition">
               &larr; Back to console
             </Link>
           </div>
-          <div className="d-flex flex-column flex-md-row align-items-md-end gap-3 px-4 pb-4" style={{ marginTop: '-44px', position: 'relative', zIndex: 1 }}>
-            <div style={{
-              width: '88px', height: '88px', borderRadius: '24px', flexShrink: 0,
-              background: `linear-gradient(135deg, ${accent} 0%, #0f172a 130%)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.9rem', fontWeight: 800, color: '#fff',
-              border: '3px solid #020202', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-            }}>{initials}</div>
+          <div className="d-flex flex-column flex-md-row align-items-md-end gap-3 px-4 pb-4 position-relative z-[1] mt-[-44px]">
+            <div className={`flex-shrink-0 d-flex align-items-center justify-content-center text-[1.9rem] fw-extrabold text-white border-[3px] border-white shadow-lg w-[88px] h-[88px] rounded-[24px] ${accentGradient}`}>{initials}</div>
             <div className="flex-grow-1">
-              <h2 className="fw-bold text-white mb-1" style={{ letterSpacing: '-0.02em' }}>{user?.fullName || 'Staff Account'}</h2>
+              <h2 className="fw-bold text-[#063127] mb-1 tracking-[-0.02em]">{user?.fullName || 'Staff Account'}</h2>
               <div className="d-flex align-items-center gap-2 flex-wrap small">
-                <span className={`badge ${isBackoffice ? 'badge-role-backoffice' : 'badge-role-operator'}`}>{user?.role}</span>
-                <span style={{ color: '#94a3b8' }}>NIC: <strong style={{ color: '#e2e8f0' }}>{user?.nic}</strong></span>
-                <span style={{ color: '#94a3b8' }}>{user?.email}</span>
+                <span className={`badge text-white ${isBackoffice ? 'bg-[#063127]' : 'bg-[#686053]'}`}>{user?.role}</span>
+                <span className="text-[#686053]">NIC: <strong className="text-[#063127]">{user?.nic}</strong></span>
+                <span className="text-[#686053]">{user?.email}</span>
               </div>
             </div>
           </div>
@@ -231,36 +198,35 @@ const StaffProfile = () => {
         <div className="row g-4">
           {/* Edit details */}
           <div className="col-lg-6">
-            <div className="p-4 h-100" style={cardStyle}>
-              <h5 className="fw-bold text-white mb-1"><i className="bi bi-person-gear me-2" style={{ color: '#00ffce' }}></i>Profile details</h5>
-              <p className="small mb-3" style={{ color: '#94a3b8' }}>Update your name, phone and address. Email changes require backoffice approval.</p>
+            <div className="card bg-white border rounded-[18px] shadow p-4 h-100">
+              <h5 className="fw-bold text-[#063127] mb-1"><i className="bi bi-person-gear me-2 text-[#063127]"></i>Profile details</h5>
+              <p className="small mb-3 text-[#686053]">Update your name, phone and address. Email changes require backoffice approval.</p>
               {msgBox(detailsMsg)}
               {detailsLoading ? (
-                <div className="text-center py-4"><span className="spinner-border spinner-border-sm text-info" /></div>
+                <div className="text-center py-4"><span className="spinner-border spinner-border-sm text-[#063127]" /></div>
               ) : (
                 <form onSubmit={handleSaveDetails}>
                   <div className="mb-3">
-                    <label style={labelStyle}>Full name *</label>
-                    <input style={inputStyle} value={details.fullName} onChange={(e) => setDetails({ ...details, fullName: e.target.value })} required />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">Full name *</label>
+                    <input className="form-control bg-[#F8F8F8] text-[#063127] border rounded-[12px] px-3 py-2 w-100" value={details.fullName} onChange={(e) => setDetails({ ...details, fullName: e.target.value })} required />
                   </div>
                   <div className="mb-3">
-                    <label style={labelStyle}>Email (read-only)</label>
-                    <input style={{ ...inputStyle, opacity: 0.55 }} value={user?.email || ''} readOnly disabled />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">Email (read-only)</label>
+                    <input className="form-control bg-[#F8F8F8] text-[#686053] border rounded-[12px] px-3 py-2 w-100 opacity-75" value={user?.email || ''} readOnly disabled />
                   </div>
                   <div className="mb-3">
-                    <label style={labelStyle}>Phone number *</label>
-                    <input style={inputStyle} value={details.phoneNumber} onChange={(e) => setDetails({ ...details, phoneNumber: e.target.value })} required />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">Phone number *</label>
+                    <input className="form-control bg-[#F8F8F8] text-[#063127] border rounded-[12px] px-3 py-2 w-100" value={details.phoneNumber} onChange={(e) => setDetails({ ...details, phoneNumber: e.target.value })} required />
                   </div>
                   <div className="mb-3">
-                    <label style={labelStyle}>Address</label>
-                    <textarea style={{ ...inputStyle, borderRadius: '12px', minHeight: '76px' }} value={details.address} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">Address</label>
+                    <textarea className="form-control bg-[#F8F8F8] text-[#063127] border rounded-[12px] px-3 py-2 w-100 min-h-[76px]" value={details.address} onChange={(e) => setDetails({ ...details, address: e.target.value })} />
                   </div>
                   <div className="mb-3">
-                    <label style={labelStyle}>NIC (read-only)</label>
-                    <input style={{ ...inputStyle, opacity: 0.55 }} value={user?.nic || ''} readOnly disabled />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">NIC (read-only)</label>
+                    <input className="form-control bg-[#F8F8F8] text-[#686053] border rounded-[12px] px-3 py-2 w-100 opacity-75" value={user?.nic || ''} readOnly disabled />
                   </div>
-                  <button type="submit" className="btn w-100 fw-bold" disabled={detailsSaving}
-                    style={{ background: 'linear-gradient(135deg, #00ffce 0%, #00c9a7 100%)', color: '#022c26', borderRadius: '12px', padding: '11px' }}>
+                  <button type="submit" className="btn w-100 fw-bold rounded-[12px] py-[11px] text-white bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] transition hover:-translate-y-[1px] disabled:opacity-60" disabled={detailsSaving}>
                     {detailsSaving ? 'Saving…' : 'Save changes'}
                   </button>
                 </form>
@@ -270,18 +236,18 @@ const StaffProfile = () => {
 
           {/* Change password + logout */}
           <div className="col-lg-6 d-flex flex-column gap-4">
-            <div className="p-4" style={cardStyle}>
-              <h5 className="fw-bold text-white mb-1"><i className="bi bi-shield-lock-fill me-2" style={{ color: '#00ffce' }}></i>Change password</h5>
-              <p className="small mb-3" style={{ color: '#94a3b8' }}>Verified by a 6-digit code sent to your registered email (5-minute window).</p>
+            <div className="card bg-white border rounded-[18px] shadow p-4">
+              <h5 className="fw-bold text-[#063127] mb-1"><i className="bi bi-shield-lock-fill me-2 text-[#063127]"></i>Change password</h5>
+              <p className="small mb-3 text-[#686053]">Verified by a 6-digit code sent to your registered email (5-minute window).</p>
               {msgBox(pwMsg)}
 
               {pwStep === 1 && (
                 <form onSubmit={handleSendOtp}>
                   <div className="mb-3">
-                    <label style={labelStyle}>Account identifier</label>
-                    <input style={{ ...inputStyle, opacity: 0.55 }} value={identifier} readOnly disabled />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">Account identifier</label>
+                    <input className="form-control bg-[#F8F8F8] text-[#686053] border rounded-[12px] px-3 py-2 w-100 opacity-75" value={identifier} readOnly disabled />
                   </div>
-                  <button type="submit" className="btn btn-outline-info w-100 fw-bold" disabled={pwLoading} style={{ borderRadius: '12px', padding: '11px' }}>
+                  <button type="submit" className="btn w-100 fw-bold rounded-[12px] py-[11px] transition hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] hover:-translate-y-[1px] bg-white text-[#063127] border border-[#063127]" disabled={pwLoading}>
                     {pwLoading ? 'Sending…' : 'Send verification code'}
                   </button>
                 </form>
@@ -290,18 +256,18 @@ const StaffProfile = () => {
               {pwStep === 2 && (
                 <form onSubmit={handleVerifyOtp}>
                   <div className="d-flex justify-content-between align-items-center mb-2">
-                    <label style={{ ...labelStyle, marginBottom: 0 }}>6-digit code *</label>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 800, color: timer <= 60 ? '#f87171' : '#00ffce' }}>
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em] mb-0">6-digit code *</label>
+                    <span className={`font-monospace fw-extrabold ${timer <= 60 ? 'text-danger' : 'text-[#063127]'}`}>
                       {String(Math.floor(timer / 60)).padStart(2, '0')}:{String(timer % 60).padStart(2, '0')}
                     </span>
                   </div>
-                  <input style={{ ...inputStyle, textAlign: 'center', letterSpacing: '8px', fontFamily: 'monospace', fontSize: '1.3rem', fontWeight: 800 }}
+                  <input className="form-control bg-[#F8F8F8] text-[#063127] border rounded-[12px] px-3 py-2 w-100 text-center font-monospace fw-extrabold tracking-[8px] text-[1.3rem]"
                     maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="000000" required autoFocus />
-                  <button type="submit" className="btn btn-outline-info w-100 fw-bold mt-3" disabled={pwLoading || otp.length !== 6 || timer <= 0} style={{ borderRadius: '12px', padding: '11px' }}>
+                  <button type="submit" className="btn w-100 fw-bold mt-3 rounded-[12px] py-[11px] transition hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] hover:-translate-y-[1px] disabled:opacity-60 bg-white text-[#063127] border border-[#063127]" disabled={pwLoading || otp.length !== 6 || timer <= 0}>
                     {pwLoading ? 'Verifying…' : 'Verify code'}
                   </button>
                   <button type="button" onClick={handleSendOtp} disabled={pwLoading}
-                    style={{ background: 'none', border: 'none', color: '#00ffce', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginTop: '10px', textDecoration: 'underline' }}>
+                    className="btn btn-link text-[0.8rem] fw-semibold text-[#063127] text-decoration-underline mt-[10px] disabled:opacity-60 hover:bg-[#F8F8F8] hover:text-[#063127]">
                     Resend code
                   </button>
                 </form>
@@ -310,25 +276,25 @@ const StaffProfile = () => {
               {pwStep === 3 && (
                 <form onSubmit={handleConfirmPassword}>
                   <div className="mb-3">
-                    <label style={labelStyle}>New password * (min 8 chars, strong)</label>
-                    <input type="password" style={inputStyle} value={newPw} onChange={(e) => setNewPw(e.target.value)} required autoFocus />
-                    <PasswordStrengthIndicator password={newPw} isDark={true} />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">New password * (min 8 chars, strong)</label>
+                    <input type="password" className="form-control bg-[#F8F8F8] text-[#063127] border rounded-[12px] px-3 py-2 w-100" value={newPw} onChange={(e) => setNewPw(e.target.value)} required autoFocus />
+                    <PasswordStrengthIndicator password={newPw} isDark={false} />
                   </div>
                   <div className="mb-3">
-                    <label style={labelStyle}>Confirm new password *</label>
-                    <input type="password" style={inputStyle} value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} required />
+                    <label className="form-label text-[0.72rem] fw-bold text-uppercase text-[#686053] tracking-[0.08em]">Confirm new password *</label>
+                    <input type="password" className="form-control bg-[#F8F8F8] text-[#063127] border rounded-[12px] px-3 py-2 w-100" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} required />
                   </div>
-                  <button type="submit" className="btn w-100 fw-bold" disabled={pwLoading} style={{ background: 'linear-gradient(135deg, #00ffce 0%, #00c9a7 100%)', color: '#022c26', borderRadius: '12px', padding: '11px' }}>
+                  <button type="submit" className="btn w-100 fw-bold rounded-[12px] py-[11px] text-white bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] transition hover:-translate-y-[1px] disabled:opacity-60" disabled={pwLoading}>
                     {pwLoading ? 'Updating…' : 'Update password'}
                   </button>
                 </form>
               )}
             </div>
 
-            <div className="p-4" style={{ ...cardStyle, borderColor: 'rgba(239,68,68,0.35)' }}>
-              <h5 className="fw-bold text-white mb-1"><i className="bi bi-box-arrow-right me-2 text-danger"></i>Session</h5>
-              <p className="small mb-3" style={{ color: '#94a3b8' }}>Signed in as <strong style={{ color: '#e2e8f0' }}>{user?.email || user?.nic}</strong>. Logging out ends this session on this device.</p>
-              <button onClick={handleLogout} className="btn btn-outline-danger w-100 fw-bold d-flex align-items-center justify-content-center gap-2" style={{ borderRadius: '12px', padding: '11px' }}>
+            <div className="card bg-white border border-danger/30 rounded-[18px] shadow p-4">
+              <h5 className="fw-bold text-[#063127] mb-1"><i className="bi bi-box-arrow-right me-2 text-danger"></i>Session</h5>
+              <p className="small mb-3 text-[#686053]">Signed in as <strong className="text-[#063127]">{user?.email || user?.nic}</strong>. Logging out ends this session on this device.</p>
+              <button onClick={handleLogout} className="btn bg-white text-danger border border-danger hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] w-100 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-[12px] py-[11px] transition hover:-translate-y-[1px]">
                 <i className="bi bi-box-arrow-right"></i> Logout
               </button>
             </div>

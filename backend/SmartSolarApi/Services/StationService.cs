@@ -84,7 +84,7 @@ namespace SmartSolarApi.Services
                 // Fetch active/pending reservations on this station
                 var activeReservations = await _db.EnergyReservation.Find(r => 
                     (r.StationId == s.Id || r.StationName == s.Name) && 
-                    (r.Status == "Approved" || r.Status == "Pending" || (r.Status != "Completed" && r.Status != "Cancelled"))).ToListAsync();
+                    (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
 
                 var activeCount = activeReservations.Count;
 
@@ -147,7 +147,7 @@ namespace SmartSolarApi.Services
 
             var activeReservations = await _db.EnergyReservation.Find(r => 
                 (r.StationId == station.Id || r.StationName == station.Name) && 
-                (r.Status == "Approved" || r.Status == "Pending" || (r.Status != "Completed" && r.Status != "Cancelled"))).ToListAsync();
+                (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
 
             var activeCount = activeReservations.Count;
             var occupiedSlots = activeReservations
@@ -212,7 +212,7 @@ namespace SmartSolarApi.Services
             {
                 var activeReservations = await _db.EnergyReservation.CountDocumentsAsync(r => 
                     (r.StationId == id || r.StationId == station.Id || r.StationName == station.Name) && 
-                    (r.Status == "Approved" || r.Status == "Pending" || (r.Status != "Completed" && r.Status != "Cancelled")));
+                    (r.Status == "Approved" || r.Status == "Pending"));
 
                 if (activeReservations > 0)
                 {
@@ -261,7 +261,7 @@ namespace SmartSolarApi.Services
             // CRITICAL BUSINESS RULE: Deactivation is strictly blocked if active energy reservations exist
             var activeReservations = await _db.EnergyReservation.CountDocumentsAsync(r => 
                 (r.StationId == id || r.StationId == station.Id || r.StationName == station.Name) && 
-                (r.Status == "Approved" || r.Status == "Pending" || (r.Status != "Completed" && r.Status != "Cancelled")));
+                (r.Status == "Approved" || r.Status == "Pending"));
 
             if (activeReservations > 0)
             {
@@ -402,13 +402,156 @@ namespace SmartSolarApi.Services
         }
 
         /// <summary>
+        /// <summary>
+        /// Updates a single battery slot status to Busy or Free (used by Grid Operators).
+        /// When a slot is marked Busy, it cannot be booked by any prosumer.
+        /// When a slot is set to Free (released), it becomes available again.
+        /// </summary>
+        public async Task<(bool Success, string Message, StationResponseDto? Station)> SetSlotBusyAsync(string id, int slotNumber, bool isBusy, string? reason = null)
+        {
+            var station = await _db.SolarStationInfo.Find(s => s.Id == id).FirstOrDefaultAsync();
+            if (station == null)
+            {
+                return (false, "Station not found.", null);
+            }
+
+            if (slotNumber < 1 || slotNumber > station.TotalBatterySlots)
+            {
+                return (false, $"Slot number #{slotNumber} is out of bounds (1 - {station.TotalBatterySlots}).", null);
+            }
+
+            if (station.BusySlotNumbers == null)
+            {
+                station.BusySlotNumbers = new List<int>();
+            }
+
+            var activeReservations = await _db.EnergyReservation.Find(r =>
+                (r.StationId == station.Id || r.StationName == station.Name) &&
+                (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
+
+            var occupiedSlots = activeReservations
+                .Where(r => r.SlotNumber.HasValue && r.SlotNumber.Value > 0)
+                .Select(r => r.SlotNumber!.Value)
+                .Distinct()
+                .ToList();
+
+            if (isBusy)
+            {
+                // If already occupied by an active prosumer reservation
+                if (occupiedSlots.Contains(slotNumber))
+                {
+                    var booking = activeReservations.FirstOrDefault(r => r.SlotNumber == slotNumber);
+                    return (false, $"Slot #{slotNumber} is already booked by prosumer {booking?.ProsumerName ?? "User"} ({booking?.ReservationCode ?? "Reservation"}). Please cancel the booking first to release or adjust this slot.", null);
+                }
+
+                if (!station.BusySlotNumbers.Contains(slotNumber))
+                {
+                    station.BusySlotNumbers.Add(slotNumber);
+                    station.BusySlotNumbers.Sort();
+                }
+            }
+            else
+            {
+                station.BusySlotNumbers.Remove(slotNumber);
+            }
+
+            var allUnavailable = occupiedSlots.Union(station.BusySlotNumbers).Distinct().ToList();
+            int newAvailableSlots = Math.Max(0, station.TotalBatterySlots - allUnavailable.Count);
+            station.AvailableBatterySlots = newAvailableSlots;
+
+            var update = Builders<SolarStationInfo>.Update
+                .Set(s => s.BusySlotNumbers, station.BusySlotNumbers)
+                .Set(s => s.AvailableBatterySlots, newAvailableSlots)
+                .Set(s => s.UpdatedAt, DateTime.UtcNow);
+
+            await _db.SolarStationInfo.UpdateOneAsync(s => s.Id == id, update);
+
+            var updatedStationDto = MapToDto(station, activeReservations.Count, occupiedSlots);
+            string actionText = isBusy 
+                ? $"Slot #{slotNumber} is now marked Busy. Prosumers cannot book this slot." 
+                : $"Slot #{slotNumber} has been released and is now available for booking.";
+            return (true, actionText, updatedStationDto);
+        }
+
+        /// <summary>
+        /// Releases a slot by cancelling busy status or cancelling an active booking on that slot.
+        /// </summary>
+        public async Task<(bool Success, string Message, StationResponseDto? Station)> ReleaseSlotAsync(string id, int slotNumber)
+        {
+            var station = await _db.SolarStationInfo.Find(s => s.Id == id).FirstOrDefaultAsync();
+            if (station == null)
+            {
+                return (false, "Station not found.", null);
+            }
+
+            if (station.BusySlotNumbers == null)
+            {
+                station.BusySlotNumbers = new List<int>();
+            }
+
+            bool wasBusy = station.BusySlotNumbers.Remove(slotNumber);
+
+            // Check if there is an active reservation on this slot
+            var activeRes = await _db.EnergyReservation.Find(r =>
+                (r.StationId == station.Id || r.StationName == station.Name) &&
+                r.SlotNumber == slotNumber &&
+                (r.Status == "Approved" || r.Status == "Pending")).FirstOrDefaultAsync();
+
+            bool wasBooked = false;
+            string bookingCode = "";
+            if (activeRes != null)
+            {
+                wasBooked = true;
+                bookingCode = activeRes.ReservationCode;
+                var resUpdate = Builders<EnergyReservation>.Update
+                    .Set(r => r.Status, "Cancelled")
+                    .Set(r => r.OperatorNotes, $"Cancelled by Grid Operator: Slot #{slotNumber} released to available pool.")
+                    .Set(r => r.UpdatedAt, DateTime.UtcNow);
+                await _db.EnergyReservation.UpdateOneAsync(r => r.Id == activeRes.Id, resUpdate);
+            }
+
+            var remainingActive = await _db.EnergyReservation.Find(r =>
+                (r.StationId == station.Id || r.StationName == station.Name) &&
+                r.Id != (activeRes != null ? activeRes.Id : null) &&
+                (r.Status == "Approved" || r.Status == "Pending")).ToListAsync();
+
+            var occupiedSlots = remainingActive
+                .Where(r => r.SlotNumber.HasValue && r.SlotNumber.Value > 0)
+                .Select(r => r.SlotNumber!.Value)
+                .Distinct()
+                .ToList();
+
+            var allUnavailable = occupiedSlots.Union(station.BusySlotNumbers).Distinct().ToList();
+            int newAvailableSlots = Math.Max(0, station.TotalBatterySlots - allUnavailable.Count);
+            station.AvailableBatterySlots = newAvailableSlots;
+
+            var update = Builders<SolarStationInfo>.Update
+                .Set(s => s.BusySlotNumbers, station.BusySlotNumbers)
+                .Set(s => s.AvailableBatterySlots, newAvailableSlots)
+                .Set(s => s.UpdatedAt, DateTime.UtcNow);
+
+            await _db.SolarStationInfo.UpdateOneAsync(s => s.Id == id, update);
+
+            var updatedStationDto = MapToDto(station, remainingActive.Count, occupiedSlots);
+            string msg = wasBooked 
+                ? $"Booking {bookingCode} on Slot #{slotNumber} was cancelled and slot released to available pool." 
+                : wasBusy 
+                    ? $"Slot #{slotNumber} marked busy was cleared and released to available pool."
+                    : $"Slot #{slotNumber} is now released and ready for reservations.";
+
+            return (true, msg, updatedStationDto);
+        }
+
+        /// <summary>
         /// Maps SolarStationInfo model to StationResponseDto.
         /// </summary>
         // Projects database model to client response schema
         private static StationResponseDto MapToDto(SolarStationInfo s, int activeReservations, List<int>? occupiedSlots = null)
         {
             var occupied = occupiedSlots ?? new List<int>();
-            int effectiveAvailable = Math.Max(0, s.TotalBatterySlots - Math.Max(activeReservations, occupied.Count));
+            var busy = s.BusySlotNumbers ?? new List<int>();
+            var allUnavailable = occupied.Union(busy).Distinct().ToList();
+            int effectiveAvailable = Math.Max(0, s.TotalBatterySlots - allUnavailable.Count);
             return new StationResponseDto
             {
                 Id = s.Id ?? string.Empty,
@@ -421,6 +564,7 @@ namespace SmartSolarApi.Services
                 AvailableBatterySlots = effectiveAvailable,
                 TotalBatterySlots = s.TotalBatterySlots,
                 OccupiedSlotNumbers = occupied,
+                BusySlotNumbers = busy,
                 OperationalSchedule = s.OperationalSchedule,
                 Status = s.Status,
                 ActiveReservationsCount = activeReservations,

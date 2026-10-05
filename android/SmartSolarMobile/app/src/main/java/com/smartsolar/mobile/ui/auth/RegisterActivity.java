@@ -83,6 +83,42 @@ public class RegisterActivity extends AppCompatActivity {
         setupPasswordStrengthWatcher();
         setupMapPreview();
         wireButtons();
+        applyEntranceMotion();
+    }
+
+    // ── Entrance motion: header fades, logo pops, title + sheet rise ─────────
+    private void applyEntranceMotion() {
+        try {
+            android.view.animation.Animation fade =
+                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_in);
+            android.view.animation.Animation logoPop =
+                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.login_logo_pop);
+            android.view.animation.Animation textRise =
+                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.login_text_rise);
+            android.view.animation.Animation sheetRise =
+                    android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up);
+
+            View header = findViewById(R.id.register_header);
+            if (header != null) header.startAnimation(fade);
+            View logo = findViewById(R.id.register_logo_badge);
+            if (logo != null) logo.startAnimation(logoPop);
+            View title = findViewById(R.id.register_title);
+            if (title != null) {
+                textRise.setStartOffset(150);
+                title.startAnimation(textRise);
+            }
+            View sheet = findViewById(R.id.register_sheet);
+            if (sheet != null) {
+                sheetRise.setStartOffset(200);
+                sheet.startAnimation(sheetRise);
+            }
+            if (btnRegister != null) {
+                android.view.animation.Animation btnRise =
+                        android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up);
+                btnRise.setStartOffset(350);
+                btnRegister.startAnimation(btnRise);
+            }
+        } catch (Exception ignored) {}
     }
 
     // ── Bind all UI views ─────────────────────────────────────────────────────
@@ -193,6 +229,10 @@ public class RegisterActivity extends AppCompatActivity {
         // Attach click listeners for the Register, Pick Location, and Back navigation buttons
         btnPickLocation.setOnClickListener(v -> showMapPickerDialog());
         btnRegister.setOnClickListener(v -> performRegistration());
+        View btnBack = findViewById(R.id.btn_register_back);
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+        View tvLogin = findViewById(R.id.tv_login_link);
+        if (tvLogin != null) tvLogin.setOnClickListener(v -> finish());
     }
 
     // ── Full-screen OSMDroid map picker dialog with address search ───────────

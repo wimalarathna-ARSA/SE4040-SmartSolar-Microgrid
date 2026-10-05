@@ -6,8 +6,7 @@
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 // ============================================================================
-// File: passwordValidator.js
-// Description: Client-side strong password validation utility.
+// Client-side strong password validation utility.
 // Checks 5 industry-standard criteria:
 // 1. Min 8 characters
 // 2. Uppercase letter (A-Z)

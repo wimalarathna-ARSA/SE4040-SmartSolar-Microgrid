@@ -6,7 +6,6 @@
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -55,11 +54,10 @@ export const getSlotAvailabilityInfo = (station) => {
       badgeBorder: '#10b981',
       textClass: 'text-success',
       label: 'High Availability (> 50% Slots)',
-      shortLabel: `${available}/${total} Free (>50%)`,
+      shortLabel: available + '/' + total + ' Free (>50%)',
     };
   }
 
-  // available > 0 && available <= total / 2
   return {
     status: 'low',
     color: '#f59e0b',
@@ -71,58 +69,27 @@ export const getSlotAvailabilityInfo = (station) => {
     badgeBorder: '#f59e0b',
     textClass: 'text-warning',
     label: 'Limited Availability (< 50% Slots)',
-    shortLabel: `${available}/${total} Free (<50%)`,
+    shortLabel: available + '/' + total + ' Free (<50%)',
   };
 };
 
 // Helper to generate custom styled Leaflet divIcon for a station
+// Bootstrap + Tailwind utility classes only (status-mapped, no inline styles).
+const pinBgByStatus = (status) =>
+  status === 'high' ? 'bg-success' : status === 'low' ? 'bg-warning' : 'bg-danger';
+const textByStatus = (status) =>
+  status === 'high' ? 'text-success' : status === 'low' ? 'text-warning' : 'text-danger';
 const createStationIcon = (station, isSelected = false) => {
   const slotInfo = getSlotAvailabilityInfo(station);
-
-  const pulseEffect = isSelected
-    ? `box-shadow: 0 0 0 7px ${slotInfo.pulseRgba}, 0 8px 24px rgba(0,0,0,0.35); transform: translate(-50%, -50%) scale(1.18);`
-    : `box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 12px ${slotInfo.pulseRgba}; transform: translate(-50%, -50%);`;
 
   return L.divIcon({
     className: 'custom-station-pin',
     html: `
-      <div style="
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: ${slotInfo.gradient};
-        border: 2.5px solid #ffffff;
-        color: #ffffff;
-        font-size: 18px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        ${pulseEffect}
-      ">
-        <i class="bi bi-geo-alt-fill" style="color: #ffffff; font-size: 18px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));"></i>
+      <div class="d-flex align-items-center justify-content-center rounded-full border border-2 border-white text-white w-[40px] h-[40px] text-[18px] cursor-pointer ${pinBgByStatus(slotInfo.status)}">
+        <i class="bi bi-geo-alt-fill text-white text-[18px]"></i>
         ${
           station.availableBatterySlots !== undefined
-            ? `
-          <div style="
-            position: absolute;
-            bottom: -6px;
-            right: -6px;
-            background: #0f172a;
-            color: ${slotInfo.color};
-            font-size: 9px;
-            font-weight: 800;
-            padding: 1px 5px;
-            border-radius: 10px;
-            border: 1.5px solid #ffffff;
-            line-height: 1.2;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-          ">
-            ${station.availableBatterySlots}
-          </div>
-        `
+            ? `<div class="position-absolute badge bg-dark border border-white rounded-pill fw-bold bottom-[-6px] end-[-6px] text-[9px] ${textByStatus(slotInfo.status)}">${station.availableBatterySlots}</div>`
             : ''
         }
       </div>
@@ -142,11 +109,10 @@ const MicrogridMapModal = ({
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const markersMapRef = useRef({}); // stationId -> L.marker
+  const markersMapRef = useRef({});
   const [selectedStation, setSelectedStation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Synchronize focused station when modal opens or focusStation changes
   useEffect(() => {
     if (isOpen) {
       setSelectedStation(focusStation || null);
@@ -154,11 +120,9 @@ const MicrogridMapModal = ({
     }
   }, [isOpen, focusStation]);
 
-  // Initialize and update the Leaflet map
   useEffect(() => {
     if (!isOpen || !mapContainerRef.current) return;
 
-    // Destroy existing instance if container changed
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove();
       mapInstanceRef.current = null;
@@ -166,7 +130,7 @@ const MicrogridMapModal = ({
 
     const defaultCenter = focusStation
       ? [focusStation.latitude || 6.9271, focusStation.longitude || 79.8612]
-      : [7.8731, 80.7718]; // Center of Sri Lanka
+      : [7.8731, 80.7718];
     const defaultZoom = focusStation ? 14 : 8;
 
     const map = L.map(mapContainerRef.current, {
@@ -176,17 +140,14 @@ const MicrogridMapModal = ({
     });
     mapInstanceRef.current = map;
 
-    // Add zoom control to top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Add OpenStreetMap tile layer with high-contrast cartography
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // Clear previous marker references
     markersMapRef.current = {};
     const markerGroup = [];
 
@@ -200,56 +161,42 @@ const MicrogridMapModal = ({
         icon: createStationIcon(s, isFocused),
       });
 
-      // Build rich popup HTML content
       const slotInfo = getSlotAvailabilityInfo(s);
-      const slotPercent =
-        s.totalBatterySlots > 0 ? (s.availableBatterySlots / s.totalBatterySlots) * 100 : 0;
+      const slotPct = s.totalBatterySlots > 0 ? (s.availableBatterySlots / s.totalBatterySlots) * 100 : 0;
+      const slotBarClass = slotPct >= 75 ? 'w-100' : slotPct >= 50 ? 'w-75' : slotPct >= 25 ? 'w-50' : slotPct > 0 ? 'w-25' : 'w-0';
       const popupHtml = `
-        <div style="font-family: 'Inter', sans-serif; min-width: 260px; max-width: 320px; padding: 2px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <span style="background: #0f172a; color: #34d399; font-family: monospace; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 50px;">
-              ${s.stationCode || 'HUB'}
-            </span>
-            <span style="background: ${slotInfo.color}; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 50px;">
-              ${slotInfo.shortLabel}
-            </span>
+        <div class="p-1 min-w-[260px] max-w-[320px]">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge bg-[#063127] text-[#F8F8F8] font-monospace rounded-pill">${s.stationCode || 'HUB'}</span>
+            <span class="badge text-white rounded-pill ${pinBgByStatus(slotInfo.status)}">${slotInfo.shortLabel}</span>
           </div>
-
-          <h4 style="margin: 0 0 4px; font-size: 14px; font-weight: 800; color: #0f172a;">
-            ${s.name}
-          </h4>
-
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; margin-bottom: 10px;">
-            <i class="bi bi-geo-alt-fill" style="color: ${slotInfo.color}; font-size: 14px;"></i>
-            <span style="font-weight: 600;">${s.location}</span>
+          <h4 class="fw-bold text-[#063127] mb-1 fs-6">${s.name}</h4>
+          <div class="d-flex align-items-center gap-1 text-[#686053] small mb-2">
+            <i class="bi bi-geo-alt-fill ${textByStatus(slotInfo.status)}"></i>
+            <span class="fw-semibold">${s.location}</span>
           </div>
-
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #166534; margin-bottom: 2px;">
+          <div class="bg-[#063127]/10 border border-[#063127]/20 rounded p-2 mb-2">
+            <div class="d-flex align-items-center gap-1 small fw-bold text-[#063127] mb-1">
               <i class="bi bi-clock-history"></i>
               <span>OPERATIONAL SCHEDULE</span>
             </div>
-            <div style="font-size: 12px; font-weight: 700; color: #065f46;">
-              ${s.operationalSchedule || 'Mon-Sun 06:00 - 22:00'}
-            </div>
+            <div class="small fw-bold text-[#063127]">${s.operationalSchedule || 'Mon-Sun 06:00 - 22:00'}</div>
           </div>
-
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px;">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+          <div class="bg-light border rounded p-2 mb-2">
+            <div class="d-flex justify-content-between small fw-bold text-dark mb-1">
               <span>Battery Slot Status:</span>
-              <span style="color: ${slotInfo.color}; font-weight: 800;">${s.availableBatterySlots} / ${s.totalBatterySlots} Free</span>
+              <span class="${textByStatus(slotInfo.status)}">${s.availableBatterySlots} / ${s.totalBatterySlots} Free</span>
             </div>
-            <div style="width: 100%; height: 7px; background: #e2e8f0; border-radius: 50px; overflow: hidden; margin-bottom: 4px;">
-              <div style="width: ${slotPercent}%; height: 100%; background: ${slotInfo.color}; border-radius: 50px;"></div>
+            <div class="progress w-100 h-[7px] rounded-pill overflow-hidden">
+              <div class="progress-bar ${pinBgByStatus(slotInfo.status)} h-100 rounded-pill ${slotBarClass}"></div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #64748b; margin-top: 4px;">
+            <div class="d-flex justify-content-between small text-secondary mt-1">
               <span>${slotInfo.label}</span>
-              <strong style="color: #0f172a;">${s.capacityKWh || 0} kWh</strong>
+              <strong class="text-dark">${s.capacityKWh || 0} kWh</strong>
             </div>
           </div>
-
-          <div style="display: flex; gap: 6px; margin-top: 8px;">
-            <a href="/operator/slots?stationId=${s.id}" style="flex: 1; text-align: center; background: ${slotInfo.color}; color: #ffffff; text-decoration: none; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 6px; display: inline-block;">
+          <div class="d-flex gap-1 mt-2">
+            <a href="/operator/slots?stationId=${s.id}" class="btn btn-sm text-white fw-bold flex-fill ${pinBgByStatus(slotInfo.status)}">
               <i class="bi bi-sliders me-1"></i>Manage Slots
             </a>
           </div>
@@ -267,7 +214,6 @@ const MicrogridMapModal = ({
       markerGroup.push(marker);
     });
 
-    // Handle initial focusing on a station
     if (focusStation) {
       const lat = parseFloat(focusStation.latitude);
       const lng = parseFloat(focusStation.longitude);
@@ -281,12 +227,10 @@ const MicrogridMapModal = ({
         }, 200);
       }
     } else if (markerGroup.length > 0) {
-      // Fit all markers in view
       const group = L.featureGroup(markerGroup);
       map.fitBounds(group.getBounds().pad(0.15));
     }
 
-    // Force map to recalculate size after DOM layout
     setTimeout(() => {
       map.invalidateSize();
     }, 150);
@@ -299,7 +243,6 @@ const MicrogridMapModal = ({
     };
   }, [isOpen, stations, focusStation]);
 
-  // Navigate directly to a specific station on the map
   const handleFlyToStation = (station) => {
     setSelectedStation(station);
     const map = mapInstanceRef.current;
@@ -318,7 +261,6 @@ const MicrogridMapModal = ({
     }
   };
 
-  // Filter stations in the side panel search
   const filteredStations = stations.filter(
     (s) =>
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -326,368 +268,162 @@ const MicrogridMapModal = ({
       s.stationCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  void onViewSchedule;
+
   if (!isOpen) return null;
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(10, 25, 47, 0.72)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1050,
-        padding: '20px',
-      }}
+      className="modal d-block position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 overflow-auto p-3 z-[1050]"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
     >
-      <div
-        style={{
-          background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(24px)',
-          borderRadius: '28px',
-          border: '1px solid rgba(255, 255, 255, 0.95)',
-          boxShadow: '0 25px 60px -12px rgba(10, 35, 70, 0.35)',
-          maxWidth: '1280px',
-          width: '100%',
-          height: '88vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* ── Modal Header ── */}
-        <div
-          style={{
-            padding: '18px 28px',
-            borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
-            color: '#ffffff',
-          }}
-        >
-          <div className="d-flex align-items-center gap-3">
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.25rem',
-              }}
-            >
-              <i className="bi bi-map-fill"></i>
-            </div>
-            <div>
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: '1.2rem',
-                  fontWeight: 800,
-                  letterSpacing: '-0.015em',
-                  color: '#ffffff',
-                }}
-              >
-                Solar Microgrid Nodes Geospatial Map
-              </h3>
-              <div style={{ fontSize: '0.78rem', color: '#a7f3d0', marginTop: '2px' }}>
-                Interactive GIS view of all active solar microgrid nodes and battery storage hubs
+      <div className="modal-dialog modal-xl mx-auto mb-3 mt-[5rem]" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content rounded-4 overflow-hidden border border-light shadow-lg d-flex flex-column h-[88vh]">
+          {/* ── Modal Header ── */}
+          <div className="modal-header bg-[#063127] text-white d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+            <div className="d-flex align-items-center gap-3">
+              <div className="d-flex align-items-center justify-content-center rounded bg-white bg-opacity-25 w-[42px] h-[42px] fs-5">
+                <i className="bi bi-map-fill"></i>
               </div>
-            </div>
-          </div>
-
-          <div className="d-flex align-items-center gap-2">
-            <span
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: '#ffffff',
-                borderRadius: '50px',
-                padding: '5px 14px',
-                fontSize: '0.76rem',
-                fontWeight: 700,
-              }}
-            >
-              {stations.length} Hub Nodes Plotted
-            </span>
-            <button
-              onClick={onClose}
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                border: 'none',
-                color: '#ffffff',
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                transition: 'all 0.15s ease',
-              }}
-              title="Close Map"
-            >
-              &times;
-            </button>
-          </div>
-        </div>
-
-        {/* ── Modal Body: Map + Sidebar ── */}
-        <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
-          {/* Map Container */}
-          <div
-            ref={mapContainerRef}
-            style={{
-              flex: 1,
-              height: '100%',
-              background: '#e2e8f0',
-              position: 'relative',
-              zIndex: 1,
-            }}
-          />
-
-          {/* Floating Map Legend */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '20px',
-              zIndex: 500,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.9)',
-              borderRadius: '16px',
-              padding: '10px 18px',
-              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              flexWrap: 'wrap',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-            }}
-          >
-            <span style={{ color: '#0f172a', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-              <i className="bi bi-geo-alt-fill text-primary"></i>
-              <span>Slot Availability:</span>
-            </span>
-            <div className="d-flex align-items-center gap-1">
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block', boxShadow: '0 0 6px rgba(16, 185, 129, 0.6)' }}></span>
-              <span style={{ color: '#065f46' }}>&gt; 50% Slots (Green)</span>
-            </div>
-            <div className="d-flex align-items-center gap-1">
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block', boxShadow: '0 0 6px rgba(245, 158, 11, 0.6)' }}></span>
-              <span style={{ color: '#92400e' }}>&lt; 50% Slots (Yellow)</span>
-            </div>
-            <div className="d-flex align-items-center gap-1">
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block', boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)' }}></span>
-              <span style={{ color: '#991b1b' }}>0 Slots / Full (Red)</span>
-            </div>
-          </div>
-
-          {/* Right Sidebar: Hubs List & Quick Navigation */}
-          <div
-            style={{
-              width: '340px',
-              height: '100%',
-              background: '#ffffff',
-              borderLeft: '1px solid rgba(15, 23, 42, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              zIndex: 10,
-              boxShadow: '-4px 0 20px rgba(0,0,0,0.05)',
-            }}
-          >
-            {/* Sidebar Search Bar */}
-            <div style={{ padding: '14px 16px', borderBottom: '1px solid #e2e8f0' }}>
-              <div style={{ position: 'relative' }}>
-                <i
-                  className="bi bi-search"
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '9px',
-                    color: '#94a3b8',
-                    fontSize: '0.85rem',
-                  }}
-                ></i>
-                <input
-                  type="text"
-                  placeholder="Search station or location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px 8px 34px',
-                    borderRadius: '10px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.84rem',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Hubs Scrollable List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-              {filteredStations.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 12px', color: '#94a3b8', fontSize: '0.84rem' }}>
-                  No stations match your search.
+              <div>
+                <h3 className="m-0 fs-5 fw-bolder tracking-tight text-white">
+                  Solar Microgrid Nodes Geospatial Map
+                </h3>
+                <div className="text-white text-opacity-75 text-[0.78rem]">
+                  Interactive GIS view of all active solar microgrid nodes and battery storage hubs
                 </div>
-              ) : (
-                filteredStations.map((s) => {
-                  const isSelected = selectedStation?.id === s.id;
-                  const slotInfo = getSlotAvailabilityInfo(s);
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => handleFlyToStation(s)}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '14px',
-                        marginBottom: '8px',
-                        cursor: 'pointer',
-                        background: isSelected ? '#ecfdf5' : '#f8fafc',
-                        border: isSelected ? '1.5px solid #10b981' : '1px solid #e2e8f0',
-                        boxShadow: isSelected ? '0 4px 12px rgba(16, 185, 129, 0.15)' : 'none',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) e.currentTarget.style.background = '#f1f5f9';
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) e.currentTarget.style.background = '#f8fafc';
-                      }}
-                    >
-                      <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span
-                          style={{
-                            background: '#0f172a',
-                            color: '#34d399',
-                            fontFamily: 'monospace',
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '50px',
-                          }}
-                        >
-                          {s.stationCode}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                            color: slotInfo.color,
-                            background: `${slotInfo.color}15`,
-                            padding: '1px 8px',
-                            borderRadius: '50px',
-                            border: `1px solid ${slotInfo.color}40`,
-                          }}
-                        >
-                          {slotInfo.shortLabel}
-                        </span>
-                      </div>
-
-                      <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.88rem', marginBottom: '2px' }}>
-                        {s.name}
-                      </div>
-
-                      <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
-                        <i className="bi bi-geo-alt-fill" style={{ color: slotInfo.color, fontSize: '0.9rem' }}></i>
-                        <span>{s.location}</span>
-                      </div>
-
-                      {/* Schedule pill */}
-                      <div
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid #dcfce7',
-                          borderRadius: '8px',
-                          padding: '4px 8px',
-                          fontSize: '0.74rem',
-                          color: '#166534',
-                          fontWeight: 600,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                        }}
-                      >
-                        <i className="bi bi-clock"></i>
-                        <span>{s.operationalSchedule || '06:00 – 22:00'}</span>
-                      </div>
-
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          fontSize: '0.74rem',
-                        }}
-                      >
-                        <span style={{ color: slotInfo.color, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: slotInfo.color, display: 'inline-block' }}></span>
-                          {s.availableBatterySlots} / {s.totalBatterySlots} slots free
-                        </span>
-                        <span style={{ color: '#0284c7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          <span>Locate on Map</span>
-                          <i className="bi bi-arrow-right-short" style={{ fontSize: '1rem' }}></i>
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+              </div>
             </div>
 
-            {/* Sidebar Footer */}
-            <div
-              style={{
-                padding: '12px 16px',
-                borderTop: '1px solid #e2e8f0',
-                background: '#f8fafc',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
+            <div className="d-flex align-items-center gap-2">
+              <span className="badge bg-white bg-opacity-25 text-white rounded-pill px-3 text-[0.76rem]">
+                {stations.length} Hub Nodes Plotted
+              </span>
               <button
-                onClick={() => {
-                  const map = mapInstanceRef.current;
-                  if (!map) return;
-                  const markers = Object.values(markersMapRef.current);
-                  if (markers.length > 0) {
-                    const group = L.featureGroup(markers);
-                    map.fitBounds(group.getBounds().pad(0.15));
-                  }
-                }}
-                style={{
-                  background: 'none',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '50px',
-                  padding: '5px 12px',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  color: '#475569',
-                  cursor: 'pointer',
-                }}
-              >
-                <i className="bi bi-arrows-fullscreen me-1"></i> Fit All Nodes
-              </button>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Leaflet / OpenStreetMap</span>
+                onClick={onClose}
+                className="btn-close btn-close-white bg-white bg-opacity-25 rounded-full"
+                title="Close Map"
+                aria-label="Close"
+              />
+            </div>
+          </div>
+
+          {/* ── Modal Body: Map + Sidebar ── */}
+          <div className="modal-body p-0 flex-fill d-flex position-relative overflow-hidden">
+            {/* Map Container */}
+            <div ref={mapContainerRef} className="flex-fill bg-[#F8F8F8] position-relative z-[1] h-[420px] w-100" />
+
+            {/* Floating Map Legend */}
+            <div className="position-absolute bottom-0 start-0 m-3 z-[500] bg-white bg-opacity-95 border rounded-3 px-3 py-2 shadow d-flex align-items-center gap-3 flex-wrap text-[0.74rem] fw-bold">
+              <span className="text-[#063127] fw-bolder d-inline-flex align-items-center gap-1">
+                <i className="bi bi-geo-alt-fill text-[#063127]"></i>
+                <span>Slot Availability:</span>
+              </span>
+              <div className="d-flex align-items-center gap-1">
+                <span className="d-inline-block rounded-full bg-success w-[10px] h-[10px] shadow animate-pulse"></span>
+                <span className="text-success-emphasis">&gt; 50% Slots (Green)</span>
+              </div>
+              <div className="d-flex align-items-center gap-1">
+                <span className="d-inline-block rounded-full bg-warning w-[10px] h-[10px] shadow animate-pulse"></span>
+                <span className="text-warning-emphasis">&lt; 50% Slots (Yellow)</span>
+              </div>
+              <div className="d-flex align-items-center gap-1">
+                <span className="d-inline-block rounded-full bg-danger w-[10px] h-[10px] shadow animate-pulse"></span>
+                <span className="text-danger-emphasis">0 Slots / Full (Red)</span>
+              </div>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="d-none d-md-flex flex-column bg-white border-start shadow w-[340px] z-[10] h-100">
+              <div className="p-3 border-bottom">
+                <div className="position-relative">
+                  <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-[#686053]"></i>
+                  <input
+                    type="text"
+                    placeholder="Search station or location..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="form-control ps-5 text-[0.84rem] rounded-3"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-fill overflow-auto p-2">
+                {filteredStations.length === 0 ? (
+                  <div className="text-center p-4 text-[#686053] text-[0.84rem]">
+                    No stations match your search.
+                  </div>
+                ) : (
+                  filteredStations.map((s) => {
+                    const isSelected = selectedStation?.id === s.id;
+                    const slotInfo = getSlotAvailabilityInfo(s);
+                    const badgeClass = 'badge rounded-pill px-2 text-[0.7rem] fw-bold border ' + slotInfo.textClass + ' bg-light';
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => handleFlyToStation(s)}
+                        className={'p-3 rounded-3 mb-2 cursor-pointer border transition hover:bg-[#F8F8F8] ' + (isSelected ? 'bg-[#063127]/10 border-[#063127]/20 shadow-sm' : 'bg-white border')}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <span className="badge bg-[#063127] text-[#F8F8F8] font-monospace text-[0.72rem] rounded-pill px-2">
+                            {s.stationCode}
+                          </span>
+                          <span className={badgeClass}>
+                            {slotInfo.shortLabel}
+                          </span>
+                        </div>
+
+                        <div className="fw-bold text-[#063127] text-[0.88rem] mb-1">
+                          {s.name}
+                        </div>
+
+                        <div className="text-[0.78rem] text-[#686053] d-flex align-items-center gap-1 mb-2">
+                          <i className={'bi bi-geo-alt-fill ' + slotInfo.textClass}></i>
+                          <span>{s.location}</span>
+                        </div>
+
+                        <div className="bg-white border border-[#063127]/20 rounded p-1 px-2 text-[0.74rem] text-[#063127] fw-semibold d-flex align-items-center gap-1">
+                          <i className="bi bi-clock"></i>
+                          <span>{s.operationalSchedule || '06:00 – 22:00'}</span>
+                        </div>
+
+                        <div className="mt-2 d-flex justify-content-between align-items-center text-[0.74rem]">
+                          <span className={'fw-bold d-inline-flex align-items-center gap-1 ' + slotInfo.textClass}>
+                            <span className="d-inline-block rounded-full w-[8px] h-[8px] bg-current"></span>
+                            {s.availableBatterySlots} / {s.totalBatterySlots} slots free
+                          </span>
+                          <span className="text-[#063127] fw-semibold d-flex align-items-center gap-1">
+                            <span>Locate on Map</span>
+                            <i className="bi bi-arrow-right-short fs-6"></i>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="p-3 border-top bg-light d-flex justify-content-between align-items-center">
+                <button
+                  onClick={() => {
+                    const map = mapInstanceRef.current;
+                    if (!map) return;
+                    const markers = Object.values(markersMapRef.current);
+                    if (markers.length > 0) {
+                      const group = L.featureGroup(markers);
+                      map.fitBounds(group.getBounds().pad(0.15));
+                    }
+                  }}
+                  className="btn btn-outline-secondary btn-sm rounded-pill px-3 text-[0.74rem] fw-semibold hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127]"
+                >
+                  <i className="bi bi-arrows-fullscreen me-1"></i> Fit All Nodes
+                </button>
+                <span className="text-[0.72rem] text-secondary">Leaflet / OpenStreetMap</span>
+              </div>
             </div>
           </div>
         </div>

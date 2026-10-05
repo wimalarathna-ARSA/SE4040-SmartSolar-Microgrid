@@ -1,205 +1,124 @@
-/* ==========================================================================
-   Smart Solar Microgrid Trading System - Global Styles
-   SE4040 Enterprise Application Development
-   Enhanced with Realistic 3D Glassmorphism & Cybernetic Depth
-   Strict Dark Aesthetic - No White Backgrounds on Homepage
-   ========================================================================== */
-
-:root {
-  --primary-solar: #00ffce;
-  --secondary-solar: #10b981;
-  --accent-solar: #f59e0b;
-  --dark-solar: #020202;
-  --panel-dark: #080c14;
-  --light-bg: #020202;
-  --bs-body-bg: #020202;
-  --bs-body-color: #e2e8f0;
-}
-
-html, body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #020202 !important;
-  color: #e2e8f0 !important;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-#root {
-  min-height: 100vh;
-  background-color: #020202 !important;
-  color: #e2e8f0 !important;
-  display: flex;
-  flex-direction: column;
-}
-
-.main-content {
-  flex: 1;
-}
-
-/* Force override of Bootstrap light utility classes */
-.bg-light {
-  background-color: #020202 !important;
-  color: #e2e8f0 !important;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ==========================================================================
-   Realistic 3D Glassmorphism & Cyber Depth Classes
+   Global button hover contract — Backoffice + Grid Operator
+   Requirement: on hover every button text -> #063127, background -> #F8F8F8.
+   Uses plain Bootstrap 5 CSS (loaded after Bootstrap, after Tailwind
+   utilities) so it beats both Bootstrap's var-based `.btn:hover` and any
+   leftover `hover:text-white` / `hover:text-[#F8F8F8]` utilities.
    ========================================================================== */
-
-.glass-panel {
-  background: rgba(15, 23, 42, 0.82) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.18) !important;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: #e2e8f0 !important;
+.btn:hover,
+button.btn:hover,
+a.btn:hover,
+.btn-check + .btn:hover {
+  color: #063127 !important;
+  background-color: #F8F8F8 !important;
+  border-color: #063127 !important;
+  --bs-btn-hover-color: #063127 !important;
+  --bs-btn-hover-bg: #F8F8F8 !important;
+  --bs-btn-hover-border-color: #063127 !important;
+  --bs-btn-active-color: #063127 !important;
+  --bs-btn-active-bg: #F8F8F8 !important;
+  --bs-btn-active-border-color: #063127 !important;
 }
 
-.glass-panel-glow {
-  background: rgba(15, 23, 42, 0.9) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.4) !important;
-  border-radius: 16px;
-  box-shadow: 0 15px 35px -5px rgba(2, 132, 199, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  color: #e2e8f0 !important;
+/* Child text/icons inherit the hover color (e.g. <span>, <i class="bi">). */
+.btn:hover *,
+button.btn:hover *,
+a.btn:hover * {
+  color: #063127 !important;
 }
 
-/* 3D Perspective Card Wrapper */
-.card-3d-wrapper {
-  perspective: 1000px;
-  transform-style: preserve-3d;
+/* btn-link variant: same contract, keeps underline but swaps colors. */
+.btn-link:hover {
+  color: #063127 !important;
+  background-color: #F8F8F8 !important;
 }
 
-.card-3d {
-  transform-style: preserve-3d;
-  transition: transform 0.1s ease-out;
-  border-radius: 16px;
-  overflow: hidden;
+/* btn-close (X) variant: light tile with dark X on hover. */
+.btn-close:hover {
+  background-color: #F8F8F8 !important;
+  border: 1px solid #063127 !important;
+  opacity: 1 !important;
 }
 
-/* Glow Text Utilities */
-.glow-text-cyan {
-  text-shadow: 0 0 16px rgba(6, 182, 212, 0.65);
+/* ==========================================================================
+   Global modal overlay contract — Backoffice + Grid Operator forms
+   Bug: form modals rendered with plain `.modal.d-block` (static position)
+   inside pages wrapped in `overflow-hidden`, combined with
+   `.modal-dialog-centered`. Tall forms (e.g. Register New Prosumer) were
+   vertically centered and clipped — only the top half displayed with no way
+   to scroll to phone / address / submit.
+   Fix (Bootstrap 5 + Tailwind compatible): force every `.modal.d-block`
+   overlay to a fixed full-viewport scroll container, and neutralize the
+   centering so the dialog starts at the top with vertical margins and the
+   page behind never traps the scroll.
+   ========================================================================== */
+.modal.d-block {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  z-index: 1050 !important;
 }
 
-.glow-text-amber {
-  text-shadow: 0 0 16px rgba(245, 158, 11, 0.65);
+.modal.d-block .modal-dialog {
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
-.glow-text-green {
-  text-shadow: 0 0 16px rgba(34, 197, 94, 0.65);
+/* `modal-dialog-centered` + tall content is a known Bootstrap clipping trap:
+   the flex centering pushes the top of the dialog above the viewport. Force
+   top alignment with breathing room instead. */
+.modal.d-block .modal-dialog.modal-dialog-centered {
+  align-items: flex-start !important;
+  min-height: 0 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
 }
 
-/* Pointer Events Helpers for 3D Overlays */
-.pointer-events-none {
-  pointer-events: none;
+/* Scrollable dialogs may never exceed the viewport height. On small laptop
+   screens the full form must fit in a short dialog with its own scrollbar
+   instead of stretching the page. */
+.modal.d-block .modal-content,
+.modal.d-block .modal-dialog-scrollable .modal-content {
+  max-height: min(700px, calc(100dvh - 4rem)) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
 }
 
-.pointer-events-auto {
-  pointer-events: auto;
+/* Keep the title row pinned while the fields scroll underneath. */
+.modal.d-block .modal-header {
+  position: sticky !important;
+  top: 0;
+  z-index: 3;
 }
 
-/* 3D Holographic Radar Background Grid - strictly dark */
-.bg-grid-pattern {
-  background-color: #020202 !important;
-  background-image: 
-    linear-gradient(to right, rgba(0, 255, 206, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 255, 206, 0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
+/* Keep the primary submit button pinned at the bottom of the scroll area. */
+.modal.d-block .modal-content > form > button[type='submit']:last-child {
+  position: sticky !important;
+  bottom: 0;
+  z-index: 3;
 }
 
-/* Custom Card Styles - No white backgrounds */
-.solar-card,
-.card.solar-card,
-.card {
-  border-radius: 16px;
-  border: 1px solid rgba(56, 189, 248, 0.18);
-  background: rgba(15, 23, 42, 0.88) !important;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  color: #f1f5f9 !important;
+/* ==========================================================================
+   Shared entrance-motion keyframes (driven by Bootstrap 5 / Tailwind CSS
+   `animate-[...]` utilities + `motion-reduce:animate-none` on the markup).
+   ========================================================================== */
+@keyframes bl-fade-up {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.solar-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: 0 16px 36px -6px rgba(2, 132, 199, 0.3);
+@keyframes bl-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
-.kpi-card {
-  border-left: 5px solid;
-  border-radius: 12px;
-}
-
-.kpi-card.primary { border-left-color: #0284c7; }
-.kpi-card.success { border-left-color: #10b981; }
-.kpi-card.warning { border-left-color: #f59e0b; }
-.kpi-card.info { border-left-color: #06b6d4; }
-
-.badge-role-backoffice {
-  background-color: #7c3aed;
-  color: white;
-}
-
-.badge-role-operator {
-  background-color: #0284c7;
-  color: white;
-}
-
-.badge-role-prosumer {
-  background-color: #10b981;
-  color: white;
-}
-
-.table-responsive {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-/* Custom Hero Section */
-.hero-gradient {
-  background: radial-gradient(circle at 50% -20%, #0c2340 0%, #070e1a 75%) !important;
-  color: #ffffff;
-}
-
-/* Form sliders styling on dark theme */
-.form-range::-webkit-slider-runnable-track {
-  background-color: #1e293b;
-  border-radius: 8px;
-}
-
-.form-range::-moz-range-track {
-  background-color: #1e293b;
-  border-radius: 8px;
-}
-
-.form-range::-webkit-slider-thumb {
-  background-color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
-}
-
-/* Radar Map Pulse Animation */
-@keyframes radarPulse {
-  0% {
-    r: 6px;
-    opacity: 0.8;
-  }
-  50% {
-    r: 16px;
-    opacity: 0.3;
-  }
-  100% {
-    r: 22px;
-    opacity: 0;
-  }
-}
-
-.radar-ring {
-  animation: radarPulse 2.4s infinite ease-out;
-  transform-origin: center;
+@keyframes bl-kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
 }

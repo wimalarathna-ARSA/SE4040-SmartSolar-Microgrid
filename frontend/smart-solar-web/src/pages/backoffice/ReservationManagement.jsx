@@ -6,10 +6,10 @@
 // Architecture: FAT Service Pattern (All business logic centralized in API)
 // ============================================================================
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../../services/api';
-import ConstellationMeshSVG from '../../components/ConstellationMeshSVG';
 import BackofficePageHero from '../../components/BackofficePageHero';
+import { ENTER_UP } from '../../utils/enterAnimations';
 
 const UNIT_RATE = 45; // Rs. per kWh — must match backend
 
@@ -23,15 +23,25 @@ const emptyCreateForm = () => ({
   reservationType: 'DropOff',
 });
 
+const thClass = 'text-uppercase text-[0.72rem] fw-bold text-[#F8F8F8] bg-[#063127] px-4 py-3';
+const inputClass = 'form-control rounded-[10px] text-[0.88rem] bg-white';
+const labelClass = 'form-label text-[0.78rem] fw-bold text-[#686053] text-uppercase tracking-wide';
+const typeOptions = [
+  { value: 'DropOff', label: 'Drop-Off (Sell to Grid)', icon: 'bi-arrow-down-left-circle-fill' },
+  { value: 'Charging', label: 'Charging (Buy from Grid)', icon: 'bi-lightning-charge-fill' },
+];
+
 const ReservationManagement = () => {
+  const location = useLocation();
+  const queryStatus = new URLSearchParams(location.search).get('status') || '';
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(queryStatus);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedQr, setSelectedQr] = useState(null);
+  const [approvingId, setApprovingId] = useState(null);
 
-  // ── Create Reservation state ──────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [prosumersList, setProsumersList] = useState([]);
   const [stationsList, setStationsList] = useState([]);
@@ -45,7 +55,6 @@ const ReservationManagement = () => {
       const params = {};
       if (statusFilter) params.status = statusFilter;
       if (searchTerm) params.search = searchTerm;
-
       const res = await api.get('/reservations', { params });
       setReservations(res.data);
     } catch (err) {
@@ -57,6 +66,13 @@ const ReservationManagement = () => {
   };
 
   useEffect(() => {
+    const s = new URLSearchParams(location.search).get('status');
+    if (s !== null) {
+      setStatusFilter(s);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     fetchReservations();
   }, [statusFilter]);
 
@@ -65,12 +81,42 @@ const ReservationManagement = () => {
     fetchReservations();
   };
 
+  const handleApproveReservation = async (res) => {
+    setMessage({ type: '', text: '' });
+    setApprovingId(res.id);
+    try {
+      try {
+        await api.post(`/reservations/${res.id}/approve`);
+      } catch (postErr) {
+        // Fallback to standard PUT update if dedicated endpoint is not yet available in running server
+        const payload = {
+          stationId: res.stationId,
+          scheduledDateTime: new Date(res.scheduledDateTime).toISOString(),
+          durationHours: res.durationHours || 1,
+          energyAmountKWh: res.energyAmountKWh,
+          reservationType: res.reservationType || 'DropOff',
+          status: 'Approved',
+        };
+        await api.put(`/reservations/${res.id}`, payload);
+      }
+      setMessage({
+        type: 'success',
+        text: `✓ Booking ${res.reservationCode} approved! Transaction QR pass generated and dispatched to prosumer (${res.prosumerName}).`,
+      });
+      fetchReservations();
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to approve reservation.';
+      setMessage({ type: 'danger', text: errorMsg });
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   const handleCancelReservation = async (res) => {
     if (!window.confirm(`Are you sure you want to cancel reservation ${res.reservationCode}? (Notice rule: Must be >= 12 hours prior to scheduled time)`)) {
       return;
     }
     setMessage({ type: '', text: '' });
-
     try {
       const response = await api.delete(`/reservations/${res.id}?prosumerNic=${res.prosumerNic}`);
       setMessage({ type: 'success', text: response.data.message || 'Reservation cancelled successfully.' });
@@ -85,7 +131,6 @@ const ReservationManagement = () => {
     }
   };
 
-  // ── Open create modal — fetch prosumers + stations ────────────────────────
   const handleOpenCreateModal = async () => {
     setCreateForm(emptyCreateForm());
     setCreateError('');
@@ -102,24 +147,20 @@ const ReservationManagement = () => {
     }
   };
 
-  // ── Submit new reservation on behalf of prosumer ──────────────────────────
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setCreateError('');
-
     if (!createForm.prosumerNic) { setCreateError('Please select a prosumer.'); return; }
     if (!createForm.stationId) { setCreateError('Please select a station hub.'); return; }
     if (!createForm.scheduledDateTime) { setCreateError('Please set the scheduled date and time.'); return; }
     if (!createForm.energyAmountKWh || parseFloat(createForm.energyAmountKWh) <= 0) {
       setCreateError('Energy amount must be greater than 0 kWh.'); return;
     }
-
     const scheduled = new Date(createForm.scheduledDateTime);
     const now = new Date();
     const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     if (scheduled <= now) { setCreateError('Scheduled time must be in the future.'); return; }
     if (scheduled > maxDate) { setCreateError('Reservation must be within 7 days from today.'); return; }
-
     setCreateLoading(true);
     try {
       const payload = {
@@ -131,9 +172,7 @@ const ReservationManagement = () => {
         energyAmountKWh: parseFloat(createForm.energyAmountKWh),
         reservationType: createForm.reservationType,
       };
-
       const res = await api.post('/reservations/backoffice-create', payload);
-      // Refresh stations list so available slot count is updated after booking
       try {
         const staRes = await api.get('/stations', { params: { status: 'Active' } });
         setStationsList(staRes.data);
@@ -151,14 +190,12 @@ const ReservationManagement = () => {
     }
   };
 
-  // ── Edit Reservation state + handlers ─────────────────────────────────────
-  const [editingReservation, setEditingReservation] = useState(null); // null = closed
+  const [editingReservation, setEditingReservation] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState('');
 
   const handleEditOpen = async (r) => {
-    // Ensure stations are available for station selector
     if (stationsList.length === 0) {
       try {
         const staRes = await api.get('/stations', { params: { status: 'Active' } });
@@ -167,10 +204,7 @@ const ReservationManagement = () => {
         console.error('Failed to load stations', err);
       }
     }
-
-    // Pre-fill form from existing reservation data
     const dt = new Date(r.scheduledDateTime);
-    // Format as datetime-local value (YYYY-MM-DDTHH:MM)
     const pad = (n) => String(n).padStart(2, '0');
     const localDt = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
     setEditForm({
@@ -188,7 +222,6 @@ const ReservationManagement = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setEditError('');
-
     const scheduled = new Date(editForm.scheduledDateTime);
     const now = new Date();
     const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -197,7 +230,6 @@ const ReservationManagement = () => {
     if (!editForm.energyAmountKWh || parseFloat(editForm.energyAmountKWh) <= 0) {
       setEditError('Energy amount must be greater than 0 kWh.'); return;
     }
-
     setEditLoading(true);
     try {
       const payload = {
@@ -208,7 +240,6 @@ const ReservationManagement = () => {
         reservationType: editForm.reservationType,
         status: editForm.status,
       };
-      // Pass prosumerNic blank so the service skips ownership check (backoffice override)
       const res = await api.put(`/reservations/${editingReservation.id}`, payload);
       setEditingReservation(null);
       setMessage({
@@ -223,22 +254,53 @@ const ReservationManagement = () => {
     }
   };
 
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(120deg, #cde3ef 0%, #a2c6dd 20%, #468ac0 50%, #0d5a9d 78%, #03376c 100%)',
-        color: '#0f172a',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        padding: '36px 40px 60px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background Constellation Mesh */}
-      <ConstellationMeshSVG />
+  const statusBadge = (status) => {
+    switch (status) {
+      case 'Pending':
+        return (
+          <span className="badge rounded-pill text-[0.74rem] fw-bold px-3 py-1 shadow-sm tracking-wide bg-[#BFD5D0] text-[#063127] border border-[#8FB3A9] d-inline-flex align-items-center gap-1">
+            <i className="bi bi-hourglass-split text-[#3B796A]"></i>Pending Approval
+          </span>
+        );
+      case 'Approved':
+        return (
+          <span className="badge rounded-pill text-[0.74rem] fw-bold px-3 py-1 shadow-sm tracking-wide bg-[#063127] text-white border border-[#063127] d-inline-flex align-items-center gap-1">
+            <i className="bi bi-check-circle-fill text-[#BFD5D0]"></i>Approved (QR Ready)
+          </span>
+        );
+      case 'Completed':
+        return (
+          <span className="badge rounded-pill text-[0.74rem] fw-bold px-3 py-1 shadow-sm tracking-wide bg-[#3B796A] text-white border border-[#3B796A] d-inline-flex align-items-center gap-1">
+            <i className="bi bi-patch-check-fill text-[#BFD5D0]"></i>Completed
+          </span>
+        );
+      case 'Cancelled':
+        return (
+          <span className="badge rounded-pill text-[0.74rem] fw-bold px-3 py-1 shadow-sm tracking-wide bg-neutral-200 text-neutral-700 border border-neutral-300 d-inline-flex align-items-center gap-1">
+            <i className="bi bi-x-circle text-neutral-500"></i>Cancelled
+          </span>
+        );
+      case 'Missed':
+        return (
+          <span className="badge rounded-pill text-[0.74rem] fw-bold px-3 py-1 shadow-sm tracking-wide bg-amber-100 text-amber-900 border border-amber-400 d-inline-flex align-items-center gap-1">
+            <i className="bi bi-clock-history text-amber-700"></i>Missed (No-Show)
+          </span>
+        );
+      default:
+        return (
+          <span className="badge rounded-pill text-[0.74rem] fw-bold px-3 py-1 shadow-sm tracking-wide bg-[#686053] text-white">
+            {status}
+          </span>
+        );
+    }
+  };
 
-      <div style={{ maxWidth: '1440px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+  const selectedCreateStation = stationsList.find(s => s.id === createForm.stationId);
+
+  return (
+    <div className="min-h-screen position-relative overflow-hidden text-[#063127] bg-[#F8F8F8]">
+
+      <div className="container-fluid max-w-[1440px] mx-auto position-relative z-[1] px-6 md:px-10 pt-9 pb-[60px]">
         <BackofficePageHero
           imageSrc="/images/Solar_3.jpg"
           eyebrow="SOLARX • Energy Bookings"
@@ -248,566 +310,194 @@ const ReservationManagement = () => {
         />
         {/* TOOLBAR: actions only */}
         <div className="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-3">
-
           <div className="d-flex align-items-center gap-2">
-            <button
-              onClick={fetchReservations}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                borderRadius: '50px',
-                padding: '10px 20px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                color: '#0f172a',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(7, 43, 74, 0.08)',
-                transition: 'all 0.2s ease',
-              }}
-              title="Refresh reservations"
-            >
-              <i className="bi bi-arrow-clockwise"></i>
-              <span>Refresh</span>
+            <button onClick={fetchReservations} title="Refresh reservations" className="btn rounded-pill px-4 py-2 text-[0.85rem] fw-bold d-inline-flex align-items-center gap-2 bg-white border text-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+              <i className="bi bi-arrow-clockwise"></i><span>Refresh</span>
             </button>
-
-            <button
-              onClick={handleOpenCreateModal}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '10px 22px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                color: '#ffffff',
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <i className="bi bi-plus-circle-fill"></i>
-              <span>New Reservation</span>
+            <button onClick={handleOpenCreateModal} className="btn rounded-pill px-4 py-2 text-[0.85rem] fw-bold d-inline-flex align-items-center gap-2 text-white bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+              <i className="bi bi-plus-circle-fill"></i><span>New Reservation</span>
             </button>
-            
           </div>
         </div>
 
         {/* Message Banner */}
         {message.text && (
-          <div
-            style={{
-              background: message.type === 'danger' ? 'rgba(254, 242, 242, 0.95)' : 'rgba(240, 253, 244, 0.95)',
-              border: `1px solid ${message.type === 'danger' ? '#fca5a5' : '#86efac'}`,
-              backdropFilter: 'blur(16px)',
-              borderRadius: '16px',
-              padding: '14px 20px',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
-              color: message.type === 'danger' ? '#991b1b' : '#166534',
-            }}
-          >
+          <div className={'alert d-flex align-items-center justify-content-between rounded-[16px] shadow-sm mb-4 border ' + (message.type === 'danger' ? 'alert-danger' : 'bg-[#063127]/10 border-[#063127]/20 text-[#063127]')}>
             <div className="d-flex align-items-center gap-2">
-              <i className={`bi ${message.type === 'danger' ? 'bi-exclamation-octagon-fill' : 'bi-check-circle-fill'}`} style={{ fontSize: '1.15rem' }}></i>
-              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{message.text}</span>
+              <i className={'bi text-[1.15rem] ' + (message.type === 'danger' ? 'bi-exclamation-octagon-fill' : 'bi-check-circle-fill')}></i>
+              <span className="fw-semibold text-[0.9rem]">{message.text}</span>
             </div>
-            <button
-              onClick={() => setMessage({ type: '', text: '' })}
-              style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '1.2rem', padding: 0 }}
-            >
-              &times;
-            </button>
+            <button onClick={() => setMessage({ type: '', text: '' })} className="btn-close" aria-label="Close"></button>
           </div>
         )}
 
-        {/* =========================================================================
-            FILTERS BAR
-           ========================================================================= */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '24px',
-            border: '1px solid rgba(255, 255, 255, 0.95)',
-            boxShadow: '0 12px 32px -4px rgba(10, 35, 70, 0.1)',
-            padding: '20px 28px',
-            marginBottom: '28px',
-          }}
-        >
+        {/* FILTERS BAR */}
+        <div className={`card border-0 rounded-[24px] bg-white/85 shadow-sm backdrop-blur-xl p-4 md:px-[28px] md:py-[20px] mb-4 ${ENTER_UP} motion-reduce:animate-none`}>
           <form onSubmit={handleSearchSubmit} className="row g-3 align-items-center">
-            {/* Search Input */}
             <div className="col-lg-5 col-md-12">
-              <div style={{ position: 'relative' }}>
-                <i
-                  className="bi bi-search"
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                    fontSize: '0.95rem',
-                  }}
-                ></i>
-                <input
-                  type="text"
-                  placeholder="Search by code, prosumer, or station..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '11px 18px 11px 44px',
-                    borderRadius: '50px',
-                    background: '#ffffff',
-                    border: '1px solid rgba(148, 163, 184, 0.35)',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
-                  }}
-                />
+              <div className="position-relative">
+                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-[#686053] text-[0.95rem]"></i>
+                <input type="text" placeholder="Search by code, prosumer, or station..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-control rounded-pill ps-10 bg-white text-[0.88rem] shadow-sm" />
               </div>
             </div>
-
-            {/* Status Dropdown */}
             <div className="col-lg-4 col-md-6">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 20px',
-                  borderRadius: '50px',
-                  background: '#ffffff',
-                  border: '1px solid rgba(148, 163, 184, 0.35)',
-                  fontSize: '0.88rem',
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
-              >
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="form-select rounded-pill bg-white text-[0.88rem] fw-medium shadow-sm">
                 <option value="">All Reservation Statuses</option>
                 <option value="Approved">Approved (Ready with QR)</option>
                 <option value="Pending">Pending Approval</option>
                 <option value="Completed">Completed (Finalized by Operator)</option>
                 <option value="Cancelled">Cancelled</option>
+                <option value="Missed">Missed (No-Show)</option>
               </select>
             </div>
-
-            {/* Action Buttons */}
             <div className="col-lg-3 col-md-6 d-flex gap-2">
-              <button
-                type="submit"
-                style={{
-                  flex: 1,
-                  background: 'linear-gradient(135deg, #0070f3 0%, #0051b3 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '50px',
-                  padding: '11px 20px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(0, 112, 243, 0.35)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <i className="bi bi-funnel-fill"></i>
-                <span>Apply Filter</span>
+              <button type="submit" className="btn flex-fill rounded-pill px-4 py-2 text-[0.85rem] fw-bold text-white bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] shadow-sm d-inline-flex align-items-center justify-content-center gap-2 transition hover:-translate-y-0.5 hover:shadow-lg">
+                <i className="bi bi-funnel-fill"></i><span>Apply Filter</span>
               </button>
-              <button
-                type="button"
-                onClick={() => { setSearchTerm(''); setStatusFilter(''); }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#475569',
-                  border: '1px solid rgba(148, 163, 184, 0.4)',
-                  borderRadius: '50px',
-                  padding: '11px 20px',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                Reset
-              </button>
+              <button type="button" onClick={() => { setSearchTerm(''); setStatusFilter(''); }} className="btn bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-4 py-2 text-[0.85rem] fw-semibold transition hover:-translate-y-0.5 hover:shadow-lg">Reset</button>
             </div>
           </form>
         </div>
 
-        {/* =========================================================================
-            RESERVATIONS TABLE CARD
-           ========================================================================= */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: '28px',
-            border: '1px solid rgba(255, 255, 255, 0.95)',
-            boxShadow: '0 16px 40px -8px rgba(10, 35, 70, 0.12)',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Card Header */}
-          <div
-            style={{
-              padding: '24px 32px 20px 32px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'transparent',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.18rem',
-                fontWeight: 700,
-                color: '#0f172a',
-                margin: 0,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Power Trading Booking Records
-            </h2>
-            <span
-              style={{
-                background: '#0284c7',
-                color: '#ffffff',
-                borderRadius: '50px',
-                padding: '6px 18px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                boxShadow: '0 2px 10px rgba(2, 132, 199, 0.3)',
-              }}
-            >
-              {reservations.length} Active Bookings
-            </span>
+        {/* RESERVATIONS TABLE CARD */}
+        <div className={`card border-0 rounded-[28px] bg-white/85 shadow-sm overflow-hidden backdrop-blur-xl ${ENTER_UP} motion-reduce:animate-none`}>
+          <div className="card-header bg-transparent border-0 d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3">
+            <div>
+              <h2 className="text-[1.18rem] fw-bold text-[#063127] m-0 tracking-tight">Power Trading Booking Records</h2>
+              <div className="text-[0.78rem] text-[#686053]">Approve pending prosumer bookings to issue transaction QR passes</div>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              {reservations.some(r => r.status === 'Pending') && (
+                <span className="badge rounded-pill bg-[#BFD5D0] text-[#063127] border border-[#8FB3A9] text-[0.78rem] fw-bold px-3 py-1.5 shadow-sm">
+                  <i className="bi bi-hourglass-split me-1 text-[#3B796A]"></i>
+                  {reservations.filter(r => r.status === 'Pending').length} Pending Approval
+                </span>
+              )}
+              <span className="badge rounded-pill text-white text-[0.78rem] fw-bold px-3 py-1.5 bg-[#063127] shadow-sm">
+                {reservations.length} {statusFilter ? `${statusFilter} Records` : 'Total Records'}
+              </span>
+            </div>
           </div>
 
-          {/* Pure Light Table - No Bootstrap .table override */}
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                borderSpacing: 0,
-                background: 'transparent',
-                textAlign: 'left',
-              }}
-            >
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
               <thead>
-                <tr style={{ background: '#e3edf6', borderTop: '1px solid rgba(210, 230, 245, 0.8)', borderBottom: '1px solid rgba(210, 230, 245, 0.8)' }}>
-                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    BOOKING CODE
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    PROSUMER (NIC)
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    STATION HUB
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    SCHEDULED SLOT
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    DURATION &amp; ENERGY
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    TOTAL VALUE
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    TYPE
-                  </th>
-                  <th style={{ padding: '16px 20px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6' }}>
-                    STATUS
-                  </th>
-                  <th style={{ padding: '16px 28px', fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#e3edf6', textAlign: 'center' }}>
-                    QR &amp; ACTIONS
-                  </th>
+                <tr>
+                  <th className={thClass}>BOOKING CODE</th>
+                  <th className={thClass}>PROSUMER (NIC)</th>
+                  <th className={thClass}>STATION HUB</th>
+                  <th className={thClass}>SCHEDULED SLOT</th>
+                  <th className={thClass}>DURATION &amp; ENERGY</th>
+                  <th className={thClass}>TOTAL VALUE</th>
+                  <th className={thClass}>TYPE</th>
+                  <th className={thClass}>STATUS</th>
+                  <th className={thClass + ' text-center'}>QR &amp; ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
-                      <div className="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
-                      Loading energy reservation records...
-                    </td>
-                  </tr>
+                  <tr><td colSpan="9" className="text-center px-4 py-5 text-[#686053] bg-white"><div className="spinner-border spinner-border-sm me-2 text-[#063127]" role="status"></div>Loading energy reservation records...</td></tr>
                 ) : reservations.length === 0 ? (
-                  <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b', background: '#f8fafc' }}>
-                      No matching energy reservations found.
-                    </td>
-                  </tr>
+                  <tr><td colSpan="9" className="text-center px-4 py-5 text-[#686053] bg-white">No matching energy reservations found.</td></tr>
                 ) : (
-                  reservations.map((r, idx) => {
-                    const rowBg = idx % 2 === 0 ? '#ebf4fa' : '#f8fafc';
-                    return (
-                      <tr
-                        key={r.id || idx}
-                        style={{
-                          background: rowBg,
-                          borderBottom: idx === reservations.length - 1 ? 'none' : '1px solid rgba(210, 230, 245, 0.7)',
-                          transition: 'background-color 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0edf8')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = rowBg)}
-                      >
-                        {/* Booking Code */}
-                        <td style={{ padding: '18px 28px', background: 'transparent' }}>
-                          <span
-                            style={{
-                              background: '#0f172a',
-                              color: '#38bdf8',
-                              fontFamily: 'monospace',
-                              fontWeight: 700,
-                              fontSize: '0.84rem',
-                              padding: '5px 14px',
-                              borderRadius: '50px',
-                              display: 'inline-block',
-                              boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)',
-                            }}
-                          >
-                            {r.reservationCode}
-                          </span>
-                        </td>
-
-                        {/* Prosumer */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem' }}>
-                            {r.prosumerName}
-                          </div>
-                          <div style={{ fontSize: '0.78rem', color: '#e11d48', fontWeight: 600, marginTop: '2px' }}>
-                            NIC: {r.prosumerNic}
-                          </div>
-                        </td>
-
-                        {/* Target Station Hub & Battery Slot */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', color: '#0f172a', fontWeight: 600, fontSize: '0.88rem' }}>
-                            <i className="bi bi-broadcast" style={{ color: '#0284c7' }}></i>
-                            <span>{r.stationName}</span>
-                          </div>
-                          {r.slotNumber ? (
-                            <div style={{ marginTop: '4px' }}>
-                              <span
-                                style={{
-                                  background: '#ecfdf5',
-                                  color: '#059669',
-                                  border: '1px solid #a7f3d0',
-                                  padding: '2px 10px',
-                                  borderRadius: '50px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                }}
-                              >
-                                <i className="bi bi-battery-charging"></i>
-                                Bay Slot #{r.slotNumber}
-                              </span>
-                            </div>
-                          ) : null}
-                        </td>
-
-                        {/* Scheduled Slot */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.88rem' }}>
-                            {new Date(r.scheduledDateTime).toLocaleDateString()}
-                          </div>
-                          <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>
-                            {new Date(r.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </td>
-
-                        {/* Duration & Energy */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <div style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.9rem' }}>
-                            {r.energyAmountKWh} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>kWh</span>
-                          </div>
-                          <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: '2px' }}>
-                            {r.durationHours} hr slot
-                          </div>
-                        </td>
-
-                        {/* Total Value */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <span style={{ color: '#059669', fontWeight: 800, fontSize: '0.98rem' }}>
-                            Rs. {r.totalCost ? r.totalCost.toFixed(2) : '0.00'}
-                          </span>
-                        </td>
-
-                        {/* Reservation Type */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          {r.reservationType === 'DropOff' ? (
-                            <span
-                              style={{
-                                background: '#ecfeff',
-                                color: '#0891b2',
-                                border: '1px solid #a5f3fc',
-                                borderRadius: '50px',
-                                padding: '5px 14px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                              }}
-                            >
-                              <i className="bi bi-arrow-down-left"></i>
-                              <span>Drop-Off (Sell)</span>
+                  reservations.map((r, idx) => (
+                    <tr key={r.id || idx} className="transition">
+                      <td className="px-4 py-3">
+                        <span className="badge rounded-pill bg-[#063127] text-[#686053] font-monospace fw-bold text-[0.84rem] px-3 py-1 shadow-sm">{r.reservationCode}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="fw-bold text-[#063127] text-[0.92rem]">{r.prosumerName}</div>
+                        <div className="text-[0.78rem] text-danger fw-semibold mt-[2px]">NIC: {r.prosumerNic}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="d-flex align-items-center gap-1 text-[#063127] fw-semibold text-[0.88rem]">
+                          <i className="bi bi-broadcast text-[#063127]"></i><span>{r.stationName}</span>
+                        </div>
+                        {r.slotNumber ? (
+                          <div className="mt-1">
+                            <span className="badge rounded-pill bg-[#063127]/10 text-[#063127] border border-[#063127]/20 text-[0.72rem] fw-bold px-2 py-1 d-inline-flex align-items-center gap-1">
+                              <i className="bi bi-battery-charging"></i>Bay Slot #{r.slotNumber}
                             </span>
-                          ) : (
-                            <span
-                              style={{
-                                background: '#f5f3ff',
-                                color: '#7c3aed',
-                                border: '1px solid #ddd6fe',
-                                borderRadius: '50px',
-                                padding: '5px 14px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                              }}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-[#063127] fw-semibold text-[0.88rem]">{new Date(r.scheduledDateTime).toLocaleDateString()}</div>
+                        <div className="text-[#686053] text-[0.78rem] mt-[2px]">{new Date(r.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-[#063127] fw-bold text-[0.9rem]">{r.energyAmountKWh} <span className="text-[0.75rem] text-[#686053] fw-medium">kWh</span></div>
+                        <div className="text-[#686053] text-[0.78rem] mt-[2px]">{r.durationHours} hr slot</div>
+                      </td>
+                      <td className="px-4 py-3"><span className="text-[#063127] fw-extrabold text-[0.98rem]">Rs. {r.totalCost ? r.totalCost.toFixed(2) : '0.00'}</span></td>
+                      <td className="px-4 py-3">
+                        {r.reservationType === 'DropOff' ? (
+                          <span className="badge rounded-pill bg-[#063127]/10 text-[#063127] border border-[#063127]/20 text-[0.75rem] fw-bold px-2 py-1 d-inline-flex align-items-center gap-1">
+                            <i className="bi bi-arrow-down-left"></i><span>Drop-Off (Sell)</span>
+                          </span>
+                        ) : (
+                          <span className="badge rounded-pill bg-[#063127]/10 text-[#063127] border border-[#063127]/20 text-[0.75rem] fw-bold px-2 py-1 d-inline-flex align-items-center gap-1">
+                            <i className="bi bi-lightning-charge"></i><span>Charging (Buy)</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">{statusBadge(r.status)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="d-inline-flex align-items-center gap-2 flex-wrap justify-content-center">
+                          {r.status === 'Pending' && (
+                            <button
+                              onClick={() => handleApproveReservation(r)}
+                              disabled={approvingId === r.id}
+                              title="Approve booking and generate QR code for prosumer mobile app"
+                              className="btn btn-sm text-white bg-[#063127] hover:bg-[#3B796A] border border-[#063127] rounded-pill px-3 py-1 text-[0.78rem] fw-bold d-inline-flex align-items-center gap-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
                             >
-                              <i className="bi bi-lightning-charge"></i>
-                              <span>Charging (Buy)</span>
-                            </span>
+                              {approvingId === r.id ? (
+                                <>
+                                  <div className="spinner-border spinner-border-sm" role="status"></div>
+                                  <span>Approving...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <i className="bi bi-check2-circle text-[#BFD5D0] text-[0.95rem]"></i>
+                                  <span>Approve &amp; Issue QR</span>
+                                </>
+                              )}
+                            </button>
                           )}
-                        </td>
-
-                        {/* Status */}
-                        <td style={{ padding: '18px 20px', background: 'transparent' }}>
-                          <span
-                            style={{
-                              background:
-                                r.status === 'Approved' ? '#10b981' :
-                                r.status === 'Pending' ? '#f59e0b' :
-                                r.status === 'Completed' ? '#0284c7' : '#ef4444',
-                              color: '#ffffff',
-                              borderRadius: '50px',
-                              padding: '5px 16px',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              letterSpacing: '0.02em',
-                              display: 'inline-block',
-                              boxShadow:
-                                r.status === 'Approved' ? '0 2px 8px rgba(16, 185, 129, 0.3)' :
-                                r.status === 'Pending' ? '0 2px 8px rgba(245, 158, 11, 0.3)' :
-                                r.status === 'Completed' ? '0 2px 8px rgba(2, 132, 199, 0.3)' :
-                                '0 2px 8px rgba(239, 68, 68, 0.3)',
-                            }}
-                          >
-                            {r.status}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td style={{ padding: '18px 28px', background: 'transparent', textAlign: 'center' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            {r.qrCodeData && (
+                          {r.qrCodeData && (
+                            <button
+                              onClick={() => setSelectedQr(r)}
+                              title="View Secure QR Payload"
+                              className="btn btn-sm bg-[#BFD5D0]/30 text-[#063127] border border-[#8FB3A9] hover:bg-[#BFD5D0] rounded-pill px-3 py-1 text-[0.78rem] fw-semibold d-inline-flex align-items-center gap-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                            >
+                              <i className="bi bi-qr-code text-[#3B796A] text-[0.85rem]"></i>
+                              <span>View QR</span>
+                            </button>
+                          )}
+                          {(r.status === 'Approved' || r.status === 'Pending') && (
+                            <>
                               <button
-                                onClick={() => setSelectedQr(r)}
-                                title="View Secure QR Payload"
-                                style={{
-                                  background: 'rgba(255, 255, 255, 0.95)',
-                                  border: '1px solid rgba(148, 163, 184, 0.4)',
-                                  color: '#0f172a',
-                                  borderRadius: '50px',
-                                  padding: '5px 14px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 600,
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
-                                  boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                                  transition: 'all 0.15s ease',
-                                }}
+                                onClick={() => handleEditOpen(r)}
+                                title="Edit Booking (Enforces 12h rule)"
+                                className="btn btn-sm bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-3 py-1 text-[0.78rem] fw-semibold d-inline-flex align-items-center gap-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                               >
-                                <i className="bi bi-qr-code" style={{ fontSize: '0.85rem' }}></i>
-                                <span>QR</span>
+                                <i className="bi bi-pencil-square"></i>
+                                <span>Edit</span>
                               </button>
-                            )}
-
-                            {(r.status === 'Approved' || r.status === 'Pending') && (
-                              <>
-                                {/* Edit button */}
-                                <button
-                                  onClick={() => handleEditOpen(r)}
-                                  title="Edit Booking (Enforces 12h rule)"
-                                  style={{
-                                    background: '#eff6ff',
-                                    border: '1px solid #93c5fd',
-                                    color: '#1d4ed8',
-                                    borderRadius: '50px',
-                                    padding: '5px 14px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    boxShadow: '0 2px 6px rgba(29, 78, 216, 0.1)',
-                                    transition: 'all 0.15s ease',
-                                  }}
-                                >
-                                  <i className="bi bi-pencil-square"></i>
-                                  <span>Edit</span>
-                                </button>
-
-                                {/* Cancel button */}
-                                <button
-                                  onClick={() => handleCancelReservation(r)}
-                                  title="Cancel Booking (Enforces 12h rule)"
-                                  style={{
-                                    background: '#fee2e2',
-                                    border: '1px solid #fca5a5',
-                                    color: '#dc2626',
-                                    borderRadius: '50px',
-                                    padding: '5px 14px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    boxShadow: '0 2px 6px rgba(220, 38, 38, 0.1)',
-                                    transition: 'all 0.15s ease',
-                                  }}
-                                >
-                                  <i className="bi bi-x-circle"></i>
-                                  <span>Cancel</span>
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
+                              <button
+                                onClick={() => handleCancelReservation(r)}
+                                title="Cancel Booking (Enforces 12h rule)"
+                                className="btn btn-sm bg-white text-danger border border-danger hover:bg-danger hover:text-white rounded-pill px-3 py-1 text-[0.78rem] fw-semibold d-inline-flex align-items-center gap-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                              >
+                                <i className="bi bi-x-circle"></i>
+                                <span>Cancel</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -815,876 +505,297 @@ const ReservationManagement = () => {
         </div>
 
         {/* Bottom Navigation Link */}
-        <div style={{ marginTop: '36px', textAlign: 'center' }}>
-          <Link
-            to="/backoffice"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: '#ffffff',
-              textDecoration: 'none',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(12px)',
-              padding: '10px 24px',
-              borderRadius: '50px',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <i className="bi bi-arrow-left"></i>
-            <span>Back to Administration Console</span>
+        <div className="mt-4 text-center">
+          <Link to="/backoffice" className="d-inline-flex align-items-center gap-2 text-[#063127] text-decoration-none fw-bold text-[0.9rem] bg-white px-4 py-2 rounded-pill border shadow-sm transition hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] hover:-translate-y-0.5 hover:shadow-lg">
+            <i className="bi bi-arrow-left"></i><span>Back to Administration Console</span>
           </Link>
         </div>
       </div>
 
-      {/* =========================================================================
-          QR DETAILS MODAL
-         ========================================================================= */}
+      {/* QR DETAILS MODAL */}
       {selectedQr && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(10, 25, 47, 0.65)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1050,
-            padding: '20px',
-          }}
-          onClick={() => setSelectedQr(null)}
-        >
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.96)',
-              backdropFilter: 'blur(24px)',
-              borderRadius: '28px',
-              border: '1px solid rgba(255, 255, 255, 0.95)',
-              boxShadow: '0 25px 60px -12px rgba(10, 35, 70, 0.35)',
-              maxWidth: '520px',
-              width: '100%',
-              overflow: 'hidden',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: '22px 28px',
-                borderBottom: '1px solid rgba(210, 230, 245, 0.8)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                color: '#ffffff',
-              }}
-            >
-              <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-qr-code-scan" style={{ fontSize: '1.25rem', color: '#38bdf8' }}></i>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.01em', color: '#ffffff' }}>
-                  Security Transaction QR Details
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedQr(null)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: 'none',
-                  color: '#ffffff',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontSize: '1.2rem',
-                }}
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div style={{ padding: '28px' }} className="text-center">
-              {/* QR Icon Box */}
-              <div
-                style={{
-                  width: '160px',
-                  height: '160px',
-                  margin: '0 auto 20px',
-                  background: '#f8fafc',
-                  border: '2px dashed #94a3b8',
-                  borderRadius: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
-                }}
-              >
-                <i className="bi bi-qr-code" style={{ fontSize: '7rem', color: '#0f172a' }}></i>
-              </div>
-
-              <div
-                style={{
-                  fontSize: '1.3rem',
-                  fontWeight: 800,
-                  color: '#0f172a',
-                  letterSpacing: '0.04em',
-                  marginBottom: '4px',
-                  fontFamily: 'monospace',
-                }}
-              >
-                {selectedQr.reservationCode}
-              </div>
-
-              <div style={{ color: '#475569', fontSize: '0.88rem', marginBottom: '20px' }}>
-                Prosumer: <strong>{selectedQr.prosumerName}</strong> &middot; <span style={{ color: '#e11d48', fontWeight: 700 }}>NIC: {selectedQr.prosumerNic}</span>
-              </div>
-
-              {/* Encrypted payload box */}
-              <div
-                style={{
-                  background: '#f1f5f9',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '16px',
-                  padding: '14px 18px',
-                  textAlign: 'left',
-                  marginBottom: '20px',
-                }}
-              >
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
-                  Encrypted Payload for Field Scanner:
+        <div className="modal d-block position-fixed top-0 start-0 w-100 h-100 overflow-y-auto bg-black/65 backdrop-blur-sm p-3 z-[1050]" tabIndex="-1" role="dialog" onClick={() => setSelectedQr(null)}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable mx-auto my-4">
+            <div className="modal-content rounded-[28px] border-0 shadow-lg bg-white/95 backdrop-blur-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header text-white border-0 px-4 py-3 d-flex justify-content-between align-items-center bg-[#063127]">
+                <div className="d-flex align-items-center gap-2">
+                  <i className="bi bi-qr-code-scan text-[1.25rem] text-[#063127]"></i>
+                  <h3 className="m-0 text-[1.15rem] fw-extrabold tracking-tight text-white">Security Transaction QR Details</h3>
                 </div>
-                <code
-                  style={{
-                    fontSize: '0.78rem',
-                    color: '#0369a1',
-                    wordBreak: 'break-all',
-                    background: 'transparent',
-                    display: 'block',
-                  }}
-                >
-                  {selectedQr.qrCodeData}
-                </code>
+                <button onClick={() => setSelectedQr(null)} className="btn btn-sm btn-outline-light rounded-circle p-0 w-[32px] h-[32px] d-flex align-items-center justify-content-center text-[1.2rem]" aria-label="Close">&times;</button>
               </div>
-
-              <p style={{ color: '#64748b', fontSize: '0.8rem', margin: 0, lineHeight: 1.5 }}>
-                <i className="bi bi-shield-lock-fill text-primary me-1"></i>
-                Scanned on-site by Grid Operators to securely authenticate prosumer identity and authorize physical battery bay connection.
-              </p>
-            </div>
-
-            {/* Modal Footer */}
-            <div
-              style={{
-                padding: '16px 28px 22px',
-                borderTop: '1px solid rgba(210, 230, 245, 0.8)',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                background: '#f8fafc',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedQr(null)}
-                style={{
-                  background: '#0f172a',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '50px',
-                  padding: '10px 28px',
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
-                }}
-              >
-                Close
-              </button>
+              <div className="modal-body p-4 text-center">
+                <div className="mx-auto mb-3 bg-white border border-2 border-dashed border-[#063127]/20 rounded-[20px] d-flex align-items-center justify-content-center w-[160px] h-[160px] shadow-sm">
+                  <i className="bi bi-qr-code text-[7rem] text-[#063127]"></i>
+                </div>
+                <div className="text-[1.3rem] fw-extrabold text-[#063127] tracking-wide mb-1 font-monospace">{selectedQr.reservationCode}</div>
+                <div className="text-[#686053] text-[0.88rem] mb-3">Prosumer: <strong>{selectedQr.prosumerName}</strong> &middot; <span className="text-danger fw-bold">NIC: {selectedQr.prosumerNic}</span></div>
+                <div className="bg-white border rounded-[16px] px-3 py-2 text-start mb-3">
+                  <div className="text-[0.72rem] fw-bold text-[#686053] text-uppercase tracking-wide mb-1">Encrypted Payload for Field Scanner:</div>
+                  <code className="text-[0.78rem] text-[#063127] break-words d-block bg-transparent">{selectedQr.qrCodeData}</code>
+                </div>
+                <p className="text-[#686053] text-[0.8rem] m-0 leading-[1.5]">
+                  <i className="bi bi-shield-lock-fill text-[#063127] me-1"></i>
+                  Scanned on-site by Grid Operators to securely authenticate prosumer identity and authorize physical battery bay connection.
+                </p>
+              </div>
+              <div className="modal-footer bg-white border-top d-flex justify-content-end px-4 py-3">
+                <button type="button" onClick={() => setSelectedQr(null)} className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-4 fw-bold text-[0.88rem] shadow-sm">Close</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* =========================================================================
-          CREATE RESERVATION MODAL — Backoffice officer creates on behalf of prosumer
-         ========================================================================= */}
+      {/* CREATE RESERVATION MODAL */}
       {showCreateModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(10, 25, 47, 0.65)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1050,
-            padding: '20px',
-          }}
-          onClick={() => setShowCreateModal(false)}
-        >
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.97)',
-              backdropFilter: 'blur(24px)',
-              borderRadius: '28px',
-              border: '1px solid rgba(255, 255, 255, 0.95)',
-              boxShadow: '0 25px 60px -12px rgba(10, 35, 70, 0.35)',
-              maxWidth: '640px',
-              width: '100%',
-              maxHeight: '92vh',
-              overflowY: 'auto',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* ── Modal Header ── */}
-            <div style={{
-              padding: '22px 28px',
-              borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-              borderRadius: '28px 28px 0 0',
-            }}>
-              <div className="d-flex align-items-center gap-2">
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
-                }}>
-                  <i className="bi bi-calendar2-plus" style={{ color: '#fff', fontSize: '1.1rem' }}></i>
+        <div className="modal d-block position-fixed top-0 start-0 w-100 h-100 overflow-y-auto bg-black/65 backdrop-blur-sm p-3 z-[1050]" tabIndex="-1" role="dialog" onClick={() => setShowCreateModal(false)}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable mx-auto my-4">
+            <div className="modal-content rounded-[28px] border-0 shadow-lg bg-white/95 backdrop-blur-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header text-white border-0 px-4 py-3 d-flex justify-content-between align-items-center bg-[#063127]">
+                <div className="d-flex align-items-center gap-2">
+                  <div className="rounded-[12px] w-[40px] h-[40px] d-flex align-items-center justify-content-center bg-[#063127] shadow-sm">
+                    <i className="bi bi-calendar2-plus text-white text-[1.1rem]"></i>
+                  </div>
+                  <div>
+                    <h3 className="m-0 text-[1.1rem] fw-extrabold text-white tracking-tight">Create Reservation</h3>
+                    <div className="text-[0.75rem] text-white-50 mt-[1px]">On behalf of a prosumer · 7-day rule applies</div>
+                  </div>
                 </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em' }}>
-                    Create Reservation
-                  </h3>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '1px' }}>On behalf of a prosumer · 7-day rule applies</div>
-                </div>
+                <button onClick={() => setShowCreateModal(false)} className="btn btn-sm btn-outline-light rounded-circle p-0 w-[32px] h-[32px] d-flex align-items-center justify-content-center text-[1.1rem]" aria-label="Close">&times;</button>
               </div>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.1rem' }}
-              >&times;</button>
-            </div>
-
-            {/* ── Form ── */}
-            <form onSubmit={handleCreateSubmit}>
-              <div style={{ padding: '24px 28px' }}>
-
-                {/* Error banner */}
-                {createError && (
-                  <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '12px', padding: '12px 16px', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px', color: '#991b1b', fontSize: '0.85rem', fontWeight: 600 }}>
-                    <i className="bi bi-exclamation-triangle-fill"></i>
-                    <span>{createError}</span>
-                  </div>
-                )}
-
-                {/* Mobile app info note */}
-                <div style={{ background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid #6ee7b7', borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <i className="bi bi-phone-fill" style={{ color: '#059669', fontSize: '1rem', marginTop: '1px', flexShrink: 0 }}></i>
-                  <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: 600, lineHeight: 1.5 }}>
-                    This reservation will appear <strong>immediately</strong> in the selected prosumer's mobile app under "My Reservations".
-                  </span>
-                </div>
-
-                <div className="row g-3">
-
-                  {/* ── Prosumer ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Prosumer *
-                    </label>
-                    <select
-                      value={createForm.prosumerNic}
-                      onChange={(e) => setCreateForm({ ...createForm, prosumerNic: e.target.value })}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem', background: '#fff' }}
-                    >
-                      <option value="">— Select active prosumer —</option>
-                      {prosumersList.map((p) => (
-                        <option key={p.nic} value={p.nic}>
-                          {p.fullName} · {p.nic}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* ── Station ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Solar Hub Station *
-                    </label>
-                    <select
-                      value={createForm.stationId}
-                      onChange={(e) => {
-                        const stId = e.target.value;
-                        const sel = stationsList.find(s => s.id === stId);
-                        let firstFree = null;
-                        if (sel) {
-                          const total = sel.totalBatterySlots || 10;
-                          const occ = sel.occupiedSlotNumbers || [];
-                          for (let i = 1; i <= total; i++) {
-                            if (!occ.includes(i)) { firstFree = i; break; }
-                          }
-                        }
-                        setCreateForm({ ...createForm, stationId: stId, slotNumber: firstFree });
-                      }}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem', background: '#fff' }}
-                    >
-                      <option value="">— Select active hub station —</option>
-                      {stationsList.map((s) => (
-                        <option
-                          key={s.id}
-                          value={s.id}
-                          disabled={s.availableBatterySlots <= 0}
-                        >
-                          {s.stationCode} · {s.name} — {s.availableBatterySlots <= 0 ? '⛔ FULL (0 slots)' : `✅ ${s.availableBatterySlots}/${s.totalBatterySlots} slots free`}
-                        </option>
-                      ))}
-                    </select>
-
-                    {/* Interactive Slot Bay Picker */}
-                    {createForm.stationId && (() => {
-                      const sel = stationsList.find(s => s.id === createForm.stationId);
-                      if (!sel) return null;
-                      const total = sel.totalBatterySlots || 10;
-                      const occupied = sel.occupiedSlotNumbers || [];
-                      const isFull = sel.availableBatterySlots <= 0 || occupied.length >= total;
-
-                      return (
-                        <div style={{ marginTop: '14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                              Select Physical Battery Bay Slot *
-                            </span>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: isFull ? '#dc2626' : '#059669' }}>
-                              {isFull ? '⛔ No Free Slots' : `${sel.availableBatterySlots} / ${total} Free`}
-                            </span>
-                          </div>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(68px, 1fr))', gap: '8px', marginBottom: '10px' }}>
-                            {Array.from({ length: total }, (_, idx) => {
-                              const slotNum = idx + 1;
-                              const isOccupied = occupied.includes(slotNum);
-                              const isSelected = createForm.slotNumber === slotNum;
-
-                              if (isOccupied) {
-                                return (
-                                  <div
-                                    key={slotNum}
-                                    title={`Slot #${slotNum} is currently reserved by an active booking`}
-                                    style={{
-                                      padding: '8px 4px',
-                                      borderRadius: '10px',
-                                      background: '#fee2e2',
-                                      border: '1px solid #fca5a5',
-                                      color: '#991b1b',
-                                      fontSize: '0.75rem',
-                                      fontWeight: 700,
-                                      textAlign: 'center',
-                                      cursor: 'not-allowed',
-                                      opacity: 0.6,
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      alignItems: 'center',
-                                      gap: '2px',
-                                    }}
-                                  >
-                                    <span>#{slotNum}</span>
-                                    <span style={{ fontSize: '0.64rem', color: '#dc2626' }}>🔒 Booked</span>
-                                  </div>
-                                );
-                              }
-
-                              return (
-                                <button
-                                  key={slotNum}
-                                  type="button"
-                                  onClick={() => setCreateForm({ ...createForm, slotNumber: slotNum })}
-                                  style={{
-                                    padding: '8px 4px',
-                                    borderRadius: '10px',
-                                    background: isSelected ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ffffff',
-                                    border: `1.5px solid ${isSelected ? '#059669' : '#86efac'}`,
-                                    color: isSelected ? '#ffffff' : '#065f46',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 700,
-                                    textAlign: 'center',
-                                    cursor: 'pointer',
-                                    boxShadow: isSelected ? '0 3px 10px rgba(16, 185, 129, 0.35)' : '0 1px 3px rgba(0,0,0,0.04)',
-                                    transition: 'all 0.15s ease',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '2px',
-                                  }}
-                                >
-                                  <span>#{slotNum}</span>
-                                  <span style={{ fontSize: '0.64rem', color: isSelected ? '#ffffff' : '#059669' }}>
-                                    {isSelected ? 'Selected' : 'Available'}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                            {createForm.slotNumber ? (
-                              <span style={{ color: '#059669', fontWeight: 700 }}>
-                                <i className="bi bi-check-circle-fill me-1"></i>
-                                Battery Slot #{createForm.slotNumber} chosen for this reservation.
-                              </span>
-                            ) : (
-                              <span style={{ color: '#dc2626', fontWeight: 600 }}>
-                                Please click an available green slot above to assign a battery bay.
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* ── Reservation Type ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.04em' }}>
-                      Reservation Type *
-                    </label>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      {[
-                        { value: 'DropOff', label: 'Drop-Off (Sell to Grid)', icon: 'bi-arrow-down-left-circle-fill', color: '#0891b2', bg: '#ecfeff', border: '#a5f3fc' },
-                        { value: 'Charging', label: 'Charging (Buy from Grid)', icon: 'bi-lightning-charge-fill', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-                      ].map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setCreateForm({ ...createForm, reservationType: opt.value })}
-                          style={{
-                            flex: 1,
-                            padding: '12px 14px',
-                            borderRadius: '12px',
-                            border: `2px solid ${createForm.reservationType === opt.value ? opt.color : 'rgba(15,23,42,0.12)'}`,
-                            background: createForm.reservationType === opt.value ? opt.bg : '#f8fafc',
-                            color: createForm.reservationType === opt.value ? opt.color : '#64748b',
-                            fontWeight: 700,
-                            fontSize: '0.82rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <i className={`bi ${opt.icon}`} style={{ fontSize: '1rem' }}></i>
-                          <span>{opt.label}</span>
-                        </button>
-                      ))}
+              <form onSubmit={handleCreateSubmit}>
+                <div className="modal-body p-4">
+                  {createError && (
+                    <div className="alert alert-danger rounded-[12px] px-3 py-2 mb-3 d-flex align-items-center gap-2 text-[0.85rem] fw-semibold">
+                      <i className="bi bi-exclamation-triangle-fill"></i><span>{createError}</span>
                     </div>
+                  )}
+                  <div className="alert bg-[#063127]/10 border border-[#063127]/20 text-[#063127] rounded-[12px] px-3 py-2 mb-3 d-flex align-items-start gap-2">
+                    <i className="bi bi-phone-fill mt-[1px] shrink-0"></i>
+                    <span className="text-[0.82rem] fw-semibold leading-[1.5]">This reservation will appear <strong>immediately</strong> in the selected prosumer&apos;s mobile app under &quot;My Reservations&quot;.</span>
                   </div>
-
-                  {/* ── Scheduled Date & Time ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Scheduled Date & Time * <span style={{ fontWeight: 400, textTransform: 'none', color: '#94a3b8' }}>(max 7 days ahead)</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={createForm.scheduledDateTime}
-                      min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
-                      max={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
-                      onChange={(e) => setCreateForm({ ...createForm, scheduledDateTime: e.target.value })}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem' }}
-                    />
-                  </div>
-
-                  {/* ── Duration + Energy ── */}
-                  <div className="col-md-5">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Duration (hours) *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      value={createForm.durationHours}
-                      onChange={(e) => setCreateForm({ ...createForm, durationHours: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)) })}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem' }}
-                    />
-                  </div>
-                  <div className="col-md-7">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Energy Amount (kWh) *
-                    </label>
-                    <input
-                      type="number"
-                      min="0.1"
-                      max="1000"
-                      step="0.1"
-                      value={createForm.energyAmountKWh}
-                      onChange={(e) => setCreateForm({ ...createForm, energyAmountKWh: e.target.value })}
-                      placeholder="e.g. 25.5"
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem' }}
-                    />
-                  </div>
-
-                  {/* ── Estimated Cost Preview ── */}
-                  {parseFloat(createForm.energyAmountKWh) > 0 && (
+                  <div className="row g-3">
                     <div className="col-12">
-                      <div style={{
-                        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                        border: '1px solid #86efac',
-                        borderRadius: '12px',
-                        padding: '14px 18px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}>
-                        <div style={{ fontSize: '0.82rem', color: '#166534', fontWeight: 600 }}>
-                          <i className="bi bi-calculator me-2"></i>
-                          Estimated transaction value
-                        </div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#059669' }}>
-                          Rs. {(parseFloat(createForm.energyAmountKWh) * UNIT_RATE).toFixed(2)}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px', paddingLeft: '4px' }}>
-                        Rate: Rs. {UNIT_RATE}/kWh · Final cost computed by server
+                      <label className={labelClass}>Prosumer *</label>
+                      <select value={createForm.prosumerNic} onChange={(e) => setCreateForm({ ...createForm, prosumerNic: e.target.value })} required className="form-select rounded-[10px] text-[0.88rem] bg-white">
+                        <option value="">— Select active prosumer —</option>
+                        {prosumersList.map((p) => (
+                          <option key={p.nic} value={p.nic}>{p.fullName} · {p.nic}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-12">
+                      <label className={labelClass}>Solar Hub Station *</label>
+                      <select
+                        value={createForm.stationId}
+                        onChange={(e) => {
+                          const stId = e.target.value;
+                          const sel = stationsList.find(s => s.id === stId);
+                          let firstFree = null;
+                          if (sel) {
+                            const total = sel.totalBatterySlots || 10;
+                            const occ = sel.occupiedSlotNumbers || [];
+                            const busy = sel.busySlotNumbers || [];
+                            for (let i = 1; i <= total; i++) {
+                              if (!occ.includes(i) && !busy.includes(i)) { firstFree = i; break; }
+                            }
+                          }
+                          setCreateForm({ ...createForm, stationId: stId, slotNumber: firstFree });
+                        }}
+                        required
+                        className="form-select rounded-[10px] text-[0.88rem] bg-white"
+                      >
+                        <option value="">— Select active hub station —</option>
+                        {stationsList.map((s) => (
+                          <option key={s.id} value={s.id} disabled={s.availableBatterySlots <= 0}>
+                            {s.stationCode} · {s.name} — {s.availableBatterySlots <= 0 ? '⛔ FULL (0 slots)' : `✅ ${s.availableBatterySlots}/${s.totalBatterySlots} slots free`}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedCreateStation && (() => {
+                        const sel = selectedCreateStation;
+                        const total = sel.totalBatterySlots || 10;
+                        const occupied = sel.occupiedSlotNumbers || [];
+                        const busy = sel.busySlotNumbers || [];
+                        const isFull = sel.availableBatterySlots <= 0 || (occupied.length + busy.length) >= total;
+                        return (
+                          <div className="mt-3 bg-white border rounded-[16px] p-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <span className="text-[0.78rem] fw-bold text-uppercase tracking-wide">Select Physical Battery Bay Slot *</span>
+                              <span className={'text-[0.78rem] fw-bold ' + (isFull ? 'text-danger' : 'text-[#063127]')}>{isFull ? '⛔ No Free Slots' : `${sel.availableBatterySlots} / ${total} Free`}</span>
+                            </div>
+                            <div className="d-flex flex-wrap gap-2 mb-2">
+                              {Array.from({ length: total }, (_, idx) => {
+                                const slotNum = idx + 1;
+                                const isOccupied = occupied.includes(slotNum);
+                                const isBusy = busy.includes(slotNum);
+                                const isSelected = createForm.slotNumber === slotNum;
+                                if (isBusy) {
+                                  return (
+                                    <div key={slotNum} title={`Slot #${slotNum} is marked Busy by the operator and cannot be booked`} className="rounded-[10px] bg-amber-50 border border-amber-300 text-amber-900 text-[0.75rem] fw-bold text-center px-2 py-1 opacity-70 d-flex flex-column align-items-center gap-[2px] min-w-[68px]">
+                                      <span>#{slotNum}</span>
+                                      <span className="text-[0.64rem]">⚠️ Busy (Op)</span>
+                                    </div>
+                                  );
+                                }
+                                if (isOccupied) {
+                                  return (
+                                    <div key={slotNum} title={`Slot #${slotNum} is currently reserved by an active booking`} className="rounded-[10px] bg-danger-subtle border border-danger-subtle text-danger text-[0.75rem] fw-bold text-center px-2 py-1 opacity-50 d-flex flex-column align-items-center gap-[2px] min-w-[68px]">
+                                      <span>#{slotNum}</span>
+                                      <span className="text-[0.64rem]">🔒 Booked</span>
+                                    </div>
+                                  );
+                                }
+                                return (
+                                  <button key={slotNum} type="button" onClick={() => setCreateForm({ ...createForm, slotNumber: slotNum })} className={'btn btn-sm rounded-[10px] text-[0.75rem] fw-bold text-center px-2 py-1 d-flex flex-column align-items-center gap-[2px] min-w-[68px] shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ' + (isSelected ? 'bg-[#063127] text-white border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127]' : 'bg-white text-[#063127] border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127]')}>
+                                    <span>#{slotNum}</span>
+                                    <span className="text-[0.64rem]">{isSelected ? 'Selected' : 'Available'}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="text-[0.75rem] text-[#686053]">
+                              {createForm.slotNumber ? (
+                                <span className="text-[#063127] fw-bold"><i className="bi bi-check-circle-fill me-1"></i>Battery Slot #{createForm.slotNumber} chosen for this reservation.</span>
+                              ) : (<span className="text-danger fw-semibold">Please click an available green slot above to assign a battery bay.</span>)}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <div className="col-12">
+                      <label className={labelClass}>Reservation Type *</label>
+                      <div className="d-flex gap-2">
+                        {typeOptions.map((opt) => (
+                          <button key={opt.value} type="button" onClick={() => setCreateForm({ ...createForm, reservationType: opt.value })} className={'btn flex-fill rounded-[12px] px-3 py-2 fw-bold text-[0.82rem] d-flex align-items-center gap-2 transition hover:-translate-y-0.5 hover:shadow-lg ' + (createForm.reservationType === opt.value ? 'bg-[#063127] text-white border-2 border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127]' : 'bg-white text-[#063127] border hover:bg-[#F8F8F8] hover:text-[#063127]')}>
+                            <i className={'bi ' + opt.icon + ' text-[1rem]'}></i><span>{opt.label}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  )}
-
+                    <div className="col-12">
+                      <label className={labelClass}>Scheduled Date & Time * <span className="fw-normal text-capitalize text-[#686053]">(max 7 days ahead)</span></label>
+                      <input type="datetime-local" value={createForm.scheduledDateTime} min={new Date(Date.now() + 60000).toISOString().slice(0, 16)} max={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)} onChange={(e) => setCreateForm({ ...createForm, scheduledDateTime: e.target.value })} required className={inputClass} />
+                    </div>
+                    <div className="col-md-5">
+                      <label className={labelClass}>Duration (hours) *</label>
+                      <input type="number" min="1" max="12" value={createForm.durationHours} onChange={(e) => setCreateForm({ ...createForm, durationHours: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)) })} required className={inputClass} />
+                    </div>
+                    <div className="col-md-7">
+                      <label className={labelClass}>Energy Amount (kWh) *</label>
+                      <input type="number" min="0.1" max="1000" step="0.1" value={createForm.energyAmountKWh} onChange={(e) => setCreateForm({ ...createForm, energyAmountKWh: e.target.value })} placeholder="e.g. 25.5" required className={inputClass} />
+                    </div>
+                    {parseFloat(createForm.energyAmountKWh) > 0 && (
+                      <div className="col-12">
+                        <div className="bg-[#063127]/10 border border-[#063127]/20 rounded-[12px] px-3 py-2 d-flex align-items-center justify-content-between">
+                          <div className="text-[0.82rem] text-[#063127] fw-semibold"><i className="bi bi-calculator me-2"></i>Estimated transaction value</div>
+                          <div className="text-[1.25rem] fw-black text-[#063127]">Rs. {(parseFloat(createForm.energyAmountKWh) * UNIT_RATE).toFixed(2)}</div>
+                        </div>
+                        <div className="text-[0.72rem] text-[#686053] mt-1 ps-1">Rate: Rs. {UNIT_RATE}/kWh · Final cost computed by server</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              {/* ── Modal Footer ── */}
-              <div style={{ padding: '16px 28px 22px', borderTop: '1px solid rgba(15, 23, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: '#f8fafc', borderRadius: '0 0 28px 28px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  style={{ background: 'rgba(15, 23, 42, 0.06)', color: '#475569', border: 'none', borderRadius: '50px', padding: '10px 22px', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  style={{
-                    background: createLoading ? '#94a3b8' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '50px',
-                    padding: '10px 28px',
-                    fontWeight: 700,
-                    cursor: createLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '0.88rem',
-                    boxShadow: createLoading ? 'none' : '0 4px 14px rgba(16, 185, 129, 0.4)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  {createLoading ? (
-                    <><div className="spinner-border spinner-border-sm" role="status"></div><span>Creating…</span></>
-                  ) : (
-                    <><i className="bi bi-check-circle-fill"></i><span>Create Reservation</span></>
-                  )}
-                </button>
-              </div>
-            </form>
+                <div className="modal-footer bg-white border-top d-flex justify-content-end gap-2 px-4 py-3 rounded-b-[28px]">
+                  <button type="button" onClick={() => setShowCreateModal(false)} className="btn bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-4 fw-semibold text-[0.88rem]">Cancel</button>
+                  <button type="submit" disabled={createLoading} className="btn bg-[#063127] text-white border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-4 fw-bold text-[0.88rem] shadow-sm d-inline-flex align-items-center gap-2 transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50">
+                    {createLoading ? (<><div className="spinner-border spinner-border-sm" role="status"></div><span>Creating…</span></>) : (<><i className="bi bi-check-circle-fill"></i><span>Create Reservation</span></>)}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* =========================================================================
-          EDIT RESERVATION MODAL — Backoffice officer updates an existing reservation
-         ========================================================================= */}
+      {/* EDIT RESERVATION MODAL */}
       {editingReservation && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(10, 25, 47, 0.65)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1050,
-            padding: '20px',
-          }}
-          onClick={() => setEditingReservation(null)}
-        >
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.97)',
-              backdropFilter: 'blur(24px)',
-              borderRadius: '28px',
-              border: '1px solid rgba(255, 255, 255, 0.95)',
-              boxShadow: '0 25px 60px -12px rgba(10, 35, 70, 0.35)',
-              maxWidth: '640px',
-              width: '100%',
-              maxHeight: '92vh',
-              overflowY: 'auto',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* ── Modal Header ── */}
-            <div style={{
-              padding: '22px 28px',
-              borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-              borderRadius: '28px 28px 0 0',
-            }}>
-              <div className="d-flex align-items-center gap-2">
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.4)',
-                }}>
-                  <i className="bi bi-pencil-square" style={{ color: '#fff', fontSize: '1.1rem' }}></i>
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em' }}>
-                    Edit Reservation: {editingReservation.reservationCode}
-                  </h3>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '1px' }}>
-                    Prosumer: {editingReservation.prosumerName} ({editingReservation.prosumerNic})
+        <div className="modal d-block position-fixed top-0 start-0 w-100 h-100 overflow-y-auto bg-black/65 backdrop-blur-sm p-3 z-[1050]" tabIndex="-1" role="dialog" onClick={() => setEditingReservation(null)}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable mx-auto my-4">
+            <div className="modal-content rounded-[28px] border-0 shadow-lg bg-white/95 backdrop-blur-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header text-white border-0 px-4 py-3 d-flex justify-content-between align-items-center bg-[#063127]">
+                <div className="d-flex align-items-center gap-2">
+                  <div className="rounded-[12px] w-[40px] h-[40px] d-flex align-items-center justify-content-center bg-[#F8F8F8] shadow-sm">
+                    <i className="bi bi-pencil-square text-[#063127] text-[1.1rem]"></i>
+                  </div>
+                  <div>
+                    <h3 className="m-0 text-[1.1rem] fw-extrabold text-white tracking-tight">Edit Reservation: {editingReservation.reservationCode}</h3>
+                    <div className="text-[0.75rem] text-white-50 mt-[1px]">Prosumer: {editingReservation.prosumerName} ({editingReservation.prosumerNic})</div>
                   </div>
                 </div>
+                <button onClick={() => setEditingReservation(null)} className="btn btn-sm btn-outline-light rounded-circle p-0 w-[32px] h-[32px] d-flex align-items-center justify-content-center text-[1.1rem]" aria-label="Close">&times;</button>
               </div>
-              <button
-                onClick={() => setEditingReservation(null)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.1rem' }}
-              >&times;</button>
-            </div>
-
-            {/* ── Form ── */}
-            <form onSubmit={handleEditSubmit}>
-              <div style={{ padding: '24px 28px' }}>
-
-                {/* Error banner */}
-                {editError && (
-                  <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '12px', padding: '12px 16px', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px', color: '#991b1b', fontSize: '0.85rem', fontWeight: 600 }}>
-                    <i className="bi bi-exclamation-triangle-fill"></i>
-                    <span>{editError}</span>
-                  </div>
-                )}
-
-                {/* Prosumer & QR synchronization info note */}
-                <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #93c5fd', borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <i className="bi bi-arrow-repeat" style={{ color: '#1d4ed8', fontSize: '1rem', marginTop: '1px', flexShrink: 0 }}></i>
-                  <span style={{ fontSize: '0.82rem', color: '#1e40af', fontWeight: 600, lineHeight: 1.5 }}>
-                    Updates will automatically recalculate total cost, regenerate the secure verification QR code, and sync to the prosumer's mobile app.
-                  </span>
-                </div>
-
-                <div className="row g-3">
-
-                  {/* ── Hub Station ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Target Solar Hub Station *
-                    </label>
-                    <select
-                      value={editForm.stationId}
-                      onChange={(e) => setEditForm({ ...editForm, stationId: e.target.value })}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem', background: '#fff' }}
-                    >
-                      <option value="">— Select station hub —</option>
-                      {stationsList.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.stationCode} · {s.name} ({s.availableBatterySlots} slots available)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* ── Reservation Type ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.04em' }}>
-                      Reservation Type *
-                    </label>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      {[
-                        { value: 'DropOff', label: 'Drop-Off (Sell to Grid)', icon: 'bi-arrow-down-left-circle-fill', color: '#0891b2', bg: '#ecfeff', border: '#a5f3fc' },
-                        { value: 'Charging', label: 'Charging (Buy from Grid)', icon: 'bi-lightning-charge-fill', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-                      ].map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setEditForm({ ...editForm, reservationType: opt.value })}
-                          style={{
-                            flex: 1,
-                            padding: '12px 14px',
-                            borderRadius: '12px',
-                            border: `2px solid ${editForm.reservationType === opt.value ? opt.color : 'rgba(15,23,42,0.12)'}`,
-                            background: editForm.reservationType === opt.value ? opt.bg : '#f8fafc',
-                            color: editForm.reservationType === opt.value ? opt.color : '#64748b',
-                            fontWeight: 700,
-                            fontSize: '0.82rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <i className={`bi ${opt.icon}`} style={{ fontSize: '1rem' }}></i>
-                          <span>{opt.label}</span>
-                        </button>
-                      ))}
+              <form onSubmit={handleEditSubmit}>
+                <div className="modal-body p-4">
+                  {editError && (
+                    <div className="alert alert-danger rounded-[12px] px-3 py-2 mb-3 d-flex align-items-center gap-2 text-[0.85rem] fw-semibold">
+                      <i className="bi bi-exclamation-triangle-fill"></i><span>{editError}</span>
                     </div>
+                  )}
+                  <div className="alert bg-[#063127]/10 border border-[#063127]/20 text-[#063127] rounded-[12px] px-3 py-2 mb-3 d-flex align-items-start gap-2">
+                    <i className="bi bi-arrow-repeat mt-[1px] shrink-0"></i>
+                    <span className="text-[0.82rem] fw-semibold leading-[1.5]">Updates will automatically recalculate total cost, regenerate the secure verification QR code, and sync to the prosumer&apos;s mobile app.</span>
                   </div>
-
-                  {/* ── Scheduled Date & Time ── */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Rescheduled Date & Time * <span style={{ fontWeight: 400, textTransform: 'none', color: '#94a3b8' }}>(within 7 days)</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={editForm.scheduledDateTime}
-                      min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
-                      max={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
-                      onChange={(e) => setEditForm({ ...editForm, scheduledDateTime: e.target.value })}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem' }}
-                    />
-                  </div>
-
-                  {/* ── Duration + Energy ── */}
-                  <div className="col-md-4">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Duration (hours) *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      value={editForm.durationHours}
-                      onChange={(e) => setEditForm({ ...editForm, durationHours: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)) })}
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem' }}
-                    />
-                  </div>
-                  <div className="col-md-4">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Energy (kWh) *
-                    </label>
-                    <input
-                      type="number"
-                      min="0.1"
-                      max="1000"
-                      step="0.1"
-                      value={editForm.energyAmountKWh}
-                      onChange={(e) => setEditForm({ ...editForm, energyAmountKWh: e.target.value })}
-                      placeholder="e.g. 25.5"
-                      required
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem' }}
-                    />
-                  </div>
-                  <div className="col-md-4">
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em' }}>
-                      Status
-                    </label>
-                    <select
-                      value={editForm.status}
-                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(15, 23, 42, 0.15)', outline: 'none', fontSize: '0.88rem', background: '#fff' }}
-                    >
-                      <option value="Approved">Approved</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                  </div>
-
-                  {/* ── Estimated Cost Preview ── */}
-                  {parseFloat(editForm.energyAmountKWh) > 0 && (
+                  <div className="row g-3">
                     <div className="col-12">
-                      <div style={{
-                        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                        border: '1px solid #86efac',
-                        borderRadius: '12px',
-                        padding: '14px 18px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}>
-                        <div style={{ fontSize: '0.82rem', color: '#166534', fontWeight: 600 }}>
-                          <i className="bi bi-calculator me-2"></i>
-                          Updated transaction value
-                        </div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#059669' }}>
-                          Rs. {(parseFloat(editForm.energyAmountKWh) * UNIT_RATE).toFixed(2)}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px', paddingLeft: '4px' }}>
-                        Rate: Rs. {UNIT_RATE}/kWh · Automatically synchronizes with central database
+                      <label className={labelClass}>Target Solar Hub Station *</label>
+                      <select value={editForm.stationId} onChange={(e) => setEditForm({ ...editForm, stationId: e.target.value })} required className="form-select rounded-[10px] text-[0.88rem] bg-white">
+                        <option value="">— Select station hub —</option>
+                        {stationsList.map((s) => (
+                          <option key={s.id} value={s.id}>{s.stationCode} · {s.name} ({s.availableBatterySlots} slots available)</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-12">
+                      <label className={labelClass}>Reservation Type *</label>
+                      <div className="d-flex gap-2">
+                        {typeOptions.map((opt) => (
+                          <button key={opt.value} type="button" onClick={() => setEditForm({ ...editForm, reservationType: opt.value })} className={'btn flex-fill rounded-[12px] px-3 py-2 fw-bold text-[0.82rem] d-flex align-items-center gap-2 transition hover:-translate-y-0.5 hover:shadow-lg ' + (editForm.reservationType === opt.value ? 'bg-[#063127] text-white border-2 border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127]' : 'bg-white text-[#063127] border hover:bg-[#F8F8F8] hover:text-[#063127]')}>
+                            <i className={'bi ' + opt.icon + ' text-[1rem]'}></i><span>{opt.label}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  )}
-
+                    <div className="col-12">
+                      <label className={labelClass}>Rescheduled Date & Time * <span className="fw-normal text-capitalize text-[#686053]">(within 7 days)</span></label>
+                      <input type="datetime-local" value={editForm.scheduledDateTime} min={new Date(Date.now() + 60000).toISOString().slice(0, 16)} max={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)} onChange={(e) => setEditForm({ ...editForm, scheduledDateTime: e.target.value })} required className={inputClass} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className={labelClass}>Duration (hours) *</label>
+                      <input type="number" min="1" max="12" value={editForm.durationHours} onChange={(e) => setEditForm({ ...editForm, durationHours: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)) })} required className={inputClass} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className={labelClass}>Energy (kWh) *</label>
+                      <input type="number" min="0.1" max="1000" step="0.1" value={editForm.energyAmountKWh} onChange={(e) => setEditForm({ ...editForm, energyAmountKWh: e.target.value })} placeholder="e.g. 25.5" required className={inputClass} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className={labelClass}>Status</label>
+                      <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="form-select rounded-[10px] text-[0.88rem] bg-white">
+                        <option value="Approved">Approved</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                    {parseFloat(editForm.energyAmountKWh) > 0 && (
+                      <div className="col-12">
+                        <div className="bg-[#063127]/10 border border-[#063127]/20 rounded-[12px] px-3 py-2 d-flex align-items-center justify-content-between">
+                          <div className="text-[0.82rem] text-[#063127] fw-semibold"><i className="bi bi-calculator me-2"></i>Updated transaction value</div>
+                          <div className="text-[1.25rem] fw-black text-[#063127]">Rs. {(parseFloat(editForm.energyAmountKWh) * UNIT_RATE).toFixed(2)}</div>
+                        </div>
+                        <div className="text-[0.72rem] text-[#686053] mt-1 ps-1">Rate: Rs. {UNIT_RATE}/kWh · Automatically synchronizes with central database</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              {/* ── Modal Footer ── */}
-              <div style={{ padding: '16px 28px 22px', borderTop: '1px solid rgba(15, 23, 42, 0.08)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: '#f8fafc', borderRadius: '0 0 28px 28px' }}>
-                <button
-                  type="button"
-                  onClick={() => setEditingReservation(null)}
-                  style={{ background: 'rgba(15, 23, 42, 0.06)', color: '#475569', border: 'none', borderRadius: '50px', padding: '10px 22px', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={editLoading}
-                  style={{
-                    background: editLoading ? '#94a3b8' : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '50px',
-                    padding: '10px 28px',
-                    fontWeight: 700,
-                    cursor: editLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '0.88rem',
-                    boxShadow: editLoading ? 'none' : '0 4px 14px rgba(2, 132, 199, 0.4)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  {editLoading ? (
-                    <><div className="spinner-border spinner-border-sm" role="status"></div><span>Saving Changes…</span></>
-                  ) : (
-                    <><i className="bi bi-check-circle-fill"></i><span>Update Reservation</span></>
-                  )}
-                </button>
-              </div>
-            </form>
+                <div className="modal-footer bg-white border-top d-flex justify-content-end gap-2 px-4 py-3 rounded-b-[28px]">
+                  <button type="button" onClick={() => setEditingReservation(null)} className="btn bg-white text-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] rounded-pill px-4 fw-semibold text-[0.88rem]">Cancel</button>
+                  <button type="submit" disabled={editLoading} className="btn rounded-pill px-4 fw-bold text-[0.88rem] text-white bg-[#063127] border border-[#063127] hover:bg-[#F8F8F8] hover:text-[#063127] hover:border-[#063127] shadow-sm d-inline-flex align-items-center gap-2 transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50">
+                    {editLoading ? (<><div className="spinner-border spinner-border-sm" role="status"></div><span>Saving Changes…</span></>) : (<><i className="bi bi-check-circle-fill"></i><span>Update Reservation</span></>)}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

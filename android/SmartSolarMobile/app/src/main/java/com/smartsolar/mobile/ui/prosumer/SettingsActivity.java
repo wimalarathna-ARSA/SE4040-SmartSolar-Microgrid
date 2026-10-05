@@ -97,19 +97,19 @@ public class SettingsActivity extends AppCompatActivity {
         try {
             if (btnLight != null) {
                 btnLight.setBackgroundResource(dark
-                        ? R.drawable.bg_pill_tab_unselected
-                        : R.drawable.bg_pill_tab_selected);
+                        ? R.drawable.bg_theme_unselected
+                        : R.drawable.bg_theme_selected);
                 btnLight.setTextColor(getResources().getColor(dark
-                        ? R.color.neuro_tab_text_unselected
-                        : R.color.neuro_tab_text_selected));
+                        ? R.color.chart_teal_300
+                        : R.color.white));
             }
             if (btnDark != null) {
                 btnDark.setBackgroundResource(dark
-                        ? R.drawable.bg_pill_tab_selected
-                        : R.drawable.bg_pill_tab_unselected);
+                        ? R.drawable.bg_theme_selected
+                        : R.drawable.bg_theme_unselected);
                 btnDark.setTextColor(getResources().getColor(dark
-                        ? R.color.neuro_tab_text_selected
-                        : R.color.neuro_tab_text_unselected));
+                        ? R.color.white
+                        : R.color.chart_teal_300));
             }
         } catch (Exception ignored) {}
     }
@@ -133,6 +133,9 @@ public class SettingsActivity extends AppCompatActivity {
                 .setView(view)
                 .setCancelable(true)
                 .create();
+        if (resetDialog.getWindow() != null) {
+            resetDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
         resetDialog.show();
 
         final String[] identifier = { preId != null ? preId : "" };
@@ -185,6 +188,9 @@ public class SettingsActivity extends AppCompatActivity {
                 .setView(view)
                 .setCancelable(false)
                 .create();
+        if (resetDialog.getWindow() != null) {
+            resetDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
         resetDialog.show();
 
         resetCountDown = new CountDownTimer(5 * 60 * 1000L, 1000) {
@@ -248,6 +254,9 @@ public class SettingsActivity extends AppCompatActivity {
                 .setView(view)
                 .setCancelable(false)
                 .create();
+        if (resetDialog.getWindow() != null) {
+            resetDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
         resetDialog.show();
 
         view.findViewById(R.id.btn_reset_confirm).setOnClickListener(v -> {

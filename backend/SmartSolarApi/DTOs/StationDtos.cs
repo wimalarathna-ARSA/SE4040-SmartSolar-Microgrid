@@ -109,6 +109,17 @@ namespace SmartSolarApi.DTOs
     }
 
     /// <summary>
+    /// Request payload for Grid Operators to mark a slot as busy or release it.
+    /// </summary>
+    public class SetSlotBusyDto
+    {
+        // Whether the slot is being marked busy (true) or released (false)
+        public bool IsBusy { get; set; } = true;
+        // Optional operator note or reason for slot state
+        public string? Reason { get; set; }
+    }
+
+    /// <summary>
     /// Response payload representing a solar microgrid hub.
     /// </summary>
     public class StationResponseDto
@@ -123,6 +134,7 @@ namespace SmartSolarApi.DTOs
         public int AvailableBatterySlots { get; set; }
         public int TotalBatterySlots { get; set; }
         public List<int> OccupiedSlotNumbers { get; set; } = new();
+        public List<int> BusySlotNumbers { get; set; } = new();
         public string OperationalSchedule { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public int ActiveReservationsCount { get; set; }

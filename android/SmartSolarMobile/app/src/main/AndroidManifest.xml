@@ -119,6 +119,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.operator.OperatorAnalyticsActivity"
+            android:label="Fleet Analytics"
+            android:exported="false" />
+
+        <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="fullSensor"
             tools:replace="android:screenOrientation"
